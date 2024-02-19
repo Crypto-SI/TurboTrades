@@ -15,7 +15,7 @@ import {
 //router
 import { useRouter } from "next/navigation";
 //types
-import { ChainType, IWallet } from '@/utils/types';
+import { ChainType, IWallet } from '@/types/minis';
 //data
 import { CHAIN_DATA } from '@/utils/data';
 import { reduceAmount } from "@/utils/methods";
@@ -60,10 +60,10 @@ const Header = () => {
     <div className="cursor-pointer flex gap-2 items-center justify-center rounded-full px-5 py-2 text-4 w-full bg-white dark:bg-black dark:text-white text-black dark:hover:text-[#ccc] hover:text-[#ccc]">
       <div>Wallet:</div>
       <Image
-        className='cursor-pointer'
+        className='cursor-pointer rounded-full'
         src={CHAIN_DATA[curBalance?.chain as string] ? CHAIN_DATA[curBalance?.chain as string].image as string : ""}
-        width={30}
-        height={30}
+        width={33}
+        height={33}
         alt={"refresh"}
         priority={true}
       />
@@ -79,23 +79,24 @@ const Header = () => {
     </div>
   )
 
-  console.log(xBalances)
   const _renderProfile = () => (
     <Dropdown label="" renderTrigger={_profileButton}>
-    {
-      Object.keys(xBalances).map((key:string, index: number) => (
-        <Dropdown.Item onClick={() => setCurBalance(xBalances[key])} key={"chain_" + index} className="flex gap-3">
-          <Image
-            className='cursor-pointer'
-            src={CHAIN_DATA[xBalances[key].chain as string].image}
-            width={22}
-            height={22}
-            alt={"refresh"}
-            priority={true}
-          /> {CHAIN_DATA[xBalances[key].chain as string].name}
-        </Dropdown.Item>
-      ))
-    }
+      {
+        Object.keys(xBalances).map((key:string, index: number) => (
+          <Dropdown.Item onClick={() => setCurBalance(xBalances[key])} key={"chain_" + index} className="flex gap-3">
+            <Image
+              className='cursor-pointer'
+              src={CHAIN_DATA[xBalances[key].chain as string].image}
+              width={22}
+              height={22}
+              alt={"refresh"}
+              priority={true}
+            /> {CHAIN_DATA[xBalances[key].chain as string].name}
+          </Dropdown.Item>
+        ))
+      }
+      <Dropdown.Divider />
+      <Dropdown.Item><Icon icon="tabler:logout" className="mr-2" width={26}/>Disconnect</Dropdown.Item>
     </Dropdown>
   )
 
@@ -109,6 +110,7 @@ const Header = () => {
           height={20} 
           alt={"logo"}      
           priority={true}
+          
         />
         <div className="flex xs:hidden items-center justify-center cursor-pointer" onClick={handleToggle}>
           <Icon icon="ph:list" className="dark:text-white text-black" height={30}/>

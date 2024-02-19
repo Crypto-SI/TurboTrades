@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import { XClients, XClientLoading, XBalances } from "@/utils/types";
+import { XClients, XClientLoading, XBalances } from "@/types/minis";
 
 export const xClientsAtom = atom<XClients>({});
 export const xBalancesAtom = atom<XBalances>({});

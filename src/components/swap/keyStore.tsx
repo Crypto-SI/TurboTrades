@@ -13,7 +13,7 @@ import {
   chainListAtom
 } from "@/store";
 
-import { ChainType } from '@/utils/types';
+import { ChainType } from '@/types/minis';
 
 import useXChain from '@/hooks/useXChain';
 

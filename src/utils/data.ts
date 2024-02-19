@@ -1,4 +1,4 @@
-import { ChainType, WalletType } from "@/utils/types";
+import { ChainType, WalletType } from "@/types/minis";
 
 export const NATIVE_TOKENS = {
   THOR: "RUNE",
@@ -19,6 +19,14 @@ export const InitialwalletList: WalletType[] = [
     selected: false
   },
   { 
+    name: "Metamask", 
+    image: "/images/wallets/metamask.svg",
+    supportedChains: ["ETH"],
+    // supportedChains: ["ETH"],
+    focused: false,
+    selected: false
+  },
+  { 
     name: "Keystore", 
     image: "/images/wallets/keystore.svg",
     supportedChains: ["BTC", "ETH", "MAYA", "DASH", "KUJI", "THOR"],
@@ -33,14 +41,6 @@ export const InitialwalletList: WalletType[] = [
   //   supportedChains: ["BTC", "LTC", "BCH", "DOGE", "ETH", "AVAX", "BSC", "BNB", "GAIA", "THOR"]
   // },
   // { 
-  //   name: "Metamask", 
-  //   image: "/images/wallets/metamask.svg",
-  //   supportedChains: ["ETH", "AVAX", "BSC"],
-  //   // supportedChains: ["ETH"],
-  //   focused: false,
-  //   selected: false
-  // },
-  // { 
   //   name: "WalletConnect", 
   //   image: "/images/wallets/walletconnect.svg",
   //   supportedChains: ["ETH", "AVAX", "BSC"],
@@ -53,52 +53,62 @@ export const InitialwalletList: WalletType[] = [
  */
 export const TOKEN_DATA: Record<string, any> = {
   "MAYA.CACAO": { 
-    label: "CACAO", 
+    ticker: "CACAO", 
+    chain: "MAYA",
     name: "Maya chain", 
     image: "/images/tokens/cacao.png"
   },
   "BTC.BTC": { 
-    label: "BTC", 
+    ticker: "BTC", 
+    chain: "BTC",
     name: "Bitcoin", 
     image: "/images/tokens/btc.webp"
   },
   "ETH.ETH": { 
-    label: "ETH", 
+    ticker: "ETH", 
+    chain: "ETH",
     name: "Ethereum", 
     image: "/images/tokens/eth.png"
   },
   "KUJI.KUJI": { 
-    label: "KUJI", 
+    ticker: "KUJI", 
+    chain: "KUJI",
     name: "Kuji chain", 
     image: "/images/tokens/kuji.png"
    },
    "DASH.DASH": { 
-    label: "DASH", 
+    ticker: "DASH", 
+    chain: "DASH",
     name: "Dash chain", 
     image: "/images/tokens/dash.png" 
    },
    "THOR.RUNE": { 
-    label: "RUNE", 
+    ticker: "RUNE",
+    chain: "THOR", 
     name: "Thorchain", 
     image: "/images/tokens/rune.png"
    },
-   "ETH.USDT": { 
-    label: "USDT", 
+   "ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7": { 
+    ticker: "USDT",
+    chain: "ETH", 
     name: "Ethereum", 
     image: "/images/tokens/usdt.png"
    },
-   "ETH.USDC": { 
-    label: "USDC", 
+   "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48": { 
+    ticker: "USDC",
+    chain: "ETH", 
     name: "Ethereum", 
     image: "/images/tokens/usdc.png"
    },
    "KUJI.USK": { 
-    label: "USK", 
+    ticker: "USK", 
+    chain: "KUJI",
     name: "KUJI chain", 
     image: "/images/tokens/usk.png"
    },
-   "ETH.WSTETH": { 
-    label: "WSTETH", 
+   "ETH.WSTETH-0X7F39C581F595B53C5CB19BD0B3F8DA6C935E2CA0": { 
+    ticker: "WSTETH", 
+    chain: "ETH",
     name: "Ethereum", 
     image: "/images/tokens/wsteth.png"
    },

@@ -1,5 +1,5 @@
 "use client"
-import { ChainType, WalletType } from "@/utils/types";
+import { ChainType, WalletType } from "@/types/minis";
 import BigNumber from 'bignumber.js';
 
 /**

@@ -5,7 +5,7 @@ import { Icon } from '@iconify/react';
 import { useAtom } from 'jotai';
 import axios from 'axios';
 import dynamic from "next/dynamic";
-
+//data
 import {
   TOKEN_DATA
 } from "@/utils/data";
@@ -14,24 +14,131 @@ import {
   stageAtom,
   poolsAtom,
   fromTokenAtom,
-  toTokenAtom
+  toTokenAtom,
+  xBalancesAtom,
+  QuoteSwapResponseAtom
 } from '@/store';
 //types
-import { IPool } from "@/utils/types";
+import { IPool } from "@/types/maya";
+import BigNumber from 'bignumber.js';
+import { IBalance } from "@/types/minis";
 //components
 const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
+//utils
+import { reduceAmount } from "@/utils/methods";
 
 const Swap = () => {
 
   const [stage, setStage] = useAtom(stageAtom);
   const [pools, setPools] = useAtom(poolsAtom);
+  const [quoteSwapResponse, setQuoteSwapResponse] = useAtom(QuoteSwapResponseAtom);
 
   
   const [showFromTokens, setShowFromTokens] = React.useState<Boolean>(false);
   const [showToTokens, setShowToTokens] = React.useState<Boolean>(false);
 
+  const [xBalances, setXBalances] = useAtom(xBalancesAtom);
+
   const [fromToken, setFromToken] = useAtom(fromTokenAtom);
   const [toToken, setToToken] = useAtom(toTokenAtom);
+
+  const [fromAmount, setFromAmount] = React.useState<string>("");
+  const [toAmount, setToAmount] = React.useState<string>("");
+
+  const [error, setError] = React.useState<string>("");
+
+  /**
+   * calculate src balance
+   * @returns string
+   */
+  const _fromBalance = () => React.useMemo(() => {
+    try {
+      if (!fromToken) throw "0";
+      if (Object.keys(xBalances).length === 0) throw "0";
+      for (const key in xBalances) {
+        xBalances[key].balance.forEach((balance: IBalance) => {
+          if (fromToken.ticker === balance.ticker) throw reduceAmount(balance.amount);
+        })
+      }
+      throw "0";
+    } catch (value) {
+      return value as string;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [xBalances, fromToken]);
+  /**
+   * calculate destination balance
+   * @returns string
+   */
+  const _toBalance = () => React.useMemo(() => {
+    try {
+      if (!toToken) throw "0";
+      if (Object.keys(xBalances).length === 0) throw "0";
+      for (const key in xBalances) {
+        xBalances[key].balance.forEach((balance: IBalance) => {
+          if (toToken.ticker === balance.ticker) throw reduceAmount(balance.amount);
+        })
+      }
+      throw "0";
+    } catch (value) {
+      return value as string;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [xBalances, toToken]);
+  /**
+   * 
+   * @param e 
+   * @returns 
+   */
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    //@ts-ignore
+    if (Number(value) < 0 || isNaN(Number(value)) || value.length > 15) {
+      return;
+    }
+    setFromAmount(value);
+  }
+  /**
+   * calculate estimated amount to swap possible
+   */
+  const _estimateAmount = async () => {
+    let src = "", des = "";
+    if (Object.keys(xBalances).length === 0) {
+      src="";
+      des="";//&destination=kujira1cd5kzygxfzylez8q4vak55pwj2z7a6hweat0zw
+    } else {
+
+    }
+
+    let decimals = 10**8;
+    if (fromToken?.ticker === "CACAO") {
+      decimals = 10**10;
+    }
+    let amount: any = Number(fromAmount)*decimals;
+    amount = amount.toLocaleString('fullwide', {useGrouping:false});
+    const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&amount=${amount}`);
+    if (data.error) {
+      setError(data.error);
+    } else {
+      setQuoteSwapResponse(data);
+      const outBount: any = (Number(data.expected_amount_out) / 10**8).toLocaleString('fullwide', {useGrouping:false});
+      setToAmount(outBount);
+      setError("");
+    }
+  }
+
+  React.useEffect(() => {
+    // if (fromToken && toToken) {
+    if (fromToken && toToken && Number(fromAmount) > 0) {
+      _estimateAmount ();
+    } else if (fromAmount === "") {
+      setToAmount ("");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromAmount, fromToken, toToken]);
+
+
+
 
   return (
     <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full md:w-[calc(100vw-360px)] lg:w-[460px]">
@@ -40,6 +147,9 @@ const Swap = () => {
           {
             [25, 50, 75, 100].map((item: Number) => <div key={item + ""} className="w-[49%] mt-1 xxs:mt-0 xxs:w-[24%] bg-[#F3F7FC] text-black dark:text-white dark:bg-[#171A1F] border border-[#F3F7FC] dark:border-[#222832] p-5 rounded-xl flex items-center justify-center">{item+""}%</div>)
           }
+        </div>
+        <div className={`text-center text-black bg-[#FFC107] w-full rounded-xl mt-5 px-4 py-3 ${ !error && "hidden" }`}>
+          { error.split(": unknown request")[0] }.
         </div>
 
         <div className="bg-[#F3F7FC] dark:text-[#8A8D92] dark:bg-[#030506] w-full rounded-2xl mt-3 px-4 py-5">
@@ -63,9 +173,10 @@ const Swap = () => {
             }
             <div  className="grow pl-3">
               <input
-                min="0"
+                onChange={handleAmountChange}
                 disabled={!fromToken}
                 placeholder="0.0"
+                value={fromAmount}
                 className="bg-transparent py-4 rounded-[12px] w-full outline-none text-right border-none" 
               />
             </div>
@@ -74,7 +185,7 @@ const Swap = () => {
           </div>
           <div className="mt-2 text-sm">
             <span className="text-[#A4A8B2] dark:text-white">Balance:</span> 
-            <span className="text-[#6978A0] dark:text-[#6978A0]"> 350USDT (42.BTC)</span>
+            <span className="text-[#6978A0] dark:text-[#6978A0]"> { _fromBalance() } (42.BTC)</span>
           </div>
 
           <div className="relative mt-6 border-dashed border-b border-[#00000059] dark:border-[#ffffff4f]">
@@ -103,8 +214,8 @@ const Swap = () => {
             }
             <div  className="grow pl-3">
               <input
-                min="0"
-                disabled={!toToken}
+                disabled
+                value={toAmount}
                 placeholder="0.0"
                 className="bg-transparent py-4 rounded-[12px] w-full outline-none text-right border-none" 
               />
@@ -113,7 +224,7 @@ const Swap = () => {
           </div>
           <div className="mt-2 text-sm">
             <span className="text-[#A4A8B2] dark:text-white">Balance:</span> 
-            <span className="text-[#6978A0] dark:text-[#6978A0]"> 42BTC (250USDT)</span>
+            <span className="text-[#6978A0] dark:text-[#6978A0]"> { _toBalance() } (250USDT)</span>
           </div>
         </div>
 

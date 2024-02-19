@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Icon } from '@iconify/react';
 import { useAtom } from 'jotai';
 //typs
-import { IPool } from '@/utils/types'; 
+import { IPool } from '@/types/maya'; 
 //atoms
 import {
   poolsAtom,
@@ -29,7 +29,7 @@ const TokenSelector = (props: PropsType) => {
   }
 
   return (
-    <div className={`absolute top-full mt-2 z-10 left-0 w-full ${!props.visible && 'hidden'}`}>
+    <div className={`absolute top-full mt-2 z-10 left-0 w-full mb-10 ${!props.visible && 'hidden'}`}>
       <div
         className="fixed opacity-0 top-0 left-0 right-0 bottom-0"
         onClick={() => {
@@ -46,7 +46,7 @@ const TokenSelector = (props: PropsType) => {
               height={30}
               alt={pool.image + ""}
               priority={true}
-              className='rounded-full'
+              className={`rounded-full ${pool.ticker?.charAt(0) === "s" && 'border-white border-2'}`}
             />
             { pool.ticker } ({pool.chain})
           </div>

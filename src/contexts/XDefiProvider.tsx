@@ -15,7 +15,7 @@ import {
   xDefiAddressesAtom
 } from "@/store";
 
-import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/utils/types";
+import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
 import { NATIVE_TOKENS } from "@/utils/data";
 
 interface IXDefiContext {

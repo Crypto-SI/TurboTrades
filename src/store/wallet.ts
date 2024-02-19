@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import { IWallet, IBalance, ChainType, WalletType } from '@/utils/types';
+import { IWallet, IBalance, ChainType, WalletType } from '@/types/minis';
 
 import { InitialwalletList, InitialchainList } from "@/utils/data";
 import { isSupportedChain, isXDefiInstalled, isMetamaskInstalled } from '@/utils/methods';

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Icon } from '@iconify/react';
 import dynamic from "next/dynamic";
 //types
-import { ChainType, WalletType } from "@/utils/types";
+import { ChainType, WalletType } from "@/types/minis";
 //tooltip
 import { Tooltip } from 'flowbite-react';
 import useNotification from "@/hooks/useNotification";

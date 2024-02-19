@@ -11,16 +11,17 @@ import {
   stageAtom,
   fromTokenAtom,
   toTokenAtom,
-  poolsAtom
+  poolsAtom,
+  tokenPricesAtom
 } from '@/store';
 //data
 import {
   TOKEN_DATA
 } from "@/utils/data";
 //utils
-import { splitToAsset } from '@/utils/methods';
+
 //types
-import { IPool } from '@/utils/types';
+import { IPool } from '@/types/maya';
 
 const Home = () => {
   
@@ -28,35 +29,59 @@ const Home = () => {
   const [stage, setStage] = useAtom(stageAtom);
   const [fromToken, setFromToken] = useAtom(fromTokenAtom);
   const [toToken, setToToken] = useAtom(toTokenAtom);
+  const [tokenPrices, setTokenPrices] = useAtom(tokenPricesAtom);
 
   //get pools
   React.useEffect(() => {
     async function init () {
       try {
+
+        const _prices: Record<string, string> = {};
+
         const _cacao = await axios.get("https://midgard.mayachain.info/v2/stats");
         const cacao: IPool = {
           assetPriceUSD: _cacao.data.cacaoPriceUSD,
           asset: "MAYA.CACAO",
           token: "CACAO",
           chain: "MAYA",
+          name: "MAYA chain",
           ticker: "CACAO",
           image: TOKEN_DATA["MAYA.CACAO"].image,
+          nativeDecimal: "10"
         }
+        _prices["MAYA.CACAO"] =  _cacao.data.cacaoPriceUSD; //cacao token price with USD
 
         const { data } = await axios.get("https://midgard.mayachain.info/v2/pools");
+        console.log(data)
         const _pools: IPool[] = data.map((item: any) => {
-          let { asset, token } = splitToAsset(item.asset);
+          const { asset } = item;
+          _prices[asset] =  item.assetPriceUSD; //token price with USD
           return {
             ...item,
-            token,
-            chain: TOKEN_DATA[asset].name,
+            token: TOKEN_DATA[asset].ticker,
+            chain: TOKEN_DATA[asset].chain,
             image: TOKEN_DATA[asset].image,
-            ticker: token
+            ticker: TOKEN_DATA[asset].ticker,
+            name: TOKEN_DATA[asset].name,
+            asset: asset
+          }
+        });
+        const _synPools: IPool[] = data.map((item: any) => {
+          const { asset } = item;
+          _prices[asset] =  item.assetPriceUSD; //token price with USD
+          return {
+            ...item,
+            token: "s" + TOKEN_DATA[asset].ticker,
+            chain: TOKEN_DATA[asset].chain,
+            image: TOKEN_DATA[asset].image,
+            ticker: "s" + TOKEN_DATA[asset].ticker,
+            name: TOKEN_DATA[asset].name,
+            asset: asset.replace(".", "/")
           }
         });
         setFromToken(cacao);
         setToToken(_pools[0]);
-        setPools ([cacao, ..._pools]);
+        setPools ([cacao, ..._pools, ..._synPools]);
       } catch (err) {
         console.log("err fetching pools ------------------------>", err);
       }

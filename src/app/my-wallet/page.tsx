@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Icon } from '@iconify/react';
 import { Tooltip } from 'flowbite-react';
 import { useAtom } from 'jotai';
-import { IWallet, IBalance } from '@/utils/types';
+import { IWallet, IBalance } from '@/types/minis';
 import QRCode from 'react-qr-code';
 //utils
 import { reduceAddress, reduceAmount } from '@/utils/methods';
@@ -27,7 +27,7 @@ import {
   walletAtom
 } from '@/store';
 
-import { ChainType } from '@/utils/types';
+import { ChainType } from '@/types/minis';
 //hook
 import useXChain from '@/hooks/useXChain';
 import useXDefi from "@/hooks/useXDefiWallet";

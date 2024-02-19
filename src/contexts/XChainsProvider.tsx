@@ -28,10 +28,9 @@ import {
   xBalancesAtom
 } from "@/store";
 //public utils
-import { sleep } from "@/utils/methods";
-import { isArray } from "util";
+
 //types
-import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/utils/types";
+import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
 import { NATIVE_TOKENS, TOKEN_DATA } from "@/utils/data";
 
 interface IXChainContext {
