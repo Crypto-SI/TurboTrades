@@ -111,7 +111,7 @@ const Header = () => {
           priority={true}
         />
         <div className="flex xs:hidden items-center justify-center cursor-pointer" onClick={handleToggle}>
-          <Icon icon="ph:list" color={ theme ===  'dark' ? 'white' : 'black' } height={30}/>
+          <Icon icon="ph:list" className="dark:text-white text-black" height={30}/>
         </div>
         <div className={`items-center hidden xs:flex xs:w-auto`}>
           <div className="rounded-full p-[1px] bg-gradient-to-r w-full from-[#FF6802] to-[#EE0E72]">
