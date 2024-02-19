@@ -79,6 +79,7 @@ const Header = () => {
     </div>
   )
 
+  console.log(xBalances)
   const _renderProfile = () => (
     <Dropdown label="" renderTrigger={_profileButton}>
     {

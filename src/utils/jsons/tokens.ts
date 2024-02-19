@@ -18,7 +18,7 @@ export const tokens = [
         "decimals": 18,
         "tokenlist": "Coingecko",
         "cg": {},
-        "logoURI": "https://assets.coingecko.com/coins/images/31520/thumb/PRISMA_200.png?1696530330",
+        "logoURI": "/images/tokens/eth.png",
         "chainId": "1"
     },
     {
@@ -5582,7 +5582,7 @@ export const tokens = [
         "decimals": 6,
         "tokenlist": "Coingecko",
         "cg": {},
-        "logoURI": "https://assets.coingecko.com/coins/images/6319/thumb/usdc.png?1696506694",
+        "logoURI": "/images/tokens/usdc.png",
         "chainId": "1"
     },
     {
@@ -6043,7 +6043,7 @@ export const tokens = [
         "decimals": 6,
         "tokenlist": "Coingecko",
         "cg": {},
-        "logoURI": "https://assets.coingecko.com/coins/images/325/thumb/Tether.png?1696501661",
+        "logoURI": "/images/tokens/usdt.png",
         "chainId": "1"
     },
     {
@@ -48972,7 +48972,7 @@ export const tokens = [
         "decimals": 18,
         "tokenlist": "Coingecko",
         "cg": {},
-        "logoURI": "https://assets.coingecko.com/coins/images/18834/thumb/wstETH.png?1696518295",
+        "logoURI": "/images/tokens/wsteth.png",
         "chainId": "1"
     },
     {
@@ -51894,7 +51894,7 @@ export const tokens = [
         "decimals": 6,
         "tokenlist": "Coingecko",
         "cg": {},
-        "logoURI": "https://assets.coingecko.com/coins/images/20685/thumb/kuji-200x200.png?1696520085",
+        "logoURI": "/images/tokens/kuji.png",
         "chainId": "1"
     },
     {
@@ -51905,7 +51905,7 @@ export const tokens = [
         "decimals": 6,
         "tokenlist": "Coingecko",
         "cg": {},
-        "logoURI": "https://assets.coingecko.com/coins/images/27274/thumb/usk.png?1696526326",
+        "logoURI": "/images/tokens/usk.png",
         "chainId": "1"
     },
     {
@@ -55074,3 +55074,4 @@ export const tokens = [
         "chainId": "1"
     }
 ]
+

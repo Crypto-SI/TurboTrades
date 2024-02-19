@@ -74,21 +74,15 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     if (!window.xfi?.keplr) {
       alert("Please install XDEFI extension");
     } else {
-        const chainId = "kaiyo-1";
-        //@ts-ignore
-        const keplr = window.xfi.keplr;
-        await keplr.enable(chainId);
+      const chainId = "kaiyo-1";
+      //@ts-ignore
+      const keplr = window.xfi.keplr;
+      await keplr.enable(chainId);
 
-        const offlineSigner = keplr.getOfflineSigner(chainId);
+      const offlineSigner = keplr.getOfflineSigner(chainId);
 
-        const accounts = await offlineSigner.getAccounts();
-        return accounts[0].address;
-        // // Initialize the gaia api with the offline signer that is injected by Keplr extension.
-        // const cosmJS = new SigningCosmosClient(
-        //     "https://lcd-cosmoshub.keplr.app",
-        //     accounts[0].address,
-        //     offlineSigner,
-        // );
+      const accounts = await offlineSigner.getAccounts();
+      return accounts[0].address;
     }
   }
 
@@ -154,7 +148,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           amount: Number(coin.amount) / 10**10
         })),
         walletType: "xDefi",
-        chain: "BTC",
+        chain: "MAYA",
       }
       return wallet;
     } catch (err) {
@@ -299,17 +293,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     setXDefiAddresses(temp);
   }
 
-  // React.useEffect(() => {
-  //   if (Object.keys(xDefiAddresses).length > 0) {
-  //     getBalances ();
-  //   } 
-  // // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
-
-
 
   const getBalancesWithXDefi = async () => {
-    
     setXClientLoading({
       "BTC": true,
       "ETH": true,
@@ -319,7 +304,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       "MAYA": true
     });
     const prices = await _getPrices();
-
     const temp: XBalances = {};
 
     await Promise.all(Object.keys(xDefiAddresses).map(async(key: string) => {

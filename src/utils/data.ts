@@ -51,6 +51,61 @@ export const InitialwalletList: WalletType[] = [
 /**
  * chain data
  */
+export const TOKEN_DATA: Record<string, any> = {
+  "CACAO": { 
+    label: "CACAO", 
+    name: "Maya chain", 
+    image: "/images/tokens/cacao.png"
+  },
+  "BTC": { 
+    label: "BTC", 
+    name: "Bitcoin", 
+    image: "/images/tokens/btc.webp"
+  },
+  "ETH": { 
+    label: "ETH", 
+    name: "Ethereum", 
+    image: "/images/tokens/eth.png"
+  },
+  "KUJI": { 
+    label: "KUJI", 
+    name: "Kuji chain", 
+    image: "/images/tokens/kuji.png"
+   },
+   "DASH": { 
+    label: "DASH", 
+    name: "Dash chain", 
+    image: "/images/tokens/dash.png" 
+   },
+   "RUNE": { 
+    label: "RUNE", 
+    name: "Thorchain", 
+    image: "/images/tokens/rune.png"
+   },
+   "USDT": { 
+    label: "USDT", 
+    name: "Ethereum", 
+    image: "/images/tokens/usdt.png"
+   },
+   "USDC": { 
+    label: "USDC", 
+    name: "Ethereum", 
+    image: "/images/tokens/usdc.png"
+   },
+   "USK": { 
+    label: "USK", 
+    name: "KUJI chain", 
+    image: "/images/tokens/usk.png"
+   },
+   "WSTETH": { 
+    label: "WSTETH", 
+    name: "Ethereum", 
+    image: "/images/tokens/wsteth.png"
+   },
+}
+/**
+ * chain data
+ */
 export const CHAIN_DATA: Record<string, any> = {
   "MAYA": { 
     label: "MAYA", 
