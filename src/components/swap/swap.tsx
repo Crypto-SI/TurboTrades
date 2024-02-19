@@ -33,47 +33,6 @@ const Swap = () => {
   const [fromToken, setFromToken] = useAtom(fromTokenAtom);
   const [toToken, setToToken] = useAtom(toTokenAtom);
 
-  const _split = (_asset: string) => {
-    const asset = _asset.split("-")[0];
-    const [, token] = asset.split(".");
-    return { asset, token };
-  }
-  //get pools
-  React.useEffect(() => {
-    async function init () {
-      try {
-        const _cacao = await axios.get("https://midgard.mayachain.info/v2/stats");
-        const cacao: IPool = {
-          assetPriceUSD: _cacao.data.cacaoPriceUSD,
-          asset: "MAYA.CACAO",
-          token: "CACAO",
-          chain: "MAYA",
-          ticker: "CACAO",
-          image: TOKEN_DATA["MAYA.CACAO"].image,
-        }
-
-        const { data } = await axios.get("https://midgard.mayachain.info/v2/pools");
-        const _pools: IPool[] = data.map((item: any) => {
-          let { asset, token } = _split(item.asset);
-          return {
-            ...item,
-            token,
-            chain: TOKEN_DATA[asset].name,
-            image: TOKEN_DATA[asset].image,
-            ticker: token
-          }
-        });
-        setFromToken(cacao);
-        setToToken(_pools[0]);
-        setPools ([cacao, ..._pools]);
-      } catch (err) {
-        console.log("err fetching pools ------------------------>", err);
-      }
-    }
-    init ();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full md:w-[calc(100vw-360px)] lg:w-[460px]">
       <div className="rounded-2xl p-4 bg-white dark:bg-[#0A0C0F] text-[#8A8D92] dark:text-white">

@@ -11,7 +11,6 @@ export const isSupportedChain = (_wallet: WalletType | null, _chain: ChainType) 
   if (!_wallet) {
     return false;
   }
-  
   const chain = _wallet.supportedChains?.find((item: String) => item === _chain.label);
   if (chain) {
     return true;
@@ -131,3 +130,13 @@ export const sleep = (ms: number) => new Promise<void>((resolve, reject) => {
     resolve();
   }, ms*1000)
 });
+/**
+ * splite asset
+ * @param _asset 
+ * @returns 
+ */
+export const splitToAsset = (_asset: string) => {
+  const asset = _asset.split("-")[0];
+  const [, token] = asset.split(".");
+  return { asset, token };
+}
