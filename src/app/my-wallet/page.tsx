@@ -32,7 +32,7 @@ import { ChainType } from '@/utils/types';
 import useXChain from '@/hooks/useXChain';
 import useXDefi from "@/hooks/useXDefiWallet";
 
-import { tokens } from '@/utils/jsons/tokens';
+import { TOKEN_DATA } from '@/utils/data';
 
 const Home = () => {
 
@@ -117,9 +117,8 @@ const Home = () => {
         </Tooltip>
         
         <span>{ _chain.label }</span>
-        
         {
-          xClientLoading[_chain.label as string] ? <div className="h-6 bg-gray-300 dark:bg-[#000000] grow mr-[40%] rounded-full animate-pulse"></div> : 
+          isConnecting ? <div className="h-6 bg-gray-300 dark:bg-[#000000] grow mr-[40%] rounded-full animate-pulse"></div> : 
           <>
             <span>{ xBalances[_chain.label as string] && reduceAddress(xBalances[_chain.label as string].address) }</span>
             <Tooltip content="Copy address" style="dark"><Icon icon="solar:copy-line-duotone" className='cursor-pointer hover:opacity-50' width={20} /></Tooltip>
@@ -127,18 +126,19 @@ const Home = () => {
           </>
         }
       </div>
-      {/* {
-        xClientLoading[_chain.label as string] ? <div className="h-10 bg-gray-300 dark:bg-[#171A23] w-grow m-4 rounded-full animate-pulse"></div> :
+      {
+        isConnecting ? <div className="h-10 bg-gray-300 dark:bg-[#171A23] w-grow m-4 rounded-full animate-pulse"></div> :
         xBalances[_chain.label as string] && xBalances[_chain.label as string].balance.map((item: IBalance, index: number) => (
           <div key={"balance_" + index} className='justify-between border-b dark:border-[#2B2E41] border-[#DCE4EF] w-full pl-7 py-3 pr-4 flex items-center dark:text-[#A6A9B9] text-[#A6A9B9]'>
             <div className="flex items-center md:gap-4 gap-2">
               <Image
                 //@ts-ignore
-                src={tokens.find((item: any) => item.ticker === _chain.label) ? tokens.find((item: any) => item.ticker === _chain.label).logoURI as string : ""}
+                src={TOKEN_DATA[`${item.chain}.${item.ticker}`] ? TOKEN_DATA[`${item.chain}.${item.ticker}`].image : ""}
                 width={38}
                 height={38}
                 alt={"refresh"}
                 priority={true}
+                className='rounded-full'
               />
               <span>{item.symbol}</span>
               <span>
@@ -149,7 +149,7 @@ const Home = () => {
             <Tooltip content="Send"><button className='bg-[#1f242e11] dark:bg-[#1f242ea1] rounded-xl p-3 hover:opacity-50'><Icon icon="fa:send" width={16} /></button></Tooltip>
           </div>
         ))
-      } */}
+      }
     </div>
   )
 
@@ -197,16 +197,8 @@ const Home = () => {
               />
             </div>
           </div>
-
-          {/* <div className='border-b dark:border-[#2B2E41] border-[#DCE4EF] w-full py-4 flex mt-3 dark:text-[#A6A9B9] text-[#A6A9B9]'>
-            <div className='w-1/12 px-2'>#</div>
-            <div className='w-4/12'>Name</div>
-            <div className='w-4/12'>Address</div>
-            <div className='w-3/12'>Balance Available</div>
-          </div> */}
           {
             chains.map((_chain: ChainType, index: number) => _renderWallet(_chain, index))
-            // wallets.map((_wallet: IWallet, index: number) => _renderWallet(_wallet, index))
           }
         </div>
       </div>

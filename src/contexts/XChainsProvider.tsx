@@ -32,7 +32,7 @@ import { sleep } from "@/utils/methods";
 import { isArray } from "util";
 //types
 import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/utils/types";
-import { NATIVE_TOKENS } from "@/utils/data";
+import { NATIVE_TOKENS, TOKEN_DATA } from "@/utils/data";
 
 interface IXChainContext {
   connectKeyStoreWallet: (phrase: string) => Promise<void>,
@@ -61,7 +61,7 @@ export const _getPrices = async() => {
   data.forEach((item: any) => {
     switch (item.asset) {
       case "ETH.ETH": 
-      prices.ETH =  item.balance_cacao / item.balance_asset * value;
+        prices.ETH =  item.balance_cacao / item.balance_asset * value;
         break;
       case "BTC.BTC":
         prices.BTC = item.balance_cacao / item.balance_asset * value;
@@ -93,10 +93,6 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
   //chains that is selected at this moment
   const chains = React.useMemo(() => chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain.label), [chainList]);
   
-  // React.useEffect(() => {
-  //   getBalances ();
-  // // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [xClients]);
   /**
    * connect to selected chains using keystore phrase
    * @param phrase 
@@ -133,7 +129,6 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
   const getBalances = async() => {
 
     const prices = await _getPrices();
-
     try {
       setIsConnecting(true);
       setXClientLoading({
@@ -146,7 +141,7 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
       });
       
       const balances = await Promise.all(chains.map((chain: String) => _getWalletBalance(xClients[chain as string], prices)));
-      console.log(balances)
+      console.log("balances ------------------>", balances);
       const temp: XBalances = {};
       balances.forEach((item: IWallet) => {
         temp[item.chain as string] = item;
@@ -189,7 +184,7 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
         [{
           address,
           //@ts-ignore
-          symbol: NATIVE_TOKENS[chain], chain: NATIVE_TOKENS[chain], ticker: NATIVE_TOKENS[chain], value: prices[NATIVE_TOKENS[chain]],
+          symbol: NATIVE_TOKENS[chain], chain: chain, ticker: NATIVE_TOKENS[chain], value: prices[NATIVE_TOKENS[chain]],
           amount: 0,
         }] : 
         balances.map((item: any) => ({

@@ -35,8 +35,8 @@ const Swap = () => {
 
   const _split = (_asset: string) => {
     const asset = _asset.split("-")[0];
-    const [chain, token] = asset.split(".");
-    return { chain, token };
+    const [, token] = asset.split(".");
+    return { asset, token };
   }
   //get pools
   React.useEffect(() => {
@@ -49,17 +49,17 @@ const Swap = () => {
           token: "CACAO",
           chain: "MAYA",
           ticker: "CACAO",
-          image: TOKEN_DATA["CACAO"].image,
+          image: TOKEN_DATA["MAYA.CACAO"].image,
         }
 
         const { data } = await axios.get("https://midgard.mayachain.info/v2/pools");
         const _pools: IPool[] = data.map((item: any) => {
-          let { chain, token } = _split(item.asset);
+          let { asset, token } = _split(item.asset);
           return {
             ...item,
             token,
-            chain: TOKEN_DATA[token].name,
-            image: TOKEN_DATA[token].image,
+            chain: TOKEN_DATA[asset].name,
+            image: TOKEN_DATA[asset].image,
             ticker: token
           }
         });

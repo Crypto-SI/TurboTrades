@@ -196,7 +196,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     const empty = {
       address,
       //@ts-ignore
-      symbol: "RUNE", chain: "MAYA", ticker: "RUNE", value: prices["RUNE"],
+      symbol: "RUNE", chain: "THOR", ticker: "RUNE", value: prices["RUNE"],
       amount: 0,
     }
     try {
@@ -251,7 +251,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         address,
         balance: [empty],
         walletType: "XDEFI",
-        chain: "THOR",
+        chain: "ETH",
       };
     }
   }
