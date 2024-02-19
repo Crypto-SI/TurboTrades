@@ -16,7 +16,7 @@ import {
 type PropsType = {
   visible: Boolean,
   setVisible: React.Dispatch<React.SetStateAction<Boolean>>,
-  setToken: React.Dispatch<React.SetStateAction<IPool | undefined>>
+  setToken: (token: IPool) => void
 }
 
 const TokenSelector = (props: PropsType) => {

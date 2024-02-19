@@ -16,7 +16,8 @@ import {
   fromTokenAtom,
   toTokenAtom,
   xBalancesAtom,
-  QuoteSwapResponseAtom
+  QuoteSwapResponseAtom,
+  tokenPricesAtom
 } from '@/store';
 //types
 import { IPool } from "@/types/maya";
@@ -32,6 +33,8 @@ const Swap = () => {
   const [stage, setStage] = useAtom(stageAtom);
   const [pools, setPools] = useAtom(poolsAtom);
   const [quoteSwapResponse, setQuoteSwapResponse] = useAtom(QuoteSwapResponseAtom);
+  //token prices Record <name, price>
+  const [tokenPrices, setTokenPrices] = useAtom(tokenPricesAtom);
 
   
   const [showFromTokens, setShowFromTokens] = React.useState<Boolean>(false);
@@ -53,38 +56,44 @@ const Swap = () => {
    */
   const _fromBalance = () => React.useMemo(() => {
     try {
-      if (!fromToken) throw "0";
+      if (!toToken || !fromToken) return "";
       if (Object.keys(xBalances).length === 0) throw "0";
       for (const key in xBalances) {
         xBalances[key].balance.forEach((balance: IBalance) => {
-          if (fromToken.ticker === balance.ticker) throw reduceAmount(balance.amount);
+          if (fromToken.ticker === balance.ticker) throw balance.amount;
         })
       }
       throw "0";
     } catch (value) {
-      return value as string;
+      let src = reduceAmount(value as number);
+      let quote: any = Number(value) * (Number(tokenPrices[String(fromToken?.asset)])/Number(tokenPrices[String(toToken?.asset)]));
+      quote = reduceAmount(quote);
+      return `${src}${fromToken?.ticker} (${quote}${toToken?.ticker})`;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [xBalances, fromToken]);
+  }, [xBalances, fromToken, toToken]);
   /**
    * calculate destination balance
    * @returns string
    */
   const _toBalance = () => React.useMemo(() => {
     try {
-      if (!toToken) throw "0";
+      if (!toToken || !fromToken) return "";
       if (Object.keys(xBalances).length === 0) throw "0";
       for (const key in xBalances) {
         xBalances[key].balance.forEach((balance: IBalance) => {
-          if (toToken.ticker === balance.ticker) throw reduceAmount(balance.amount);
-        })
+          if (toToken.ticker === balance.ticker) throw balance.amount;
+        });
       }
       throw "0";
     } catch (value) {
-      return value as string;
+      let src = reduceAmount(value as number);
+      let quote: any = Number(value) * (Number(tokenPrices[String(toToken?.asset)])/Number(tokenPrices[String(fromToken?.asset)]));
+      quote = reduceAmount(quote);
+      return `${src}${toToken?.ticker} (${quote}${fromToken?.ticker})`;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [xBalances, toToken]);
+  }, [xBalances, fromToken, toToken]);
   /**
    * 
    * @param e 
@@ -120,8 +129,12 @@ const Swap = () => {
     if (data.error) {
       setError(data.error);
     } else {
+      let decimals = 10**8;
+      if (toToken?.ticker === "CACAO") {
+        decimals = 10**10;
+      }
       setQuoteSwapResponse(data);
-      const outBount: any = (Number(data.expected_amount_out) / 10**8).toLocaleString('fullwide', {useGrouping:false});
+      const outBount: any = (Number(data.expected_amount_out) / decimals).toLocaleString('fullwide', {useGrouping:false});
       setToAmount(outBount);
       setError("");
     }
@@ -137,6 +150,23 @@ const Swap = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromAmount, fromToken, toToken]);
 
+  const handleExchange = () => {
+    const temp: IPool = { ...fromToken };
+    setFromToken ({ ...toToken });
+    setToToken ({ ...temp });
+    setFromAmount(toAmount);
+  }
+
+  const handleSelectFromToken = (token: IPool) => {
+    if (token.asset !== toToken?.asset) {
+      setFromToken(token);
+    }
+  } 
+  const handleSelectToToken = (token: IPool) => {
+    if (token.asset !== fromToken?.asset) {
+      setToToken(token);
+    }
+  }
 
 
 
@@ -180,16 +210,18 @@ const Swap = () => {
                 className="bg-transparent py-4 rounded-[12px] w-full outline-none text-right border-none" 
               />
             </div>
-
-            <TokenSelector setToken={setFromToken} visible={showFromTokens} setVisible={setShowFromTokens}/>
+            <TokenSelector setToken={handleSelectFromToken} visible={showFromTokens} setVisible={setShowFromTokens}/>
           </div>
-          <div className="mt-2 text-sm">
-            <span className="text-[#A4A8B2] dark:text-white">Balance:</span> 
-            <span className="text-[#6978A0] dark:text-[#6978A0]"> { _fromBalance() } (42.BTC)</span>
+          <div className="mt-2 text-sm flex justify-between px-1">
+            <div>
+              <span className="text-[#A4A8B2] dark:text-white">Balance:</span> 
+              <span className="text-[#6978A0] dark:text-[#6978A0]"> { _fromBalance() }</span>
+            </div>
+            <span>{fromToken ? reduceAmount(Number(fromAmount) * Number(fromToken?.assetPriceUSD)) : '0'}$</span>
           </div>
 
           <div className="relative mt-6 border-dashed border-b border-[#00000059] dark:border-[#ffffff4f]">
-            <div className="absolute flex items-center justify-center w-12 h-12 border-8 border-[#F3F7FC] dark:border-[#030506] rounded-full left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#8f7676] dark:bg-[#131822]">
+            <div onClick={handleExchange} className="absolute flex items-center justify-center w-12 h-12 border-8 border-[#F3F7FC] dark:border-[#030506] rounded-full left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#8f7676] dark:bg-[#131822]">
               <Icon icon="tdesign:swap" className="text-white hover:opacity-50 cursor-pointer arrow-rotate" rotate={1}/>
             </div>
           </div>
@@ -220,11 +252,14 @@ const Swap = () => {
                 className="bg-transparent py-4 rounded-[12px] w-full outline-none text-right border-none" 
               />
             </div>
-            <TokenSelector setToken={setToToken} visible={showToTokens} setVisible={setShowToTokens}/>
+            <TokenSelector setToken={handleSelectToToken} visible={showToTokens} setVisible={setShowToTokens}/>
           </div>
-          <div className="mt-2 text-sm">
-            <span className="text-[#A4A8B2] dark:text-white">Balance:</span> 
-            <span className="text-[#6978A0] dark:text-[#6978A0]"> { _toBalance() } (250USDT)</span>
+          <div className="mt-2 text-sm flex justify-between px-1">
+            <div>
+              <span className="text-[#A4A8B2] dark:text-white">Balance:</span> 
+              <span className="text-[#6978A0] dark:text-[#6978A0]"> { _toBalance() }</span>
+            </div>
+            <span>{toToken ? reduceAmount(Number(toAmount) * Number(toToken?.assetPriceUSD)) : '0'}$</span>
           </div>
         </div>
 
@@ -233,31 +268,33 @@ const Swap = () => {
           <div className="flex gap-4 items-center">
             <div className="flex gap-2">
               <Image
-                src="/images/chains/btc.webp"
+                src={fromToken ? String(fromToken.image) : "/images/tokens/btc.webp"}
                 width={24}
                 height={24}
-                alt={"sun"}      
+                alt={"fromToken"}      
                 priority={true}
+                className="rounded-full"
               />
-              <span className="dark:text-[#6978A0]">Bitcoin</span>
+              <span className="dark:text-[#6978A0]">{fromToken?.ticker}</span>
             </div>
             <Icon icon="tdesign:swap" />
             <div className="flex gap-2">
               <Image
-                src="/images/chains/btc.webp"
+                src={toToken ? String(toToken.image) : "/images/tokens/btc.webp"}
                 width={24}
                 height={24}
-                alt={"sun"}      
+                alt={"toToken"}      
                 priority={true}
+                className="rounded-full"
               />
-              <span className="dark:text-[#6978A0]">USDT</span>
+              <span className="dark:text-[#6978A0]">{toToken?.ticker}</span>
             </div>
           </div>
         </div>
 
         <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-2 px-1 flex-col xxs:flex-row">
           <span className="text-[#C5C7CC] dark:text-[#C5C7CC]">Amount:&nbsp;</span>
-          <span className="dark:text-[#6978A0]">1.00 BTC (42.12272850 ETH)</span>
+          <span className="dark:text-[#6978A0]">{fromAmount ? fromAmount : "0"} {fromToken?.ticker} ({toAmount ? toAmount : "0"} {toToken?.ticker})</span>
         </div>
 
         <button onClick={() => setStage("wallet")} data-tooltip-target="tooltip-default" className="flex justify-center items-center gap-3 text-white mt-7 p-5 w-full rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] hover:from-[#ff6702de] hover:to-[#ee0e739f]">

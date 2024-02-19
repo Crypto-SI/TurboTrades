@@ -68,7 +68,7 @@ const Home = () => {
         });
         const _synPools: IPool[] = data.map((item: any) => {
           const { asset } = item;
-          _prices[asset] =  item.assetPriceUSD; //token price with USD
+          _prices[asset.replace(".", "/")] =  item.assetPriceUSD; //token price with USD
           return {
             ...item,
             token: "s" + TOKEN_DATA[asset].ticker,
@@ -79,6 +79,7 @@ const Home = () => {
             asset: asset.replace(".", "/")
           }
         });
+        setTokenPrices(_prices);
         setFromToken(cacao);
         setToToken(_pools[0]);
         setPools ([cacao, ..._pools, ..._synPools]);

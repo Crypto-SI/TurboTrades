@@ -39,7 +39,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
   //chains that is selected at this moment
   const chains = React.useMemo(() => chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label), [chainList]);
-
+  //get accont
   const _getAccount = (chain: string) => new Promise((resolve, reject) => {
 
     const methods: Record<string, string> = {
@@ -68,7 +68,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       resolve("");
     }
   });
-
+  //get kujira account
   const _getKujiraAccount = async () => {
     //@ts-ignore
     if (!window.xfi?.keplr) {
@@ -85,7 +85,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       return accounts[0].address;
     }
   }
-
+  //get ethereum account
   const _getEVMAccount = async () => {
     //@ts-ignore
     const provider = window.xfi && window.xfi.ethereum && new ethers.providers.Web3Provider(window.xfi.ethereum);
@@ -222,7 +222,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
   }
-
   //get ETH balance
   const getEthBalance = async (address:string, prices: Record<string, number>) => {
     const empty = {
@@ -255,10 +254,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
   }
-
-
-
-
+  /**
+   * connect wallet with xDefi
+   */
   const connectToXDefi = async () => {
 
     setIsConnecting(true);
@@ -292,9 +290,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     });
     setXDefiAddresses(temp);
   }
-
-
+  //get wallet balances with xDefi
   const getBalancesWithXDefi = async () => {
+    setIsConnecting(true);
     setXClientLoading({
       "BTC": true,
       "ETH": true,

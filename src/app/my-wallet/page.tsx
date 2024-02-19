@@ -53,7 +53,6 @@ const Home = () => {
 
   const handleRefresh = async () => {
     if (isRefreshing) return;
-    console.log(wallet)
     try {
       setIsRefreshing(true);
       if ( wallet?.name === "Keystore" ) {
