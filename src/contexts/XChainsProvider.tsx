@@ -44,6 +44,45 @@ interface IXChainContext {
 */
 export const XChainContext = React.createContext<IXChainContext | undefined>(undefined);
 
+/**
+   * get coin prices
+   * @ prices {DASH: 2345}
+   */
+export const _getPrices = async() => {
+  const { data } = await axios.get("https://mayanode.mayachain.info/mayachain/pools");
+  
+  const prices: Record<string, number> = {};
+
+  const cacaoInfo = data.find((item: any) => item.asset === "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48");
+  const value = cacaoInfo.balance_asset / cacaoInfo.balance_cacao;
+  prices.CACAO = value * 100;
+  
+
+  data.forEach((item: any) => {
+    switch (item.asset) {
+      case "ETH.ETH": 
+      prices.ETH =  item.balance_cacao / item.balance_asset * value;
+        break;
+      case "BTC.BTC":
+        prices.BTC = item.balance_cacao / item.balance_asset * value;
+        break;
+      case "KUJI.KUJI":
+        prices.KUJI = item.balance_cacao / item.balance_asset * value;
+        break;
+      case "THOR.RUNE":
+        prices.RUNE = item.balance_cacao / item.balance_asset * value;
+        break;
+      case "DASH.DASH":
+        prices.DASH = item.balance_cacao / item.balance_asset * value;
+        break;
+      case "KUJI.USK":
+        prices.USK = item.balance_cacao / item.balance_asset * value;
+        break;
+    }
+  });
+  return prices;
+}
+
 const XChainProvider = ({children}: {children: React.ReactNode}) => {
   
   const [xClients, setXClients] = useAtom(xClientsAtom);
@@ -87,44 +126,7 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
     });
     setXClients(_clients);
   }
-  /**
-   * get coin prices
-   * @ prices {DASH: 2345}
-   */
-  const _getPrices = async() => {
-    const { data } = await axios.get("https://mayanode.mayachain.info/mayachain/pools");
-    
-    const prices: Record<string, number> = {};
-
-    const cacaoInfo = data.find((item: any) => item.asset === "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48");
-    const value = cacaoInfo.balance_asset / cacaoInfo.balance_cacao;
-    prices.CACAO = value * 100;
-    
-
-    data.forEach((item: any) => {
-      switch (item.asset) {
-        case "ETH.ETH": 
-        prices.ETH =  item.balance_cacao / item.balance_asset * value;
-          break;
-        case "BTC.BTC":
-          prices.BTC = item.balance_cacao / item.balance_asset * value;
-          break;
-        case "KUJI.KUJI":
-          prices.KUJI = item.balance_cacao / item.balance_asset * value;
-          break;
-        case "THOR.RUNE":
-          prices.RUNE = item.balance_cacao / item.balance_asset * value;
-          break;
-        case "DASH.DASH":
-          prices.DASH = item.balance_cacao / item.balance_asset * value;
-          break;
-        case "KUJI.USK":
-          prices.USK = item.balance_cacao / item.balance_asset * value;
-          break;
-      }
-    });
-    return prices;
-  }
+  
   /**
    * 
    */
@@ -202,7 +204,7 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
         const wallet: any = {
           address,
           balance: _balances,
-          walletType: "xDefi",
+          walletType: "XDEFI",
           //@ts-ignore
           chain: client.chain,
         }

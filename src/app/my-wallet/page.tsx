@@ -22,12 +22,15 @@ import {
   chainListAtom,
   xBalancesAtom,
   xClientLoadingAtom,
-  xClientsAtom
+  xClientsAtom,
+  xDefiAddressesAtom,
+  walletAtom
 } from '@/store';
 
 import { ChainType } from '@/utils/types';
 //hook
 import useXChain from '@/hooks/useXChain';
+import useXDefi from "@/hooks/useXDefiWallet";
 
 import { tokens } from '@/utils/jsons/tokens';
 
@@ -39,17 +42,25 @@ const Home = () => {
   const [xClientLoading] = useAtom(xClientLoadingAtom);
   const [xClients,] = useAtom(xClientsAtom);
   const [isConnecting, ] = useAtom(isConnectingAtom);
+  const [xDefiAddresses, ] = useAtom(xDefiAddressesAtom);
+  const [wallet, ] = useAtom(walletAtom);
   //states
   const [qrAddress, setQRAddress] = React.useState<String>("");
   const [showQRCode, setShowQRCode] = React.useState<Boolean>(false);
   const [isRefreshing, setIsRefreshing] = React.useState<Boolean>(false);
+  const { getBalances } = useXChain ();
+  const { getBalancesWithXDefi } = useXDefi();
 
   const handleRefresh = async () => {
     if (isRefreshing) return;
-
+    console.log(wallet)
     try {
       setIsRefreshing(true);
-      await getBalances ();
+      if ( wallet?.name === "Keystore" ) {
+        await getBalances ();
+      } else {
+        await getBalancesWithXDefi ();
+      }
     } catch (err) {
       console.log(err)
     } finally {
@@ -57,14 +68,19 @@ const Home = () => {
     }
   }
 
-  const { getBalances } = useXChain ();
-
   React.useEffect(() => {
-    if (Object.keys(xClients).length > 0) {
+    if (Object.keys(xClients).length > 0 && wallet?.name === "Keystore") {
       getBalances ();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [xClients])
+  }, [xClients]);
+  //load balances using xDefi wallet
+  React.useEffect(() => {
+    if (Object.keys(xDefiAddresses).length > 0 && wallet?.name === "XDEFI") {
+      getBalancesWithXDefi ();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [xDefiAddresses]);
   
   const [chainList,] = useAtom(chainListAtom);
   //chains that is selected at this moment
@@ -74,10 +90,6 @@ const Home = () => {
     setQRAddress(_address);
     setShowQRCode(true);
   }
-
-  // React.useEffect(() => {
-  //   console.log(xClientLoading, xBalances)
-  // }, [xClientLoading, xBalances])
 
   const _renderWallet = (_chain: ChainType, index: number) => (
     <div key={"my_wallet_" + index + ""} className='mt-3'>

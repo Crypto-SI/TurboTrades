@@ -11,3 +11,4 @@ export const isFetchingBalancesAtom = atom<Boolean>(false);
 
 export const walletListAtom = atom<WalletType[]>(InitialwalletList);
 export const chainListAtom = atom<ChainType[]>(InitialchainList);
+export const walletAtom = atom<WalletType | null>(null);

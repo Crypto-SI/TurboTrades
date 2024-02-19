@@ -20,19 +20,19 @@ import {
   isConnectingAtom,
   walletListAtom, chainListAtom,
   xClientLoadingAtom,
-  xClientsAtom
+  xClientsAtom,
+  walletAtom
 } from '@/store';
 //utils
 import { isXDefiInstalled, isMetamaskInstalled, isSupportedChain } from "@/utils/methods";
-
+//router
 import { useRouter } from 'next/navigation'
-
-
+//hooks
 import useXChain from '@/hooks/useXChain';
+import useXDefi from '@/hooks/useXDefiWallet';
 
 const WalletConnect = () => {
 
-  
   const router = useRouter();
   // const [isConnecting] = useAtom(isConnectingAtom);
   // const [isConnected] = useAtom(isConnectedAtom);
@@ -51,11 +51,12 @@ const WalletConnect = () => {
   const [walletList, setWalletList] = useAtom(walletListAtom);
   const [chainList, setChainList] = useAtom(chainListAtom);
 
-  const [wallet, setWallet] = React.useState<WalletType | null>(null);
+  const [wallet, setWallet] = useAtom(walletAtom);
 
   //data from wallet context
   // const { connectKeyStoreWallet } = useWallet ();
   const { connectKeyStoreWallet } = useXChain ();
+  const { connectToXDefi } = useXDefi();
 
   React.useEffect(() => {
     if (wallet) {
@@ -90,7 +91,7 @@ const WalletConnect = () => {
         return { ..._wallet, focused: true }
       }))
     }
-  }, [chainList])
+  }, [chainList]);
 
   const handleChainClick = (chain: ChainType) => {
     if (false) { //check if loading currently
@@ -140,33 +141,35 @@ const WalletConnect = () => {
   }
 
   const handleConnectWallet = async () => {
-    
-    if (isConnecting) { //check if loading wallet...
-      showNotification("Loading wallet...Please wait for a sec.", "info");
-      return;
-    }
-
-    if (wallet?.name === "Keystore") {
-      setCurrentModalType("importKeyStore");
-    } else if (wallet?.name === "XDEFI") {
-      const _chains = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain.label);
-      if (_chains.length === 0) {
-        showNotification("Select chains for wallet", "info");
-      } else {
-        // walletConnect (WalletOption.XDEFI);
-        // connectKeyStoreWallet("fix hole garden staff input athlete bicycle account acquire patrol dilemma hamster", _chains);
-        await connectKeyStoreWallet("cruise fragile paddle paddle allow rotate portion half shoot oven drama injury");
-        router.push("/my-wallet");
+    try {
+      if (isConnecting) { //check if loading wallet...
+        throw "Loading wallet...Please wait for a sec.";
       }
-    } else if (wallet?.name === "Metamask") {
-      const _chains = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain.label);
-      if (_chains.length === 0) {
-        showNotification("Select chains for wallet", "info");
+  
+      if (wallet?.name === "Keystore") {
+        setCurrentModalType("importKeyStore");
+      } else if (wallet?.name === "XDEFI") {
+        const _chains = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain.label);
+        if (_chains.length === 0) {
+          throw "Select chains for wallet";
+        } else {
+          // walletConnect (WalletOption.XDEFI);
+          // connectKeyStoreWallet("fix hole garden staff input athlete bicycle account acquire patrol dilemma hamster", _chains);
+          await connectToXDefi ();
+          router.push("/my-wallet");
+        }
+      } else if (wallet?.name === "Metamask") {
+        const _chains = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain.label);
+        if (_chains.length === 0) {
+          throw "Select chains for wallet";
+        } else {
+          // walletConnect (WalletOption.METAMASK, _chains);
+        }
       } else {
-        // walletConnect (WalletOption.METAMASK, _chains);
+        showNotification("Select wallet to connect", "warning");
       }
-    } else {
-      showNotification("Select wallet to connect", "warning");
+    } catch (err) {
+      showNotification(err, "info");
     }
   }
 

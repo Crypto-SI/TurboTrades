@@ -4,7 +4,8 @@ export const NATIVE_TOKENS = {
   THOR: "RUNE",
   DASH: "DASH",
   KUJI: "KUJI",
-  MAYA: "CACAO"
+  MAYA: "CACAO",
+  BTC: "BTC"
 }
 /**
  * initial wallet list
@@ -13,7 +14,7 @@ export const InitialwalletList: WalletType[] = [
   { 
     name: "XDEFI", 
     image: "/images/wallets/xdefi.svg",
-    supportedChains: ["BTC", "ETH", "MAYA", "DASH", "KUJI", "THOR"],
+    supportedChains: ["BTC", "ETH", "MAYA", "KUJI", "THOR"],
     focused: false,
     selected: false
   },
