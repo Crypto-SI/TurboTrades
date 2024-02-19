@@ -4,10 +4,7 @@ import React from "react";
 import { useAtom } from 'jotai';
 import Image from "next/image";
 import { Icon } from '@iconify/react';
-//keystore
-import KeyStoreWallet from '@/components/swap/keyStore';
-import CreateKeyStore from "@/components/swap/createKeyStore";
-import ImportPhrase from "@/components/swap/importPhrase";
+import dynamic from "next/dynamic";
 //types
 import { ChainType, WalletType } from "@/utils/types";
 //tooltip
@@ -30,6 +27,10 @@ import { useRouter } from 'next/navigation'
 //hooks
 import useXChain from '@/hooks/useXChain';
 import useXDefi from '@/hooks/useXDefiWallet';
+//keystore
+const KeyStoreWallet = dynamic(() => import('@/components/swap/keyStore'));
+const CreateKeyStore = dynamic(() => import("@/components/swap/createKeyStore"));
+const ImportPhrase = dynamic(() => import("@/components/swap/importPhrase"));
 
 const WalletConnect = () => {
 

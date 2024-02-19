@@ -4,24 +4,22 @@ import Image from "next/image";
 import { Icon } from '@iconify/react';
 import { useAtom } from 'jotai';
 import axios from 'axios';
+import dynamic from "next/dynamic";
 
 import {
   TOKEN_DATA
 } from "@/utils/data";
-
+//atoms
 import {
   stageAtom,
   poolsAtom,
   fromTokenAtom,
   toTokenAtom
 } from '@/store';
-
-import TokenSelector from "@/components/swap/tokenSelector";
+//types
 import { IPool } from "@/utils/types";
-
-// interface PropsType {
-//   setStage: React.Dispatch<React.SetStateAction<String>>
-// }
+//components
+const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
 
 const Swap = () => {
 

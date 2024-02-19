@@ -127,7 +127,7 @@ const Home = () => {
           </>
         }
       </div>
-      {
+      {/* {
         xClientLoading[_chain.label as string] ? <div className="h-10 bg-gray-300 dark:bg-[#171A23] w-grow m-4 rounded-full animate-pulse"></div> :
         xBalances[_chain.label as string] && xBalances[_chain.label as string].balance.map((item: IBalance, index: number) => (
           <div key={"balance_" + index} className='justify-between border-b dark:border-[#2B2E41] border-[#DCE4EF] w-full pl-7 py-3 pr-4 flex items-center dark:text-[#A6A9B9] text-[#A6A9B9]'>
@@ -149,7 +149,7 @@ const Home = () => {
             <Tooltip content="Send"><button className='bg-[#1f242e11] dark:bg-[#1f242ea1] rounded-xl p-3 hover:opacity-50'><Icon icon="fa:send" width={16} /></button></Tooltip>
           </div>
         ))
-      }
+      } */}
     </div>
   )
 

@@ -1,8 +1,10 @@
 "use client"
 import React from 'react';
-import WalletConnect from "@/components/swap/walletConnect";
-import Swap from '@/components/swap/swap';
 import { useAtom } from 'jotai';
+import dynamic from 'next/dynamic';
+
+const WalletConnect = dynamic(() => import("@/components/swap/walletConnect"));
+const Swap = dynamic(() => import('@/components/swap/swap'));
 
 import {
   stageAtom
