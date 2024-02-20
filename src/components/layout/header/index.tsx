@@ -8,7 +8,6 @@ import { Dropdown } from 'flowbite-react';
 //atom from store
 import {
   stageAtom, currentModalTypeAtom, isConnectingAtom,
-  xClientLoadingAtom,
   xBalancesAtom,
   chainListAtom
 } from '@/store';
@@ -26,7 +25,7 @@ const Header = () => {
 
   const [chainList,] = useAtom(chainListAtom);
   //chains that is selected at this moment
-  const chains: ChainType[] = React.useMemo(() => chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain), [chainList]);
+  const chains: ChainType[] = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain);
 
   const [isConnecting] = useAtom(isConnectingAtom);
   const [xBalances] = useAtom(xBalancesAtom);

@@ -14,8 +14,8 @@ import {
 } from "@/utils/data";
 
 type PropsType = {
-  visible: Boolean,
-  setVisible: React.Dispatch<React.SetStateAction<Boolean>>,
+  visible: boolean,
+  setVisible: React.Dispatch<React.SetStateAction<boolean>>,
   setToken: (token: IPool) => void
 }
 

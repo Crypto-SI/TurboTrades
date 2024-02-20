@@ -2,40 +2,39 @@ import { XChainClient } from '@xchainjs/xchain-client';
 import BigNumber from 'bignumber.js';
 
 export type WalletType = {
-  name: String;
-  image: String,
-  supportedChains?: String[],
-  focused?: Boolean,
-  selected?: Boolean
+  name: string;
+  image: string,
+  supportedChains?: string[],
+  focused?: boolean,
+  selected?: boolean
 };
 
 export type ChainType = {
-  name: String;
-  label: String;
-  image: String,
-  selected?: Boolean,
-  focused?: Boolean
+  name: string;
+  label: string;
+  image: string,
+  selected?: boolean,
+  focused?: boolean
 };
 
 export interface IBalance {
   bigIntValue?: string;
-  address?: String,
-  chain?: String,
-  decimal?:Number,
+  address?: string,
+  chain?: string,
+  decimal?:number,
   amount: BigNumber,
-  decimalMultiplier?: String,
-  symbol?: String,
-  ticker?: String
-  value?: Number,
+  decimalMultiplier?: string,
+  symbol?: string,
+  ticker?: string
+  value?: number,
 };
 
 export interface IWallet {
-  address: String,
+  address: string,
   balance: IBalance[], 
-  walletType: String,
-  chain?: String
+  walletType: string,
+  chain?: string
 };
 
 export type XClients = Record<string, XChainClient>;
 export type XBalances = Record<string, IWallet>
-export type XClientLoading = Record<string, boolean>;

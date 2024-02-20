@@ -1,9 +1,9 @@
 import { atom } from 'jotai';
-import { XClients, XClientLoading, XBalances } from "@/types/minis";
+import { XClients, XBalances } from "@/types/minis";
 
 export const xClientsAtom = atom<XClients>({});
 export const xBalancesAtom = atom<XBalances>({});
-export const xClientLoadingAtom = atom<XClientLoading>({
+export const balancesLoadingAtom = atom<Record<string, boolean>>({
     "BTC": true,
     "ETH": true,
     "DASH": true,

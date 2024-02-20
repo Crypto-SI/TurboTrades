@@ -1,30 +1,23 @@
 import React, { InputHTMLAttributes } from 'react';
-
 import { Icon } from '@iconify/react';
 import { useAtom } from 'jotai';
 import useNotification from '@/hooks/useNotification';
 import downloadjs from 'downloadjs';
 //@ts-ignore
-import { validatePhrase, encryptToKeyStore, generatePhrase, decryptFromKeystore } from "@xchainjs/xchain-crypto";
-
+import { validatePhrase, encryptToKeyStore } from "@xchainjs/xchain-crypto";
+//atoms
 import {
   currentModalTypeAtom,
   stageAtom
 } from '@/store';
 
-// interface PropsType {
-//   // setVisible: React.Dispatch<React.SetStateAction<Boolean>>
-//   setCurrentModalType: React.Dispatch<React.SetStateAction<String>>
-// }
-
 const ImportPhrase = () => {
 
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
-  const [, setStage] = useAtom(stageAtom);
 
-  const [phrase, setPhrase] = React.useState<String>("");
-  const [words, setWords] = React.useState<String[]>([]);
-  const [password, setPassword] = React.useState<String>("");
+  const [phrase, setPhrase] = React.useState<string>("");
+  const [words, setWords] = React.useState<string[]>([]);
+  const [password, setPassword] = React.useState<string>("");
   const { showNotification } = useNotification();
 
   const handleClose = () => {
@@ -34,10 +27,8 @@ const ImportPhrase = () => {
 
   const handlePhraseChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const _phrase = event.target.value;
-
-    const _words: String[] = _phrase.trim().split(" ").filter((item) => /\S/.test(item)).map(item => item.trim());
+    const _words: string[] = _phrase.trim().split(" ").filter((item) => /\S/.test(item)).map(item => item.trim());
     setWords(_words);
-
     setPhrase(_phrase);
   }
 
@@ -48,9 +39,9 @@ const ImportPhrase = () => {
       if (!password) throw "Input password.";
       if (password.length < 6) throw "Password must be at least 6 characters.";
 
-      if (!validatePhrase(phrase as string)) throw "Invalid phrase, Please retry.";
+      if (!validatePhrase(phrase)) throw "Invalid phrase, Please retry.";
 
-      const keystore = await encryptToKeyStore(phrase as string, password as string).catch((err: any) => {
+      const keystore = await encryptToKeyStore(phrase, password).catch((err: any) => {
         console.log("@dew1204/err in creating keystore from phrase ---------------->", err);
         throw "Failed to create keystore from phrase, Please retry.";
       });
@@ -60,8 +51,6 @@ const ImportPhrase = () => {
     } catch (err) {
       showNotification (err, "warning");
       setPassword("");
-      // setWords([]);
-      // setPhrase("");
     }
   }
   
@@ -78,14 +67,14 @@ const ImportPhrase = () => {
             <input
               className="border outline-none border-[#0000001e] dark:border-[#54575a] m-auto mt-1 text-gray-900 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-300 block w-full px-4 py-2 bg-transparent dark:placeholder-[#6A84A0] dark:text-white dark:focus:border-[#a8b3bb]" 
               placeholder="Phrase"
-              value={phrase as string}
+              value={phrase}
               onChange={handlePhraseChange}
             />
             { words.length !== 12 && words.length !== 0 && <span className='text-red-900 dark:text-red-400 text-[12px] px-5'>Invalid phrase (must be 12 words)</span> }
           </div>
           <div className={`relative flex w-full flex-wrap text-[13px] rounded-2xl bg-[#F3F7FC] dark:bg-[#1f2738] mt-4 p-[6px] ${!phrase && 'hidden'}`}>
             {
-              words.map((_word: String, index: number) => 
+              words.map((_word: string, index: number) => 
                 <div  key={index + "_phrase"} className='w-1/3 p-[2px]'><div className='w-full p-1 break-words rounded-full bg-white dark:bg-[#232E42]'>{_word}</div></div>
               )
             } 
@@ -99,7 +88,7 @@ const ImportPhrase = () => {
               className="border outline-none border-[#0000001e] dark:border-[#54575a] m-auto mt-1 text-gray-900 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-300 block w-full px-4 py-2 bg-transparent dark:placeholder-[#6A84A0] dark:text-white dark:focus:border-[#a8b3bb]" 
               placeholder="Password"
               type='password'
-              value={password as string}
+              value={password}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             />
           </div>

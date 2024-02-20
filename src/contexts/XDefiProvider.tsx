@@ -8,16 +8,16 @@ import { ETHERSCAN_API_KEY } from "@/config";
 
 
 import {
-  xClientsAtom, xClientLoadingAtom,
   isConnectingAtom,
   chainListAtom,
   xBalancesAtom,
   xDefiAddressesAtom
 } from "@/store";
-
+//types
 import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
+//data
 import { NATIVE_TOKENS } from "@/utils/data";
-
+//context type
 interface IXDefiContext {
   connectToXDefi: () => Promise<void>,
   getBalancesWithXDefi: () => Promise<void>
@@ -31,14 +31,12 @@ export const XDefiContext = React.createContext<IXDefiContext | undefined>(undef
 
 const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
-  const [xClients, setXClients] = useAtom(xClientsAtom);
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
-  const [xClientLoading, setXClientLoading] = useAtom(xClientLoadingAtom);
   const [chainList,] = useAtom(chainListAtom);
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
   const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
   //chains that is selected at this moment
-  const chains = React.useMemo(() => chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label), [chainList]);
+  const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   //get accont
   const _getAccount = (chain: string) => new Promise((resolve, reject) => {
 
@@ -99,37 +97,34 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   }
   //get btc balance
   const getBTCbalance = async (address: string, prices: Record<string, number>) => {
-
-    const empty = {
-      address,
-      //@ts-ignore
-      symbol: "BTC", chain: "BTC", ticker: "BTC", value: prices["BTC"],
-      amount: 0,
-    }
-
     try {
-      const { data } = await axios.get(`https://api.blockcypher.com/v1/btc/main/addrs/${address}/balance`);
+      const { data } = await axios.get(`https://blockchain.info/q/addressbalance/${address}`);
       const wallet: any = {
         address,
         balance: [{
           address: "",
           symbol: "BTC", chain: "BTC", ticker: "BTC", value: prices["BTC"],
-          amount: data.balance
+          amount: data
         }],
-        walletType: "xDefi",
+        walletType: "XDEFI",
         chain: "BTC",
       }
       return wallet;
     } catch (err) {
       return {
         address,
-        balance: [empty],
+        balance: [{
+          address,
+          //@ts-ignore
+          symbol: "BTC", chain: "BTC", ticker: "BTC", value: prices["BTC"],
+          amount: 0,
+        }],
         walletType: "XDEFI",
         chain: "BTC",
       };
     }
   }
-  //get MAYA balance
+  //get MAYA balance ($CACAO token)
   const getMayaBalance = async (address:string, prices: Record<string, number>) => {
     const empty = {
       address,
@@ -147,7 +142,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           symbol: coin.asset, chain: "MAYA", ticker: coin.asset, value: prices[coin.asset],
           amount: Number(coin.amount) / 10**10
         })),
-        walletType: "xDefi",
+        walletType: "XDEFI",
         chain: "MAYA",
       }
       return wallet;
@@ -160,7 +155,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
   }
-  //get Kuji balance
+  //get Kuji balance 
   const getKujiraBalance = async (address:string, prices: Record<string, number>) => {
     const empty = {
       address,
@@ -178,7 +173,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           symbol: coin.asset, chain: "KUJI", ticker: "KUJI", value: prices["KUJI"],
           amount: coin.amount
         })),
-        walletType: "xDefi",
+        walletType: "XDEFI",
         chain: "KUJI",
       }
       return wallet;
@@ -209,7 +204,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           symbol: coin.asset, chain: "THOR", ticker: coin.asset, value: prices[coin.asset],
           amount: coin.amount
         })),
-        walletType: "xDefi",
+        walletType: "XDEFI",
         chain: "THOR",
       }
       return wallet;
@@ -241,7 +236,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       const wallet: any = {
         address,
         balance: balance,
-        walletType: "xDefi",
+        walletType: "XDEFI",
         chain: "ETH",
       }
       return wallet;
@@ -258,16 +253,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    * connect wallet with xDefi
    */
   const connectToXDefi = async () => {
-
-    setIsConnecting(true);
-    setXDefiAddresses ({});
-
-    const btc = await _getAccount ("BTC");
-    const maya = await _getAccount ("MAYA");
-    const thor = await _getAccount ("THOR");
-    const kujira = await _getKujiraAccount ();
-    const ethereum = await _getEVMAccount ();
-
     const temp: Record<string, string> = {};
     chains.forEach(async(chain: String) => {
       switch (chain) {
@@ -289,54 +274,44 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
     setXDefiAddresses(temp);
+    getBalancesWithXDefi(temp);
   }
   //get wallet balances with xDefi
-  const getBalancesWithXDefi = async () => {
-    setIsConnecting(true);
-    setXClientLoading({
-      "BTC": true,
-      "ETH": true,
-      "DASH": true,
-      "KUJI": true,
-      "THOR": true,
-      "MAYA": true
-    });
-    const prices = await _getPrices();
-    const temp: XBalances = {};
+  const getBalancesWithXDefi = async (addresses : Record<string, string> = xDefiAddresses) => {
 
-    await Promise.all(Object.keys(xDefiAddresses).map(async(key: string) => {
-      console.log(key)
+    setIsConnecting (true);
+    setXBalances ({});
+    const prices = await _getPrices();
+    
+    const _xBalances: XBalances = {};
+
+    console.log("@dew1204/fetching start chain balances----------------->");
+    await Promise.all(Object.keys(addresses).map(async(key: string) => {
       switch (key) {
         case "ETH": 
-          temp.ETH =  await getEthBalance(xDefiAddresses[key], prices);
+          _xBalances.ETH =  await getEthBalance(addresses[key], prices);
+          setXBalances({..._xBalances, "ETH": _xBalances.ETH});
           return;
         case "BTC":
-          temp.BTC = await getBTCbalance(xDefiAddresses[key], prices);
+          _xBalances.BTC = await getBTCbalance(addresses[key], prices);
+          setXBalances({..._xBalances, "BTC": _xBalances.BTC});
           return;
         case "KUJI":
-          temp.KUJI = await getKujiraBalance(xDefiAddresses[key], prices);
+          _xBalances.KUJI = await getKujiraBalance(addresses[key], prices);
+          setXBalances({..._xBalances, "KUJI": _xBalances.KUJI});
           return;
         case "THOR":
-          temp.THOR = await getThorBalance(xDefiAddresses[key], prices);
+          _xBalances.THOR = await getThorBalance(addresses[key], prices);
+          setXBalances({..._xBalances, "THOR": _xBalances.THOR});
           return;
         case "MAYA":
-          temp.MAYA = await getMayaBalance (xDefiAddresses[key], prices);
+          _xBalances.MAYA = await getMayaBalance (addresses[key], prices);
+          setXBalances({..._xBalances, "MAYA": _xBalances.MAYA});
           return;
       }
     }));
-    console.log(temp)
-    setXBalances(temp);
-
+    console.log("@dew1204/xDefi balances -------------->", _xBalances);
     setIsConnecting(false);
-    setXClientLoading({
-      "BTC": false,
-      "ETH": false,
-      "DASH": false,
-      "KUJI": false,
-      "THOR": false,
-      "MAYA": false
-    });
-
   }
 
   return (

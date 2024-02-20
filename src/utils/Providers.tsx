@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 //wallet contexts
 import XChainsProvider from "@/contexts/XChainsProvider";
 import XDefiWalletProvider from '@/contexts/XDefiProvider';
+import MetamaskProvider from "@/contexts/MetamaskContext";
 //notification
 import NotificationProvider from "@/contexts/NotificationContext";
 
@@ -12,7 +13,9 @@ const ThemeClient = ({ children }: Readonly<{ children: React.ReactNode }>) => (
     <NotificationProvider>
       <XChainsProvider>
         <XDefiWalletProvider>
-          {children}
+          <MetamaskProvider>
+            {children}
+          </MetamaskProvider>
         </XDefiWalletProvider>
       </XChainsProvider>
     </NotificationProvider>

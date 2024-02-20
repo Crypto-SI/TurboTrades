@@ -11,7 +11,7 @@ export const isSupportedChain = (_wallet: WalletType | null, _chain: ChainType) 
   if (!_wallet) {
     return false;
   }
-  const chain = _wallet.supportedChains?.find((item: String) => item === _chain.label);
+  const chain = _wallet.supportedChains?.find((item: string) => item === _chain.label);
   if (chain) {
     return true;
   } else {
@@ -20,28 +20,41 @@ export const isSupportedChain = (_wallet: WalletType | null, _chain: ChainType) 
 }
 /**
  * reduce balance
+ * @if not number, return "0";
+ * @if > 10e+7 10M
+ * @if > 10e+4 10K
+ * @if 0.001234 0.0012
+ * @if 1.000000 1
+ * 
  * @param number 12.0000123451
- * @returns 12.000012
+ * @returns string
+ * 
  */
-export const reduceAmount = (number: number | BigNumber) => {
-  const num = Math.floor(number as number);
-  const decimal = (number as number - num).toString();
-  let count = 0;
-  for (let i = 2; i < decimal.length; i++) {
+export const reduceAmount = (number: number | BigNumber | string | unknown) => {
+  try {
+    if (isNaN(number as number)) throw "0"; 
+    const num = Math.floor(number as number);
+    if (num >= 10**7) throw (num / 10**6).toFixed(2) + "M";
+    if (num >= 10**4) throw (num / 10**3).toFixed(2) + "K";
+    const decimal = (number as number - num).toString();
+    let count = 0;
+    for (let i = 2; i < decimal.length; i++) {
       if (decimal[i] == '0') {
-          count ++;
+        count ++;
       } else {
-          break;
+        break;
       }
+    }
+    throw num + decimal.substr(1, count + 3);
+  } catch (value: any) {
+    return value as string;
   }
-  return num + decimal.substr(1, count + 3);
 }
 /**
  * copy text to clipboard
  * @param text 
  */
 export const copyToClipboard = async ( text: string ) => {
-
   // Navigator clipboard api needs a secure context (https)
   if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);

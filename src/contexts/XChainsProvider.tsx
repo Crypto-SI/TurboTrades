@@ -22,7 +22,7 @@ import axios from "axios";
 // import { Client as AvaxClient, defaultAvaxParams } from "@xchainjs/xchain-avax";
 //atom from store
 import { 
-  xClientsAtom, xClientLoadingAtom,
+  xClientsAtom,
   isConnectingAtom,
   chainListAtom,
   xBalancesAtom
@@ -51,12 +51,10 @@ export const _getPrices = async() => {
   const { data } = await axios.get("https://mayanode.mayachain.info/mayachain/pools");
   
   const prices: Record<string, number> = {};
-
   const cacaoInfo = data.find((item: any) => item.asset === "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48");
   const value = cacaoInfo.balance_asset / cacaoInfo.balance_cacao;
   prices.CACAO = value * 100;
   
-
   data.forEach((item: any) => {
     switch (item.asset) {
       case "ETH.ETH": 
@@ -86,11 +84,10 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
   
   const [xClients, setXClients] = useAtom(xClientsAtom);
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
-  const [xClientLoading, setXClientLoading] = useAtom(xClientLoadingAtom);
   const [chainList,] = useAtom(chainListAtom);
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
   //chains that is selected at this moment
-  const chains = React.useMemo(() => chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain.label), [chainList]);
+  const chains = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain.label);
   
   /**
    * connect to selected chains using keystore phrase
@@ -120,44 +117,28 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
       }
     });
     setXClients(_clients);
+    getBalances(_clients)
   }
-  
   /**
    * 
    */
-  const getBalances = async() => {
-
+  const getBalances = async(_xClients: XClients = xClients) => {
+    setXBalances({});
     const prices = await _getPrices();
     try {
       setIsConnecting(true);
-      setXClientLoading({
-        "BTC": true,
-        "ETH": true,
-        "DASH": true,
-        "KUJI": true,
-        "THOR": true,
-        "MAYA": true
-      });
-      
-      const balances = await Promise.all(chains.map((chain: String) => _getWalletBalance(xClients[chain as string], prices)));
+      const _xBalances: XBalances = {};
+      const balances = await Promise.all(chains.map(async(chain: string) => {
+        _xBalances[chain] = await _getWalletBalance(_xClients[chain as string], prices);
+        setXBalances({..._xBalances, [chain]: _xBalances[chain]});
+        return chain;
+      }));
       console.log("balances ------------------>", balances);
-      const temp: XBalances = {};
-      balances.forEach((item: IWallet) => {
-        temp[item.chain as string] = item;
-      });
-      setXBalances(temp);
+
     } catch (err) {
       
     } finally {
       setIsConnecting(false);
-      setXClientLoading({
-        "BTC": false,
-        "ETH": false,
-        "DASH": false,
-        "KUJI": false,
-        "THOR": false,
-        "MAYA": false
-      });
     }
   }
   // XChainClient is the superclass to all client implementations.
@@ -174,36 +155,36 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
         return null;
       }
 
+      //@ts-ignore
+      const balances: Balance[] = await client.getBalance(address).catch(err => {});
+      console.log(chain + "------------------->", balances)
+      
+      //@ts-ignore
+      const _balances: IBalance[] = (balances === undefined || balances.length === 0) ?
+      [{
+        address,
         //@ts-ignore
-        const balances: Balance[] = await client.getBalance(address).catch(err => {});
-        console.log(chain + "------------------->", balances)
-        
-        //@ts-ignore
-        const _balances: IBalance[] = (balances === undefined || balances.length === 0) ?
-        [{
-          address,
-          //@ts-ignore
-          symbol: NATIVE_TOKENS[chain], chain: chain, ticker: NATIVE_TOKENS[chain], value: prices[NATIVE_TOKENS[chain]],
-          amount: 0,
-        }] : 
-        balances.map((item: any) => ({
-          address,
-          symbol: item.asset.symbol,
-          chain: item.asset.chain,
-          ticker: item.asset.ticker,
-          value: prices[item.asset.ticker],
-          amount: baseToAsset(item.amount).amount(),
-        }));
+        symbol: NATIVE_TOKENS[chain], chain: chain, ticker: NATIVE_TOKENS[chain], value: prices[NATIVE_TOKENS[chain]],
+        amount: 0,
+      }] : 
+      balances.map((item: any) => ({
+        address,
+        symbol: item.asset.symbol,
+        chain: item.asset.chain,
+        ticker: item.asset.ticker,
+        value: prices[item.asset.ticker],
+        amount: baseToAsset(item.amount).amount(),
+      }));
 
-        const wallet: any = {
-          address,
-          balance: _balances,
-          walletType: "XDEFI",
-          //@ts-ignore
-          chain: client.chain,
-        }
+      const wallet: any = {
+        address,
+        balance: _balances,
+        walletType: "Keystore",
         //@ts-ignore
-        return wallet;
+        chain: client.chain,
+      }
+      //@ts-ignore
+      return wallet;
     } catch (err) {
       console.log(err)
     }

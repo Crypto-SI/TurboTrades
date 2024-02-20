@@ -16,7 +16,6 @@ import {
   // isConnectedAtom, isFetchingBalancesAtom, 
   isConnectingAtom,
   walletListAtom, chainListAtom,
-  xClientLoadingAtom,
   xClientsAtom,
   walletAtom
 } from '@/store';
@@ -27,6 +26,7 @@ import { useRouter } from 'next/navigation'
 //hooks
 import useXChain from '@/hooks/useXChain';
 import useXDefi from '@/hooks/useXDefiWallet';
+import useMetamask from "@/hooks/useMetamask";
 //keystore
 const KeyStoreWallet = dynamic(() => import('@/components/swap/keyStore'));
 const CreateKeyStore = dynamic(() => import("@/components/swap/createKeyStore"));
@@ -40,7 +40,6 @@ const WalletConnect = () => {
   // const [isFetchingBalances] = useAtom(isFetchingBalancesAtom);
   
   //wallet loading
-  const [xClientLoading, setXClientLoading] = useAtom(xClientLoadingAtom);
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
   const [xClients] = useAtom(xClientsAtom);
   
@@ -58,10 +57,11 @@ const WalletConnect = () => {
   // const { connectKeyStoreWallet } = useWallet ();
   const { connectKeyStoreWallet } = useXChain ();
   const { connectToXDefi } = useXDefi();
+  const { connectToMetamask } = useMetamask();
 
   React.useEffect(() => {
     if (wallet) {
-      const countSelectedChains = chainList.reduce((_count: number, _chain: ChainType) => _chain.selected && wallet.supportedChains?.find((item: String) => item === _chain.label) ? _count + 1 : _count, 0);
+      const countSelectedChains = chainList.reduce((_count: number, _chain: ChainType) => _chain.selected && wallet.supportedChains?.find((item: string) => item === _chain.label) ? _count + 1 : _count, 0);
       if (countSelectedChains > 0) {
         setChainList(chainList.map((_chain: ChainType) => isSupportedChain(wallet, _chain) ? { ..._chain, focused: true } : { ..._chain, selected: false, focused: false }))
       } else {
@@ -85,7 +85,7 @@ const WalletConnect = () => {
         let _selectedChains = chainList.filter(({ selected }: ChainType) => selected);
         for (let i = 0; i < _selectedChains.length; i++) {
           const element = _selectedChains[i];
-          if (!_wallet.supportedChains?.find((item: String) => item === element.label)) {
+          if (!_wallet.supportedChains?.find((item: string) => item === element.label)) {
             return { ..._wallet, focused: false };
           }
         }
@@ -164,7 +164,8 @@ const WalletConnect = () => {
         if (_chains.length === 0) {
           throw "Select chains for wallet";
         } else {
-          // walletConnect (WalletOption.METAMASK, _chains);
+          await connectToMetamask ();
+          router.push("/my-wallet");
         }
       } else {
         showNotification("Select wallet to connect", "warning");

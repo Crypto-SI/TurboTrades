@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react';
 import { useAtom } from 'jotai';
 import useNotification from '@/hooks/useNotification';
 import { readDataFromFile } from '@/utils/methods';
-import { validatePhrase, encryptToKeyStore, generatePhrase, decryptFromKeystore } from "@xchainjs/xchain-crypto";
+import { decryptFromKeystore } from "@xchainjs/xchain-crypto";
 import { useRouter } from 'next/navigation';
 
 import {
@@ -12,8 +12,6 @@ import {
   stageAtom,
   chainListAtom
 } from "@/store";
-
-import { ChainType } from '@/types/minis';
 
 import useXChain from '@/hooks/useXChain';
 
@@ -33,7 +31,7 @@ const KeyStore = () => {
   }
   const keyFileRef = React.useRef(null);
 
-  const [password, setPassword] = React.useState<String>("");
+  const [password, setPassword] = React.useState<string>("");
   const [key, setKey] = React.useState<any>();
   const [keyStoreFile, setKeyStoreFile] = React.useState<File|undefined>(undefined);
 
@@ -83,7 +81,7 @@ const KeyStore = () => {
       } else if (!password) {
         throw "Input password for Keystore file";
       } else {
-        const phrase: string = await decryptFromKeystore(key, password as string).catch((err: any) => {
+        const phrase: string = await decryptFromKeystore(key, password).catch((err: any) => {
           const _err = err.toString();
           if (_err.substring(7, _err.length) === "Invalid password") {
             throw "Invalid Pasword, Did you forget it?";
@@ -143,7 +141,7 @@ const KeyStore = () => {
             <input
               className="border outline-none border-[#0000001e] dark:border-[#54575a] m-auto mt-1 text-gray-900 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-300 block w-full px-4 py-2 bg-transparent dark:placeholder-[#6A84A0] dark:text-white dark:focus:border-[#a8b3bb]" 
               placeholder="Password"
-              value={password as string}
+              value={password}
               onChange={(e:React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               type='password'
             />
