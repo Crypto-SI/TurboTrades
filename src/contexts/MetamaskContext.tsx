@@ -4,8 +4,9 @@ import React from "react";
 import { useAtom } from "jotai";
 import { ethers } from 'ethers';
 import axios from 'axios';
-import { ETHERSCAN_API_KEY } from "@/config"; 
-
+import { ETHERSCAN_API_KEY } from "@/config";
+import { injected } from "@/utils/connectors";
+import { useWeb3React } from "@web3-react/core";
 
 import {
   isConnectingAtom,
@@ -19,10 +20,15 @@ import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis
 import { NATIVE_TOKENS } from "@/utils/data";
 //context type
 interface IMetamaskContext {
-  connectToMetamask: () => Promise<void>,
-  getBalanceWithMetamask: () => Promise<void>
+  connectToMetamask: () => Promise<any>,
+  getBalanceWithMetamask: () => Promise<void>,
+  disconnectWithMetmask: () => Promise<void>
 }
-
+//data
+import { USDT_ADDRESS, USDC_ADDRESS, WSTETH_ADDRESS } from "@/utils/data";
+//abis
+import { ERC20 } from "@/utils/ABIs/standards";
+//third parties
 import { _getPrices } from "./XChainsProvider";
 /**
  * MetamaskContext
@@ -31,25 +37,117 @@ export const MetamaskContext = React.createContext<IMetamaskContext | undefined>
 
 const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
+  const { account, library, chainId, activate, deactivate } = useWeb3React();
+
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
-  const [chainList,] = useAtom(chainListAtom);
+  const [chainList, setChainList] = useAtom(chainListAtom);
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
   const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   //get accont
-  const _getAccount = (chain: string) => new Promise((resolve, reject) => {})
+  const _getAccount = (chain: string) => new Promise((resolve, reject) => { });
 
-  const connectToMetamask = async () => {
-    console.log("asdfasdf")
+  const getBalance = async (address: string, token: string) => {
+    const contract = new ethers.Contract(address, ERC20, library.getSigner());
+    const balance = (await contract.balanceOf(account)).toString();
+    return balance;
   }
 
   const getBalanceWithMetamask = async () => {
 
+    if (!account) {
+      return;
+    }
+
+    type Token = {
+      address: string,
+      asset: string
+    }
+
+    const tokens: Token[] = [
+      { address: "", asset: "ETH" },
+      { address: USDC_ADDRESS, asset: "USDC" },
+      { address: USDT_ADDRESS, asset: "USDT" },
+      { address: WSTETH_ADDRESS, asset: "WSTETH" },
+    ]
+
+    setIsConnecting (true);
+    setXBalances ({});
+    const prices = await _getPrices();
+
+    console.log("@dew1204/fetching start chain balances----------------->");
+    const balances: IBalance[] = await Promise.all(tokens.map(async({address, asset}: Token) => {
+      try {
+        if (asset === "ETH") {
+          const _eth = await library.getSigner().provider.getBalance(account);
+          console.log(ethers.utils.formatEther(_eth))
+          return {
+            address: account,
+            symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+            amount: String(ethers.utils.formatEther(_eth))
+          }
+        } else {
+          const contract = new ethers.Contract(address, ERC20, library.getSigner());
+          const balance = await contract.balanceOf(account)
+          return {
+            address: account,
+            symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+            amount: String(ethers.utils.formatEther(balance))
+          }
+        }
+      } catch (err) {
+        console.log(err)
+        return {
+          account,
+          symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+          amount: "0"
+        }
+      }
+    }));
+
+    const eth: IWallet = {
+      address: account as string,
+      balance: balances,
+      walletType: "METAMASK",
+      chain: "ETH",
+    }
+
+    setXBalances({"ETH": eth});
+    console.log("@dew1204/metamask balances -------------->", eth);
+    setIsConnecting(false);
   }
 
+  React.useEffect(() => {
+    if (account) {
+      getBalanceWithMetamask ();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account]);
+
+  const connectToMetamask = () => new Promise(async(resolve, reject) => {
+    if (account) reject("already connected");
+    try {
+      await activate(injected, async (error) => {
+        console.log(error.message);
+        reject ("Cancel the operation...");
+      });
+      resolve("");
+    } catch (e) {
+      return reject();
+    }
+  });
+
+  const disconnectWithMetmask = async() => {
+    deactivate ();
+    setXBalances({});
+    setXDefiAddresses({});
+    setChainList(chainList.map((chain: ChainType) => ({...chain, selected: false, focused: false})));
+  }
+
+
   return (
-    <MetamaskContext.Provider value={{ connectToMetamask, getBalanceWithMetamask }}>
+    <MetamaskContext.Provider value={{ connectToMetamask, getBalanceWithMetamask, disconnectWithMetmask }}>
       {children}
     </MetamaskContext.Provider>
   )

@@ -11,30 +11,30 @@ export const NATIVE_TOKENS = {
  * initial wallet list
 */
 export const InitialwalletList: WalletType[] = [
-  { 
-    name: "XDEFI", 
+  {
+    name: "XDEFI",
     image: "/images/wallets/xdefi.svg",
     supportedChains: ["BTC", "ETH", "MAYA", "KUJI", "THOR"],
     focused: false,
     selected: false
   },
-  { 
-    name: "Metamask", 
+  {
+    name: "Metamask",
     image: "/images/wallets/metamask.svg",
     supportedChains: ["ETH"],
     // supportedChains: ["ETH"],
     focused: false,
     selected: false
   },
-  { 
-    name: "Keystore", 
+  {
+    name: "Keystore",
     image: "/images/wallets/keystore.svg",
     supportedChains: ["BTC", "ETH", "MAYA", "DASH", "KUJI", "THOR"],
     focused: false,
     selected: false
   },
-  { name: "Create Keystore", image: "mdi:key-add"},
-  { name: "Import Phrase", image: "clarity:import-solid-badged"},
+  { name: "Create Keystore", image: "mdi:key-add" },
+  { name: "Import Phrase", image: "clarity:import-solid-badged" },
   // { 
   //   name: "Coinbase", 
   //   image: "/images/wallets/coinbase.svg",
@@ -52,155 +52,173 @@ export const InitialwalletList: WalletType[] = [
  * chain data
  */
 export const TOKEN_DATA: Record<string, any> = {
-  "MAYA.CACAO": { 
-    ticker: "CACAO", 
+  "MAYA.CACAO": {
+    ticker: "CACAO",
     chain: "MAYA",
-    name: "Maya chain", 
+    name: "Maya chain",
     image: "/images/tokens/cacao.png"
   },
-  "BTC.BTC": { 
-    ticker: "BTC", 
+  "BTC.BTC": {
+    ticker: "BTC",
     chain: "BTC",
-    name: "Bitcoin", 
+    name: "Bitcoin",
     image: "/images/tokens/btc.webp"
   },
-  "ETH.ETH": { 
-    ticker: "ETH", 
+  "ETH.ETH": {
+    ticker: "ETH",
     chain: "ETH",
-    name: "Ethereum", 
+    name: "Ethereum",
     image: "/images/tokens/eth.png"
   },
-  "KUJI.KUJI": { 
-    ticker: "KUJI", 
+  "KUJI.KUJI": {
+    ticker: "KUJI",
     chain: "KUJI",
-    name: "Kuji chain", 
+    name: "Kuji chain",
     image: "/images/tokens/kuji.png"
-   },
-   "DASH.DASH": { 
-    ticker: "DASH", 
+  },
+  "DASH.DASH": {
+    ticker: "DASH",
     chain: "DASH",
-    name: "Dash chain", 
-    image: "/images/tokens/dash.png" 
-   },
-   "THOR.RUNE": { 
+    name: "Dash chain",
+    image: "/images/tokens/dash.png"
+  },
+  "THOR.RUNE": {
     ticker: "RUNE",
-    chain: "THOR", 
-    name: "Thorchain", 
+    chain: "THOR",
+    name: "Thorchain",
     image: "/images/tokens/rune.png"
-   },
-   "ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7": { 
+  },
+  "ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7": {
     ticker: "USDT",
-    chain: "ETH", 
-    name: "Ethereum", 
-    image: "/images/tokens/usdt.png"
-   },
-   "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48": { 
-    ticker: "USDC",
-    chain: "ETH", 
-    name: "Ethereum", 
-    image: "/images/tokens/usdc.png"
-   },
-   "KUJI.USK": { 
-    ticker: "USK", 
-    chain: "KUJI",
-    name: "KUJI chain", 
-    image: "/images/tokens/usk.png"
-   },
-   "ETH.WSTETH-0X7F39C581F595B53C5CB19BD0B3F8DA6C935E2CA0": { 
-    ticker: "WSTETH", 
     chain: "ETH",
-    name: "Ethereum", 
+    name: "Ethereum",
+    image: "/images/tokens/usdt.png"
+  },
+  "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48": {
+    ticker: "USDC",
+    chain: "ETH",
+    name: "Ethereum",
+    image: "/images/tokens/usdc.png"
+  },
+  "ETH.WSTETH-0X7F39C581F595B53C5CB19BD0B3F8DA6C935E2CA0": {
+    ticker: "WSTETH",
+    chain: "ETH",
+    name: "Ethereum",
     image: "/images/tokens/wsteth.png"
-   },
+  },
+  "KUJI.USK": {
+    ticker: "USK",
+    chain: "KUJI",
+    name: "KUJI chain",
+    image: "/images/tokens/usk.png"
+  },
+  "ETH.USDT": {
+    ticker: "USDT",
+    chain: "ETH",
+    name: "Ethereum",
+    image: "/images/tokens/usdt.png"
+  },
+  "ETH.USDC": {
+    ticker: "USDC",
+    chain: "ETH",
+    name: "Ethereum",
+    image: "/images/tokens/usdc.png"
+  },
+  "ETH.WSTETH": {
+    ticker: "WSTETH",
+    chain: "ETH",
+    name: "Ethereum",
+    image: "/images/tokens/wsteth.png"
+  },
 }
 /**
  * chain data
  */
 export const CHAIN_DATA: Record<string, any> = {
-  "MAYA": { 
-    label: "MAYA", 
-    name: "Maya chain", 
+  "MAYA": {
+    label: "MAYA",
+    name: "Maya chain",
     image: "/images/chains/maya.png"
   },
-  "BTC": { 
-    label: "BTC", 
-    name: "Bitcoin", 
+  "BTC": {
+    label: "BTC",
+    name: "Bitcoin",
     image: "/images/chains/btc.webp"
   },
-  "ETH": { 
-    label: "ETH", 
-    name: "Ethereum", 
+  "ETH": {
+    label: "ETH",
+    name: "Ethereum",
     image: "/images/chains/eth.webp"
   },
-  "KUJI": { 
-    label: "KUJI", 
-    name: "Kuji chain", 
+  "KUJI": {
+    label: "KUJI",
+    name: "Kuji chain",
     image: "/images/chains/kuji.png"
-   },
-   "DASH": { 
-    label: "DASH", 
-    name: "Dash chain", 
-    image: "/images/chains/dash.png" 
-   },
-   "THOR": { 
-    label: "THOR", 
-    name: "Thorchain", 
+  },
+  "DASH": {
+    label: "DASH",
+    name: "Dash chain",
+    image: "/images/chains/dash.png"
+  },
+  "THOR": {
+    label: "THOR",
+    name: "Thorchain",
     image: "/images/chains/thor.webp"
-   },
+  },
 }
 /**
  * initial wallet list
  */
 export const InitialchainList: ChainType[] = [
-  { 
-    label: "MAYA", 
-    name: "Maya chain", 
-    image: "/images/chains/maya.png", 
+  {
+    label: "MAYA",
+    name: "Maya chain",
+    image: "/images/chains/maya.png",
     selected: false,
-    focused: false 
+    focused: false
   },
-  { 
-    label: "BTC", 
-    name: "Bitcoin", 
-    image: "/images/chains/btc.webp", 
+  {
+    label: "BTC",
+    name: "Bitcoin",
+    image: "/images/chains/btc.webp",
     selected: false,
-    focused: false 
+    focused: false
   },
-  { 
-    label: "ETH", 
-    name: "Ethereum", 
-    image: "/images/chains/eth.webp", 
+  {
+    label: "ETH",
+    name: "Ethereum",
+    image: "/images/chains/eth.webp",
     selected: false,
-    focused: false 
+    focused: false
   },
-  { 
-    label: "KUJI", 
-    name: "Kuji chain", 
-    image: "/images/chains/kuji.png", 
+  {
+    label: "KUJI",
+    name: "Kuji chain",
+    image: "/images/chains/kuji.png",
     selected: false,
-    focused: false 
-   },
-  { 
-    label: "DASH", 
-    name: "Dash chain", 
-    image: "/images/chains/dash.png", 
+    focused: false
+  },
+  {
+    label: "DASH",
+    name: "Dash chain",
+    image: "/images/chains/dash.png",
     selected: false,
-    focused: false 
-   },
-  { 
-    label: "THOR", 
-    name: "Thorchain", 
-    image: "/images/chains/thor.webp", 
+    focused: false
+  },
+  {
+    label: "THOR",
+    name: "Thorchain",
+    image: "/images/chains/thor.webp",
     selected: false,
-    focused: false 
-   },
+    focused: false
+  },
   // { 
-    //   label: "LTC", 
+  //   label: "LTC", 
   //   name: "Litecoin", 
   //   image: "/images/chains/ltc.webp", 
   //   selected: false,
   //   focused: false 
-   
+
   // },
   // { 
   //   label: "BCH", 
@@ -237,7 +255,7 @@ export const InitialchainList: ChainType[] = [
   //   focused: false 
   // },
   // { 
-    //   label: "GAIA", 
+  //   label: "GAIA", 
   //   name: "Cosmos chain", 
   //   image: "/images/chains/cosmos.webp", 
   //   selected: false,
@@ -255,9 +273,9 @@ export const CHAIN_BY_TOKEN = {
   "BNB": "BNB chain",
   "BSC": "Biance Smart Chain",
   "BTC": "Bitcoin chain",
-  "ETH": "Ethereum", 
+  "ETH": "Ethereum",
   "DOGE": "Doge chain",
-  "AVAX": "Avalanche", 
+  "AVAX": "Avalanche",
   "GAIA": "Cosmos chain",
   "BCH": "Bitcoin cash",
   "CACAO": "Maya chain",
@@ -266,3 +284,7 @@ export const CHAIN_BY_TOKEN = {
   "DASH": "Dash chain",
   "KUJI": "Kuji chain"
 }
+
+export const USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
+export const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+export const WSTETH_ADDRESS = '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0';

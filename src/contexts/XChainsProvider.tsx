@@ -25,17 +25,19 @@ import {
   xClientsAtom,
   isConnectingAtom,
   chainListAtom,
-  xBalancesAtom
+  xBalancesAtom,
+  
 } from "@/store";
 //public utils
 
 //types
 import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
-import { NATIVE_TOKENS, TOKEN_DATA } from "@/utils/data";
+import { NATIVE_TOKENS } from "@/utils/data";
 
 interface IXChainContext {
   connectKeyStoreWallet: (phrase: string) => Promise<void>,
-  getBalances: () => Promise<void>
+  getBalances: () => Promise<void>,
+  disconnectWithKeystore: () => Promise<any>,
 } 
 
 /**
@@ -48,12 +50,15 @@ export const XChainContext = React.createContext<IXChainContext | undefined>(und
    * @ prices {DASH: 2345}
    */
 export const _getPrices = async() => {
+
   const { data } = await axios.get("https://mayanode.mayachain.info/mayachain/pools");
   
   const prices: Record<string, number> = {};
+
   const cacaoInfo = data.find((item: any) => item.asset === "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48");
   const value = cacaoInfo.balance_asset / cacaoInfo.balance_cacao;
   prices.CACAO = value * 100;
+  prices.USDC = 1;
   
   data.forEach((item: any) => {
     switch (item.asset) {
@@ -75,6 +80,12 @@ export const _getPrices = async() => {
       case "KUJI.USK":
         prices.USK = item.balance_cacao / item.balance_asset * value;
         break;
+      case "ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7":
+        prices.USDT = item.balance_cacao / item.balance_asset * value;
+        break;
+      case "ETH.WSTETH-0X7F39C581F595B53C5CB19BD0B3F8DA6C935E2CA0":
+        prices.WSTETH = item.balance_cacao / item.balance_asset * value;
+        break;
     }
   });
   return prices;
@@ -84,8 +95,8 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
   
   const [xClients, setXClients] = useAtom(xClientsAtom);
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
-  const [chainList,] = useAtom(chainListAtom);
-  const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
+  const [chainList, setChainList] = useAtom(chainListAtom);
+  const [, setIsConnecting] = useAtom(isConnectingAtom);
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain.label);
   
@@ -190,8 +201,14 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
     }
   }
 
+  const disconnectWithKeystore = async() => {
+    setXBalances({});
+    setXClients({});
+    setChainList(chainList.map((chain: ChainType) => ({...chain, selected: false, focused: false})));
+  }
+
   return (
-    <XChainContext.Provider value={{ connectKeyStoreWallet, getBalances }}>
+    <XChainContext.Provider value={{ disconnectWithKeystore, connectKeyStoreWallet, getBalances }}>
       { children }
     </XChainContext.Provider>
   )

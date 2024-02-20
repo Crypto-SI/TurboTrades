@@ -9,28 +9,33 @@ import { Dropdown } from 'flowbite-react';
 import {
   stageAtom, currentModalTypeAtom, isConnectingAtom,
   xBalancesAtom,
-  chainListAtom
+  walletAtom
 } from '@/store';
 //router
 import { useRouter } from "next/navigation";
 //types
-import { ChainType, IWallet } from '@/types/minis';
+import { IWallet } from '@/types/minis';
 //data
 import { CHAIN_DATA } from '@/utils/data';
 import { reduceAmount } from "@/utils/methods";
+//hooks
+import useXChain from '@/hooks/useXChain';
+import useXDefi from '@/hooks/useXDefiWallet';
+import useMetamask from "@/hooks/useMetamask";
 
 const Header = () => {
-
+  //router
   const router = useRouter ();
-
-  const [chainList,] = useAtom(chainListAtom);
-  //chains that is selected at this moment
-  const chains: ChainType[] = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain);
-
+  //atoms
   const [isConnecting] = useAtom(isConnectingAtom);
   const [xBalances] = useAtom(xBalancesAtom);
-
+  const [wallet] = useAtom(walletAtom);//current wallet
+  //state
   const [curBalance, setCurBalance] = React.useState<IWallet | undefined>();
+  //hooks
+  const { disconnectWithMetmask } = useMetamask ();
+  const { disconnectWithXDefi } = useXDefi();
+  const { disconnectWithKeystore } = useXChain();
 
   React.useEffect(() => {
     const keys = Object.keys(xBalances);
@@ -42,17 +47,29 @@ const Header = () => {
   }, [xBalances]);
 
   const [visible, setVisible] = React.useState<Boolean>(false);
+
   const handleToggle = () => {
     setVisible(prev => !prev);
   }
 
   const [, setStage] = useAtom(stageAtom);
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
-
+  //connect wallet
   const handleConnectWallet = () => {
     setStage("wallet");
     setCurrentModalType("");
     router.push("/");
+  }
+  //disconnect wallet
+  const handleDisconnect = async () => {
+    if (wallet?.name === "XDEFI") {
+      disconnectWithXDefi ();
+    } else if (wallet?.name === "Metamask") {
+      disconnectWithMetmask ();
+    } else if (wallet?.name === "Keystore") {
+      disconnectWithKeystore ();
+    } 
+
   }
 
   const _profileButton = () => (
@@ -84,7 +101,7 @@ const Header = () => {
         Object.keys(xBalances).map((key:string, index: number) => (
           <Dropdown.Item onClick={() => setCurBalance(xBalances[key])} key={"chain_" + index} className="flex gap-3">
             <Image
-              className='cursor-pointer'
+              className='cursor-pointer rounded-full'
               src={CHAIN_DATA[xBalances[key].chain as string].image}
               width={22}
               height={22}
@@ -95,7 +112,7 @@ const Header = () => {
         ))
       }
       <Dropdown.Divider />
-      <Dropdown.Item><Icon icon="tabler:logout" className="mr-2" width={26}/>Disconnect</Dropdown.Item>
+      <Dropdown.Item onClick={handleDisconnect}><Icon icon="tabler:logout" className="mr-2" width={26}/>Disconnect</Dropdown.Item>
     </Dropdown>
   )
 

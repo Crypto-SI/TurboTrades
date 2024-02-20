@@ -4,8 +4,9 @@ import Image from "next/image";
 import { Icon } from '@iconify/react';
 import { Tooltip } from 'flowbite-react';
 import { useAtom } from 'jotai';
-import { IWallet, IBalance } from '@/types/minis';
+import { IBalance } from '@/types/minis';
 import QRCode from 'react-qr-code';
+import { useRouter } from "next/navigation";
 //utils
 import { reduceAddress, reduceAmount } from '@/utils/methods';
 //atoms
@@ -13,40 +14,39 @@ import {
   isConnectingAtom,
   chainListAtom,
   xBalancesAtom,
-  xClientsAtom,
-  xDefiAddressesAtom,
-  walletAtom
+  walletAtom,
+  stageAtom,
+  currentModalTypeAtom
 } from '@/store';
-
+//types
 import { ChainType } from '@/types/minis';
 //hook
 import useXChain from '@/hooks/useXChain';
 import useXDefi from "@/hooks/useXDefiWallet";
-
+import useMetamask from '@/hooks/useMetamask';
+//data
 import { TOKEN_DATA } from '@/utils/data';
 
 const Home = () => {
   //atoms  
   const [xBalances] = useAtom(xBalancesAtom);
-  const [xClients,] = useAtom(xClientsAtom);
   const [isConnecting, ] = useAtom(isConnectingAtom);
-  const [xDefiAddresses, ] = useAtom(xDefiAddressesAtom);
   const [wallet, ] = useAtom(walletAtom);
+  const [, setStage] = useAtom(stageAtom);
+  const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
   const [chainList,] = useAtom(chainListAtom);//selected chains
   //states
   const [qrAddress, setQRAddress] = React.useState<string>("");
   const [showQRCode, setShowQRCode] = React.useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = React.useState<boolean>(false);
-
   //hooks methods
   const { getBalances } = useXChain ();
-  const { getBalancesWithXDefi } = useXDefi();
+  const { getBalancesWithXDefi } = useXDefi ();
+  const { getBalanceWithMetamask } = useMetamask ();
   //chains that is selected at this moment
   const chains: ChainType[] = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain);
-  //get token balance by chainName
-  const _getTokenBalances = React.useCallback(async(chain: string) => {
-
-  }, [])
+  //router
+  const router = useRouter();
   //refresh all chains
   const handleRefresh = async () => {
     try {
@@ -54,33 +54,24 @@ const Home = () => {
       setIsRefreshing(true);
       if ( wallet?.name === "Keystore" ) {
         await getBalances ();
-      } else {
+      } else if ( wallet?.name === "XDEFI" ) {
         await getBalancesWithXDefi ();
-      }
+      } else if ( wallet?.name === "Metamask" ) {
+        await getBalanceWithMetamask ();
+      } 
     } catch (err) {
       console.log(err)
     } finally {
       setIsRefreshing(false);
     }
   }
-  //get tokens balances using keystore wallet
-  // React.useEffect(() => {
-  //   console.log("@dew1204/keystore ---------------------->", Object.keys(xClients).length, wallet?.name)
-  //   if (Object.keys(xClients).length > 0 && wallet?.name === "Keystore") {
-  //     getBalances ();
-  //   }
-  // }, [Object.keys(xClients).length]);
-  // //load balances using xDefi wallet
-  // React.useEffect(() => {
-  //   console.log("@dew1204/xdefi ---------------->", xDefiAddresses, wallet?.name);
-  //   if (Object.keys(xDefiAddresses).length > 0 && wallet?.name === "XDEFI") {
-  //     getBalancesWithXDefi ();
-  //   }
-  // }, [Object.keys(xDefiAddresses).length]);
-  
-  
-
-  
+  //open wallet connect
+  const handleConnectWallet = () => {
+    setStage("wallet");
+    setCurrentModalType("");
+    router.push("/");
+  }
+  //show QR code for address  
   const handleShowQRCode = (_address: string) => {
     setQRAddress(_address);
     setShowQRCode(true);
@@ -94,7 +85,7 @@ const Home = () => {
           xBalances[_chain.label] && 
           <Tooltip content={`Connected with ${xBalances[_chain.label].walletType}`} style="dark">
             <Image
-              className='cursor-pointer'
+              className='cursor-pointer rounded-full'
               src={`/images/${xBalances[_chain.label].walletType}.svg`}
               width={18}
               height={18}
@@ -105,7 +96,7 @@ const Home = () => {
         }
         <Tooltip content={_chain.name} style="dark">
           <Image
-            className='cursor-pointer'
+            className='cursor-pointer rounded-full'
             src={_chain.image}
             width={18}
             height={18}
@@ -191,6 +182,7 @@ const Home = () => {
                 alt={"refresh"}
                 priority={true}
                 className='cursor-pointer hover:opacity-50'
+                onClick={handleConnectWallet}
               />
             </div>
           </div>

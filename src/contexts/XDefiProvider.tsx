@@ -20,7 +20,8 @@ import { NATIVE_TOKENS } from "@/utils/data";
 //context type
 interface IXDefiContext {
   connectToXDefi: () => Promise<void>,
-  getBalancesWithXDefi: () => Promise<void>
+  getBalancesWithXDefi: () => Promise<void>,
+  disconnectWithXDefi: () => Promise<any>
 }
 
 import { _getPrices } from "./XChainsProvider";
@@ -32,7 +33,7 @@ export const XDefiContext = React.createContext<IXDefiContext | undefined>(undef
 const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
-  const [chainList,] = useAtom(chainListAtom);
+  const [chainList, setChainList] = useAtom(chainListAtom);
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
   const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
   //chains that is selected at this moment
@@ -313,9 +314,15 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("@dew1204/xDefi balances -------------->", _xBalances);
     setIsConnecting(false);
   }
+  //disconnect with xDefi wallet
+  const disconnectWithXDefi = async() => {
+    setXBalances({});
+    setXDefiAddresses({});
+    setChainList(chainList.map((chain: ChainType) => ({...chain, selected: false, focused: false})));
+  }
 
   return (
-    <XDefiContext.Provider value={{ connectToXDefi, getBalancesWithXDefi }}>
+    <XDefiContext.Provider value={{ disconnectWithXDefi, connectToXDefi, getBalancesWithXDefi }}>
       {children}
     </XDefiContext.Provider>
   )
