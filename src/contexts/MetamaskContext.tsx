@@ -7,12 +7,14 @@ import axios from 'axios';
 import { ETHERSCAN_API_KEY } from "@/config";
 import { injected } from "@/utils/connectors";
 import { useWeb3React } from "@web3-react/core";
+import { useRouter } from 'next/navigation';
 
 import {
   isConnectingAtom,
   chainListAtom,
   xBalancesAtom,
-  xDefiAddressesAtom
+  xDefiAddressesAtom,
+  isWalletDetectedAtom
 } from "@/store";
 //types
 import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
@@ -29,7 +31,7 @@ import { USDT_ADDRESS, USDC_ADDRESS, WSTETH_ADDRESS } from "@/utils/data";
 //abis
 import { ERC20 } from "@/utils/ABIs/standards";
 //third parties
-import { _getPrices } from "./XChainsProvider";
+import { _getPrices } from "./XChainContext";
 /**
  * MetamaskContext
 */
@@ -37,12 +39,14 @@ export const MetamaskContext = React.createContext<IMetamaskContext | undefined>
 
 const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
+  const router = useRouter ();
   const { account, library, chainId, activate, deactivate } = useWeb3React();
 
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
   const [chainList, setChainList] = useAtom(chainListAtom);
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
   const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
+  const [isWalletDetected, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   //get accont
@@ -77,6 +81,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     const prices = await _getPrices();
 
     console.log("@dew1204/fetching start chain balances----------------->");
+    //@ts-ignore
     const balances: IBalance[] = await Promise.all(tokens.map(async({address, asset}: Token) => {
       try {
         if (asset === "ETH") {
@@ -127,21 +132,32 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
   const connectToMetamask = () => new Promise(async(resolve, reject) => {
     if (account) reject("already connected");
+    setIsWalletDetected (false);
     try {
       await activate(injected, async (error) => {
         console.log(error.message);
         reject ("Cancel the operation...");
       });
+      window.localStorage.setItem("lastWallet", "Metamask");
+      setIsWalletDetected (true);
       resolve("");
     } catch (e) {
       return reject();
     }
   });
 
+  // React.useEffect(() => {
+  //   if (chainList.length === 0) {
+  //     router.push("/");
+  //   }
+  // // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [chainList])
+
   const disconnectWithMetmask = async() => {
     deactivate ();
     setXBalances({});
     setXDefiAddresses({});
+    
     setChainList(chainList.map((chain: ChainType) => ({...chain, selected: false, focused: false})));
   }
 

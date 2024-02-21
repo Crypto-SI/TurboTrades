@@ -26,7 +26,7 @@ import {
   isConnectingAtom,
   chainListAtom,
   xBalancesAtom,
-  
+  isWalletDetectedAtom
 } from "@/store";
 //public utils
 
@@ -97,6 +97,7 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
   const [chainList, setChainList] = useAtom(chainListAtom);
   const [, setIsConnecting] = useAtom(isConnectingAtom);
+  const [, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain.label);
   
@@ -105,6 +106,7 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
    * @param phrase 
   */
  const connectKeyStoreWallet = async (phrase: string) => {
+  setIsWalletDetected (false);
    const settings = { network: Network.Mainnet, phrase }
    // UXTXO Clients
    const btcClient = new BTCClient({ ...defaultBTCParams, network: settings.network, phrase: settings.phrase }) // Bitcoin  
@@ -127,6 +129,7 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
         _clients[_client.chain] = _client;
       }
     });
+    setIsWalletDetected (true);
     setXClients(_clients);
     getBalances(_clients)
   }

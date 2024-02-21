@@ -5,26 +5,30 @@ import { useAtom } from "jotai";
 import { ethers } from 'ethers';
 import axios from 'axios';
 import { ETHERSCAN_API_KEY } from "@/config"; 
+import { useRouter } from "next/navigation";
 
 
 import {
   isConnectingAtom,
   chainListAtom,
   xBalancesAtom,
-  xDefiAddressesAtom
+  xDefiAddressesAtom,
+  isWalletDetectedAtom
 } from "@/store";
 //types
 import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
 //data
-import { NATIVE_TOKENS } from "@/utils/data";
+import { NATIVE_TOKENS, USDT_ADDRESS, USDC_ADDRESS, WSTETH_ADDRESS } from "@/utils/data";
 //context type
 interface IXDefiContext {
   connectToXDefi: () => Promise<void>,
   getBalancesWithXDefi: () => Promise<void>,
   disconnectWithXDefi: () => Promise<any>
 }
-
-import { _getPrices } from "./XChainsProvider";
+//abis
+import { ERC20 } from "@/utils/ABIs/standards";
+//prices methods
+import { _getPrices } from "./XChainContext";
 /**
  * XDefiContext
 */
@@ -32,10 +36,12 @@ export const XDefiContext = React.createContext<IXDefiContext | undefined>(undef
 
 const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
+  const router = useRouter ();
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
   const [chainList, setChainList] = useAtom(chainListAtom);
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
   const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
+  const [isWalletDetected, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   //get accont
@@ -56,7 +62,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
            //@ts-ignore
           (error, accounts) => {
             if (error) {
-              resolve("");
+              reject("");
             } else {
               resolve(accounts[0]);
             }
@@ -64,7 +70,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         )
       }
     } catch (err) {
-      resolve("");
+      reject("");
     }
   });
   //get kujira account
@@ -219,78 +225,111 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
   //get ETH balance
-  const getEthBalance = async (address:string, prices: Record<string, number>) => {
-    const empty = {
-      address,
-      //@ts-ignore
-      symbol: "ETH", chain: "ETH", ticker: "ETH", value: prices["ETH"],
-      amount: 0,
+  const _getEthBalance = async (account:string, prices: Record<string, number>) => {
+
+    type Token = {
+      address: string,
+      asset: string
     }
-    try {
-      let { data } = await axios.get(`https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${ETHERSCAN_API_KEY}`);
-      
-      const balance = [{
-        address,
-        symbol: "ETH", chain: "ETH", ticker: "ETH", value: prices["ETH"],
-        amount: Number(data.result) / 10**18
-      }]
-      const wallet: any = {
-        address,
-        balance: balance,
-        walletType: "XDEFI",
-        chain: "ETH",
+
+    const tokens: Token[] = [
+      { address: "", asset: "ETH" },
+      { address: USDC_ADDRESS, asset: "USDC" },
+      { address: USDT_ADDRESS, asset: "USDT" },
+      { address: WSTETH_ADDRESS, asset: "WSTETH" },
+    ]
+
+    console.log("@dew1204/fetching start eth balance in xDefi ----------------->");
+    //@ts-ignore
+    const provider = window.xfi && window.xfi.ethereum && new ethers.providers.Web3Provider(window.xfi.ethereum);
+    //@ts-ignore
+    const balances: IBalance[] = await Promise.all(tokens.map(async({address, asset}: Token) => {
+      try {
+        if (asset === "ETH") {
+          const _eth = await provider.getBalance(account);
+          console.log(ethers.utils.formatEther(_eth))
+          return {
+            address: account,
+            symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+            amount: String(ethers.utils.formatEther(_eth))
+          }
+        } else {
+          const contract = new ethers.Contract(address, ERC20, provider.getSigner());
+          const balance = await contract.balanceOf(account)
+          return {
+            address: account,
+            symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+            amount: String(ethers.utils.formatEther(balance))
+          }
+        }
+      } catch (err) {
+        console.log(err)
+        return {
+          account,
+          symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+          amount: "0"
+        }
       }
-      return wallet;
-    } catch (err) {
-      return {
-        address,
-        balance: [empty],
-        walletType: "XDEFI",
-        chain: "ETH",
-      };
+    }));
+
+    const eth: IWallet = {
+      address: account as string,
+      balance: balances,
+      walletType: "METAMASK",
+      chain: "ETH",
     }
+
+    console.log("@dew1204/xdefi eth balances -------------->", eth);
+    return eth;
   }
   /**
    * connect wallet with xDefi
    */
   const connectToXDefi = async () => {
-    const temp: Record<string, string> = {};
-    chains.forEach(async(chain: String) => {
-      switch (chain) {
-        case "ETH": 
-          temp.ETH =  await _getEVMAccount () as string;
-          break;
-        case "BTC":
-          temp.BTC = await _getAccount ("BTC") as string;
-          break;
-        case "KUJI":
-          temp.KUJI = await _getKujiraAccount();
-          break;
-        case "THOR":
-          temp.THOR = await _getAccount ("THOR") as string;
-          break;
-        case "MAYA":
-          temp.MAYA = await _getAccount ("MAYA") as string;
-          break;
+    setIsWalletDetected (false);
+    try {
+      const temp: Record<string, string> = {};
+      for (let i = 0; i < chains.length; i++) {
+        const chain = chains[i];
+        switch (chain) {
+          case "ETH": 
+            temp.ETH =  await _getEVMAccount () as string;
+            break;
+          case "BTC":
+            temp.BTC = await _getAccount ("BTC") as string;
+            break;
+          case "KUJI":
+            temp.KUJI = await _getKujiraAccount();
+            break;
+          case "THOR":
+            temp.THOR = await _getAccount ("THOR") as string;
+            break;
+          case "MAYA":
+            temp.MAYA = await _getAccount ("MAYA") as string;
+            break;
+        }
       }
-    });
-    setXDefiAddresses(temp);
-    getBalancesWithXDefi(temp);
+      window.localStorage.setItem("lastWallet", "XDEFI");
+      setXDefiAddresses(temp);
+      setIsWalletDetected(true);
+      getBalancesWithXDefi(temp);
+    } catch (err) {
+      console.log(err);
+    }
   }
   //get wallet balances with xDefi
   const getBalancesWithXDefi = async (addresses : Record<string, string> = xDefiAddresses) => {
+    console.log("@dew1204/fetching start chain balances----------------->");
 
     setIsConnecting (true);
     setXBalances ({});
     const prices = await _getPrices();
-    
     const _xBalances: XBalances = {};
 
-    console.log("@dew1204/fetching start chain balances----------------->");
     await Promise.all(Object.keys(addresses).map(async(key: string) => {
       switch (key) {
         case "ETH": 
-          _xBalances.ETH =  await getEthBalance(addresses[key], prices);
+          _xBalances.ETH =  await _getEthBalance(addresses[key], prices);
           setXBalances({..._xBalances, "ETH": _xBalances.ETH});
           return;
         case "BTC":
@@ -319,6 +358,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     setXBalances({});
     setXDefiAddresses({});
     setChainList(chainList.map((chain: ChainType) => ({...chain, selected: false, focused: false})));
+
+    // router.push("/");
   }
 
   return (

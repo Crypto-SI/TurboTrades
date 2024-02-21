@@ -12,4 +12,5 @@ export const balancesLoadingAtom = atom<Record<string, boolean>>({
     "MAYA": true
 });
 export const xDefiAddressesAtom = atom<Record<string, string>>({});
-export const isConnectingAtom = atom<Boolean>(false);
+export const isConnectingAtom = atom<boolean>(false);
+export const isWalletDetectedAtom = atom<boolean>(false);

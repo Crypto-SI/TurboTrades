@@ -1,6 +1,6 @@
 "use client"
 import React from 'react';
-import { XDefiContext } from '@/contexts/XDefiProvider';
+import { XDefiContext } from '@/contexts/XDefiContext';
 
 const useWallet = () => {
   const context = React.useContext(XDefiContext);

@@ -8,7 +8,7 @@ import { IBalance } from '@/types/minis';
 import QRCode from 'react-qr-code';
 import { useRouter } from "next/navigation";
 //utils
-import { reduceAddress, reduceAmount } from '@/utils/methods';
+import { reduceAddress, reduceAmount, copyToClipboard } from '@/utils/methods';
 //atoms
 import {
   isConnectingAtom,
@@ -16,7 +16,8 @@ import {
   xBalancesAtom,
   walletAtom,
   stageAtom,
-  currentModalTypeAtom
+  currentModalTypeAtom,
+  isWalletDetectedAtom
 } from '@/store';
 //types
 import { ChainType } from '@/types/minis';
@@ -35,6 +36,7 @@ const Home = () => {
   const [, setStage] = useAtom(stageAtom);
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
   const [chainList,] = useAtom(chainListAtom);//selected chains
+  const [isWalletDetected, ] = useAtom(isWalletDetectedAtom);
   //states
   const [qrAddress, setQRAddress] = React.useState<string>("");
   const [showQRCode, setShowQRCode] = React.useState<boolean>(false);
@@ -110,7 +112,7 @@ const Home = () => {
           !xBalances[_chain.label] ? <div className="h-6 bg-gray-300 dark:bg-[#000000] grow mr-[40%] rounded-full animate-pulse"></div> : 
           <>
             <span>{ xBalances[_chain.label] && reduceAddress(xBalances[_chain.label].address) }</span>
-            <Tooltip content="Copy address" style="dark"><Icon icon="solar:copy-line-duotone" className='cursor-pointer hover:opacity-50' width={20} /></Tooltip>
+            <Tooltip content="Copy address" style="dark"><Icon onClick={() => copyToClipboard(xBalances[_chain.label].address)} icon="solar:copy-line-duotone" className='cursor-pointer hover:opacity-50' width={20} /></Tooltip>
             <Tooltip content="Show QR code" style="dark"><Icon onClick={() => handleShowQRCode(xBalances[_chain.label] ? xBalances[_chain.label].address : "0x00000000000000")} icon="grommet-icons:qr" className='cursor-pointer hover:opacity-50' width={20} /></Tooltip>
           </>
         }
@@ -187,7 +189,7 @@ const Home = () => {
             </div>
           </div>
           {
-            chains.map((_chain: ChainType, index: number) => _renderWallet(_chain, index))
+            isWalletDetected && chains.map((_chain: ChainType, index: number) => _renderWallet(_chain, index))
           }
         </div>
       </div>
