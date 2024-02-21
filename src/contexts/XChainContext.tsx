@@ -37,7 +37,6 @@ import { NATIVE_TOKENS } from "@/utils/data";
 interface IXChainContext {
   connectKeyStoreWallet: (phrase: string) => Promise<void>,
   getBalances: () => Promise<void>,
-  disconnectWithKeystore: () => Promise<any>,
 } 
 
 /**
@@ -204,14 +203,8 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
     }
   }
 
-  const disconnectWithKeystore = async() => {
-    setXBalances({});
-    setXClients({});
-    setChainList(chainList.map((chain: ChainType) => ({...chain, selected: false, focused: false})));
-  }
-
   return (
-    <XChainContext.Provider value={{ disconnectWithKeystore, connectKeyStoreWallet, getBalances }}>
+    <XChainContext.Provider value={{ connectKeyStoreWallet, getBalances }}>
       { children }
     </XChainContext.Provider>
   )

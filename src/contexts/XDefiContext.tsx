@@ -22,8 +22,7 @@ import { NATIVE_TOKENS, USDT_ADDRESS, USDC_ADDRESS, WSTETH_ADDRESS } from "@/uti
 //context type
 interface IXDefiContext {
   connectToXDefi: () => Promise<void>,
-  getBalancesWithXDefi: () => Promise<void>,
-  disconnectWithXDefi: () => Promise<any>
+  getBalancesWithXDefi: () => Promise<void>
 }
 //abis
 import { ERC20 } from "@/utils/ABIs/standards";
@@ -353,17 +352,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("@dew1204/xDefi balances -------------->", _xBalances);
     setIsConnecting(false);
   }
-  //disconnect with xDefi wallet
-  const disconnectWithXDefi = async() => {
-    setXBalances({});
-    setXDefiAddresses({});
-    setChainList(chainList.map((chain: ChainType) => ({...chain, selected: false, focused: false})));
-
-    // router.push("/");
-  }
-
+  
   return (
-    <XDefiContext.Provider value={{ disconnectWithXDefi, connectToXDefi, getBalancesWithXDefi }}>
+    <XDefiContext.Provider value={{ connectToXDefi, getBalancesWithXDefi }}>
       {children}
     </XDefiContext.Provider>
   )

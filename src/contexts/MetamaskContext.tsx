@@ -17,14 +17,13 @@ import {
   isWalletDetectedAtom
 } from "@/store";
 //types
-import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
+import { ChainType, IBalance, IWallet } from "@/types/minis";
 //data
 import { NATIVE_TOKENS } from "@/utils/data";
 //context type
 interface IMetamaskContext {
   connectToMetamask: () => Promise<any>,
-  getBalanceWithMetamask: () => Promise<void>,
-  disconnectWithMetmask: () => Promise<void>
+  getBalanceWithMetamask: () => Promise<void>
 }
 //data
 import { USDT_ADDRESS, USDC_ADDRESS, WSTETH_ADDRESS } from "@/utils/data";
@@ -153,17 +152,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   // // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [chainList])
 
-  const disconnectWithMetmask = async() => {
-    deactivate ();
-    setXBalances({});
-    setXDefiAddresses({});
-    
-    setChainList(chainList.map((chain: ChainType) => ({...chain, selected: false, focused: false})));
-  }
-
-
   return (
-    <MetamaskContext.Provider value={{ connectToMetamask, getBalanceWithMetamask, disconnectWithMetmask }}>
+    <MetamaskContext.Provider value={{ connectToMetamask, getBalanceWithMetamask }}>
       {children}
     </MetamaskContext.Provider>
   )

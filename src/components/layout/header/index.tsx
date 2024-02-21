@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { Icon } from '@iconify/react';
 import { useAtom } from "jotai";
 import { Dropdown } from 'flowbite-react';
+import { useWeb3React } from "@web3-react/core";
 //atom from store
 import {
   stageAtom, currentModalTypeAtom, isConnectingAtom,
@@ -19,11 +20,15 @@ import { IWallet } from '@/types/minis';
 import { CHAIN_DATA } from '@/utils/data';
 import { reduceAmount } from "@/utils/methods";
 //hooks
-import useXChain from '@/hooks/useXChain';
-import useXDefi from '@/hooks/useXDefiWallet';
-import useMetamask from "@/hooks/useMetamask";
+// import useXChain from '@/hooks/useXChain';
+// import useXDefi from '@/hooks/useXDefiWallet';
+// import useMetamask from "@/hooks/useMetamask";
+import useAutoConnect from "@/hooks/useAutoConnect";
 
 const Header = () => {
+
+  const { deactivate } = useWeb3React();
+
   //router
   const router = useRouter ();
   //atoms
@@ -33,9 +38,7 @@ const Header = () => {
   //state
   const [curBalance, setCurBalance] = React.useState<IWallet | undefined>();
   //hooks
-  const { disconnectWithMetmask } = useMetamask ();
-  const { disconnectWithXDefi } = useXDefi();
-  const { disconnectWithKeystore } = useXChain();
+  const { disconnectWallet } = useAutoConnect ();
 
   React.useEffect(() => {
     const keys = Object.keys(xBalances);
@@ -62,14 +65,7 @@ const Header = () => {
   }
   //disconnect wallet
   const handleDisconnect = async () => {
-    if (wallet?.name === "XDEFI") {
-      disconnectWithXDefi ();
-    } else if (wallet?.name === "Metamask") {
-      disconnectWithMetmask ();
-    } else if (wallet?.name === "Keystore") {
-      disconnectWithKeystore ();
-    } 
-
+    disconnectWallet ();
   }
 
   const _profileButton = () => (
