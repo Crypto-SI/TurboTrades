@@ -12,9 +12,9 @@ import {
 } from '@/store';
 
 const ImportPhrase = () => {
-
+  //atoms
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
-
+  //state
   const [phrase, setPhrase] = React.useState<string>("");
   const [words, setWords] = React.useState<string[]>([]);
   const [password, setPassword] = React.useState<string>("");

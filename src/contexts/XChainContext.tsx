@@ -91,7 +91,7 @@ export const _getPrices = async() => {
 }
 
 const XChainProvider = ({children}: {children: React.ReactNode}) => {
-  
+  //atoms
   const [xClients, setXClients] = useAtom(xClientsAtom);
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
   const [chainList, setChainList] = useAtom(chainListAtom);
@@ -99,7 +99,6 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
   const [, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected ).map((_chain: ChainType) => _chain.label);
-  
   /**
    * connect to selected chains using keystore phrase
    * @param phrase 
@@ -147,7 +146,6 @@ const XChainProvider = ({children}: {children: React.ReactNode}) => {
         return chain;
       }));
       console.log("balances ------------------>", balances);
-
     } catch (err) {
       
     } finally {

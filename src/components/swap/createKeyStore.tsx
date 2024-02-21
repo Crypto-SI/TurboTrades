@@ -8,23 +8,21 @@ import {
   currentModalTypeAtom,
   stageAtom
 } from "@/store";
-
 // @ts-ignore
 import { validatePhrase, encryptToKeyStore, generatePhrase } from "@xchainjs/xchain-crypto";
 import { copyToClipboard } from '@/utils/methods';
 
 const CreateKeyStore = () => {
-
-  const { showNotification } = useNotification ();
-
+  //atoms
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
-
+  //states
   const [password, setPassword] = React.useState<string>("");
   const [confirm, setConfirm] = React.useState<string>("");
-
   const [phrase, setPhrase] = React.useState<string>("");
   const [isCopied, setIsCopied] = React.useState<boolean>(false);
-
+  //hooks
+  const { showNotification } = useNotification ();
+  
   const handleClose = () => {
     // setStage("swap");
     setCurrentModalType("");

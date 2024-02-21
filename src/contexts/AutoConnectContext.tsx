@@ -29,9 +29,8 @@ interface IAutoConnect {
 export const AutoConnectContext = React.createContext<IAutoConnect|undefined>(undefined);
 
 const AutoConnectProvider = ({children}: {children: React.ReactNode}) => {
-
+  //hooks
   const { deactivate } = useWeb3React();
-
   // const { connectKeyStoreWallet } = useXChain ();
   const { connectToXDefi } = useXDefi();
   const { connectToMetamask } = useMetamask();

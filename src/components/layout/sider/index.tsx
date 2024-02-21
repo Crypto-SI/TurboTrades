@@ -66,7 +66,6 @@ const Sider = () => {
           { _renderLinkItem("Remove Liquidity", "/images/remove-liquidity.svg", "/remove-liquidity") }
           { _renderLinkItem("My Wallet", "/images/my-wallet.svg", "/my-wallet") }
           { _renderLinkItem("Savers", "/images/savers.svg", "/savers") }
-        
         </ul>
 
         <div className="mt-6 border-[#DCE4EF] dark:border-[#1f2124] border w-full bg-[#F7F9FC] dark:bg-[#111214] rounded-3xl p-4 pt-5">

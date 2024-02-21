@@ -8,7 +8,7 @@ import { ETHERSCAN_API_KEY } from "@/config";
 import { injected } from "@/utils/connectors";
 import { useWeb3React } from "@web3-react/core";
 import { useRouter } from 'next/navigation';
-
+//atoms
 import {
   isConnectingAtom,
   chainListAtom,
@@ -37,10 +37,10 @@ import { _getPrices } from "./XChainContext";
 export const MetamaskContext = React.createContext<IMetamaskContext | undefined>(undefined);
 
 const XChainProvider = ({ children }: { children: React.ReactNode }) => {
-
+  //hooks
   const router = useRouter ();
   const { account, library, chainId, activate, deactivate } = useWeb3React();
-
+  //atoms
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
   const [chainList, setChainList] = useAtom(chainListAtom);
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
@@ -50,7 +50,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   //get accont
   const _getAccount = (chain: string) => new Promise((resolve, reject) => { });
-
+  //get balance
   const getBalance = async (address: string, token: string) => {
     const contract = new ethers.Contract(address, ERC20, library.getSigner());
     const balance = (await contract.balanceOf(account)).toString();
