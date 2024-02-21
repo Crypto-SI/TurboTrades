@@ -160,6 +160,10 @@ const Swap = () => {
       setToToken(token);
     }
   }
+  //handle swap
+  const handleSwap = async () => {
+
+  }
 
   return (
     <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full md:w-[calc(100vw-360px)] lg:w-[460px]">
@@ -287,10 +291,15 @@ const Swap = () => {
           <span className="text-[#C5C7CC] dark:text-[#C5C7CC]">Amount:&nbsp;</span>
           <span className="dark:text-[#6978A0]">{fromAmount ? fromAmount : "0"} {fromToken?.ticker} ({toAmount ? toAmount : "0"} {toToken?.ticker})</span>
         </div>
-
-        <button onClick={() => setStage("wallet")} data-tooltip-target="tooltip-default" className="flex justify-center items-center gap-3 text-white mt-7 p-5 w-full rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] hover:from-[#ff6702de] hover:to-[#ee0e739f]">
-          Connect Wallet
-        </button>
+        {
+          Object.keys(xBalances).length > 0 ? 
+          <button onClick={() => handleSwap()} data-tooltip-target="tooltip-default" className="flex justify-center items-center gap-3 text-white mt-7 p-5 w-full rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] hover:from-[#ff6702de] hover:to-[#ee0e739f]">
+            Swap
+          </button> :
+          <button onClick={() => setStage("wallet")} data-tooltip-target="tooltip-default" className="flex justify-center items-center gap-3 text-white mt-7 p-5 w-full rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] hover:from-[#ff6702de] hover:to-[#ee0e739f]">
+            Connect Wallet
+          </button>
+        }
       </div>
     </div>
   );
