@@ -180,10 +180,12 @@ const Swap = () => {
       if (error) throw "Can't swap as invaild setting.";
       if (!quoteSwapResponse) throw "Please confirm token pair and amount.";
       if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain}`;
-      console.log(wallet)
-      if (wallet?.name === "Keystore") {
-        doMayaSwap (fromAmount);
-      }
+
+      console.log("@/dew1204 --------------------------->", quoteSwapResponse);
+      // console.log(wallet)
+      // if (wallet?.name === "Keystore") {
+      //   doMayaSwap (fromAmount);
+      // }
 
     } catch (err) {
       showNotification (err, "info");
