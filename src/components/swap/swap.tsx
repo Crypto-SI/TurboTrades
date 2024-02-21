@@ -21,12 +21,13 @@ import {
 } from '@/store';
 //types
 import { IPool } from "@/types/maya";
-import BigNumber from 'bignumber.js';
 import { IBalance } from "@/types/minis";
 //components
 const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
 //utils
-import { reduceAmount } from "@/utils/methods";
+import { reduceAmount, Address } from "@/utils/methods";
+//hooks
+import useNotification from "@/hooks/useNotification";
 
 const Swap = () => {
   //pools in Maya chain
@@ -49,6 +50,9 @@ const Swap = () => {
   const [toAmount, setToAmount] = React.useState<string>("");
   //for showing error when estimating amount with API
   const [error, setError] = React.useState<string>("");
+  const [isEstimating, setIsEstimating] = React.useState<boolean>(false);
+  //hooks
+  const { showNotification }  = useNotification ();
 
   /**
    * calculate src balance
@@ -109,27 +113,33 @@ const Swap = () => {
   }
   //calculate estimated amount for swaping
   const _estimateAmount = async () => {
-    let src = "", des = "";
-    if (Object.keys(xBalances).length === 0) {
-      src="";
-      des="";//&destination=kujira1cd5kzygxfzylez8q4vak55pwj2z7a6hweat0zw
-    } else {
-
+    
+    setIsEstimating (true);
+    let _des: string = "";
+    const destination = xBalances[toToken?.chain as string];
+    console.log(destination)
+    if (destination) {
+      _des= `&destination=${destination.address}`
     }
 
     const decimals = fromToken?.ticker === "CACAO" ? 10**10 : 10**8;
     let amount: any = Number(fromAmount)*decimals;
     amount = amount.toLocaleString('fullwide', {useGrouping:false});
-    const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&amount=${amount}`);
+    console.log(fromToken, toToken)
+    const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&amount=${amount}${_des}`);
     if (data.error) {
       setError(data.error);
+      setQuoteSwapResponse(undefined);
+      setToAmount ("0");
     } else {
       const decimals = toToken?.ticker === "CACAO" ? 10**10 : 10**8;
       setQuoteSwapResponse(data);
       const outBount: any = (Number(data.expected_amount_out) / decimals).toLocaleString('fullwide', {useGrouping:false});
       setToAmount(outBount);
       setError("");
+      // console.log("@/memo ----------------->", data);
     }
+    setIsEstimating (false);
   }
   //hook for calculating estimated amount
   React.useEffect(() => {
@@ -162,7 +172,18 @@ const Swap = () => {
   }
   //handle swap
   const handleSwap = async () => {
+    try {
+      if (Number(fromAmount) <= 0) throw "Please input amount to swap";
+      if (error) throw "Can't swap as invaild setting.";
+      if (!quoteSwapResponse) throw "Please confirm token pair and amount.";
+      if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain}`;
 
+      console.log(quoteSwapResponse, fromAmount);
+
+
+    } catch (err) {
+      showNotification (err, "info");
+    }
   }
 
   return (
@@ -178,7 +199,10 @@ const Swap = () => {
         </div>
 
         <div className="bg-[#F3F7FC] dark:text-[#8A8D92] dark:bg-[#030506] w-full rounded-2xl mt-3 px-4 py-5">
-          <h4 className="mb-2">Price</h4>
+          <div className="flex justify-between">
+            <h4 className="mb-2">Price</h4>
+            <Icon onClick={_estimateAmount} icon="el:refresh" className={`mr-1 hover:opacity-50 cursor-pointer ${isEstimating && "spin"}`}/>
+          </div>
           <div className="relative bg-white dark:bg-[#0A0D13] hover:bg-[#4b3b3b05] hover:dark:bg-black cursor-pointer border border-[#F3F7FC] dark:border-[#222832] w-full p-3 rounded-xl flex items-center justify-between">
             {
               fromToken ? 
@@ -287,9 +311,14 @@ const Swap = () => {
           </div>
         </div>
 
-        <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-2 px-1 flex-col xxs:flex-row">
+        <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-2 px-1 flex-col xxs:flex-row text-sm">
           <span className="text-[#C5C7CC] dark:text-[#C5C7CC]">Amount:&nbsp;</span>
           <span className="dark:text-[#6978A0]">{fromAmount ? fromAmount : "0"} {fromToken?.ticker} ({toAmount ? toAmount : "0"} {toToken?.ticker})</span>
+        </div>
+
+        <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-2 px-1 flex-col xxs:flex-row">
+          <span className="text-[#C5C7CC] dark:text-[#C5C7CC]">Estimated Fee:&nbsp;</span>
+          <span className="dark:text-[#6978A0] text-sm">{quoteSwapResponse ? reduceAmount(Number(quoteSwapResponse.fees.outbound) / 10**8) : "0"} {toToken?.ticker} ({quoteSwapResponse ? reduceAmount(Number(toToken?.assetPriceUSD) * Number(quoteSwapResponse.fees.outbound) / 10**8) : "0"} $)</span>
         </div>
         {
           Object.keys(xBalances).length > 0 ? 

@@ -72,7 +72,8 @@ const Home = () => {
           return {
             ...item,
             token: "s" + TOKEN_DATA[asset].ticker,
-            chain: TOKEN_DATA[asset].chain,
+            // chain: TOKEN_DATA[asset].chain,
+            chain: "MAYA",
             image: TOKEN_DATA[asset].image,
             ticker: "s" + TOKEN_DATA[asset].ticker,
             name: TOKEN_DATA[asset].name,

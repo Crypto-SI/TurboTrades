@@ -60,6 +60,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           {method: 'request_accounts', params: []},
            //@ts-ignore
           (error, accounts) => {
+            console.log(accounts)
             if (error) {
               reject("");
             } else {
@@ -98,7 +99,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       //@ts-ignore
       const accounts = await provider.send("eth_requestAccounts", []);
-      return accounts[0];
+      return ethers.utils.getAddress(accounts[0]);
     }
   }
   //get btc balance

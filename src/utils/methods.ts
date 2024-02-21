@@ -1,4 +1,6 @@
 "use client"
+//@ts-ignore
+// const rskUtils = require("@rsksmart/rsk-utils");
 import { ChainType, WalletType } from "@/types/minis";
 import BigNumber from 'bignumber.js';
 
@@ -152,4 +154,9 @@ export const splitToAsset = (_asset: string) => {
   const asset = _asset.split("-")[0];
   const [, token] = asset.split(".");
   return { asset, token };
+}
+
+export const Address = (address: string) => {
+  // return rskUtils.toChecksumAddress(address, 0x1);
+  return ""
 }

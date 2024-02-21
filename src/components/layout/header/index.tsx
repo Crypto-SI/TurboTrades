@@ -52,13 +52,12 @@ const Header = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [xBalances]);
-
+  //show toggle
   const handleToggle = () => {
     setVisible(prev => !prev);
   }
-
-  //connect wallet
-  const handleConnectWallet = () => {
+  //to connect page
+  const handleToConnectPage = () => {
     setStage("wallet");
     setCurrentModalType("");
     router.push("/");
@@ -67,7 +66,7 @@ const Header = () => {
   const handleDisconnect = async () => {
     disconnectWallet ();
   }
-
+  //render profile button
   const _profileButton = () => (
     <div className="cursor-pointer flex gap-2 items-center justify-center rounded-full px-5 py-2 text-4 w-full bg-white dark:bg-black dark:text-white text-black dark:hover:text-[#ccc] hover:text-[#ccc]">
       <div>Wallet:</div>
@@ -93,6 +92,8 @@ const Header = () => {
 
   const _renderProfile = () => (
     <Dropdown label="" renderTrigger={_profileButton}>
+      <Dropdown.Item onClick={handleToConnectPage}><Icon icon="gg:add" className="mr-2" width={26}/>Add chain</Dropdown.Item>
+      <Dropdown.Divider />
       {
         Object.keys(xBalances).map((key:string, index: number) => (
           <Dropdown.Item onClick={() => setCurBalance(xBalances[key])} key={"chain_" + index} className="flex gap-3">
@@ -130,7 +131,7 @@ const Header = () => {
           <div className="rounded-full p-[1px] bg-gradient-to-r w-full from-[#FF6802] to-[#EE0E72]">
             {
               !curBalance ?
-              <button onClick={handleConnectWallet} className="flex gap-2 items-center justify-center rounded-full px-5 py-2 text-4 w-full bg-white dark:bg-black dark:text-white text-black dark:hover:text-[#ccc] hover:text-[#ccc]" >
+              <button onClick={handleToConnectPage} className="flex gap-2 items-center justify-center rounded-full px-5 py-2 text-4 w-full bg-white dark:bg-black dark:text-white text-black dark:hover:text-[#ccc] hover:text-[#ccc]" >
                 { isConnecting ? <>Connecting <Icon icon="eos-icons:bubble-loading" /></> : "Connect Wallet" }
               </button> : _renderProfile()
             }
@@ -141,7 +142,7 @@ const Header = () => {
         <div className="rounded-full p-[1px] bg-gradient-to-r w-full from-[#FF6802] to-[#EE0E72]">
         {
           !curBalance ?
-          <button onClick={handleConnectWallet} className="flex gap-2 items-center justify-center rounded-full px-5 py-2 text-4 w-full bg-white dark:bg-black dark:text-white text-black dark:hover:text-[#ccc] hover:text-[#ccc]" >
+          <button onClick={handleToConnectPage} className="flex gap-2 items-center justify-center rounded-full px-5 py-2 text-4 w-full bg-white dark:bg-black dark:text-white text-black dark:hover:text-[#ccc] hover:text-[#ccc]" >
             { isConnecting ? <>Connecting <Icon icon="eos-icons:bubble-loading" /></> : "Connect Wallet" }
           </button> : _renderProfile()
         }
