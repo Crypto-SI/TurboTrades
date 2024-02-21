@@ -17,7 +17,8 @@ import {
   toTokenAtom,
   xBalancesAtom,
   QuoteSwapResponseAtom,
-  tokenPricesAtom
+  tokenPricesAtom,
+  walletAtom
 } from '@/store';
 //types
 import { IPool } from "@/types/maya";
@@ -28,6 +29,8 @@ const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
 import { reduceAmount, Address } from "@/utils/methods";
 //hooks
 import useNotification from "@/hooks/useNotification";
+import useXChain from "@/hooks/useXChain";
+
 
 const Swap = () => {
   //pools in Maya chain
@@ -37,6 +40,7 @@ const Swap = () => {
   const [quoteSwapResponse, setQuoteSwapResponse] = useAtom(QuoteSwapResponseAtom);
   //token prices Record <name, price>
   const [tokenPrices, setTokenPrices] = useAtom(tokenPricesAtom);
+  const [wallet, setWallet] = useAtom(walletAtom);
   //token selector modal visible
   const [showFromTokens, setShowFromTokens] = React.useState<boolean>(false);
   const [showToTokens, setShowToTokens] = React.useState<boolean>(false);
@@ -53,6 +57,7 @@ const Swap = () => {
   const [isEstimating, setIsEstimating] = React.useState<boolean>(false);
   //hooks
   const { showNotification }  = useNotification ();
+  const { doMayaSwap } = useXChain ();
 
   /**
    * calculate src balance
@@ -117,7 +122,6 @@ const Swap = () => {
     setIsEstimating (true);
     let _des: string = "";
     const destination = xBalances[toToken?.chain as string];
-    console.log(destination)
     if (destination) {
       _des= `&destination=${destination.address}`
     }
@@ -125,7 +129,6 @@ const Swap = () => {
     const decimals = fromToken?.ticker === "CACAO" ? 10**10 : 10**8;
     let amount: any = Number(fromAmount)*decimals;
     amount = amount.toLocaleString('fullwide', {useGrouping:false});
-    console.log(fromToken, toToken)
     const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&amount=${amount}${_des}`);
     if (data.error) {
       setError(data.error);
@@ -177,9 +180,10 @@ const Swap = () => {
       if (error) throw "Can't swap as invaild setting.";
       if (!quoteSwapResponse) throw "Please confirm token pair and amount.";
       if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain}`;
-
-      console.log(quoteSwapResponse, fromAmount);
-
+      console.log(wallet)
+      if (wallet?.name === "Keystore") {
+        doMayaSwap (fromAmount);
+      }
 
     } catch (err) {
       showNotification (err, "info");
