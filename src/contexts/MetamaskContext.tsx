@@ -58,19 +58,15 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const getBalanceWithMetamask = async () => {
-
     if (!account) {
       return;
     } 
-    
     try {
       setIsConnecting (true);
       setXBalances ({});
-
       if (chainId !== 1) {
         await _changeNetwork ();
       }
-  
       type Token = {
         address: string,
         asset: string
@@ -112,14 +108,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           }
         }
       }));
-  
       const eth: IWallet = {
         address: account as string,
         balance: balances,
         walletType: "METAMASK",
         chain: "ETH",
       }
-  
       setXBalances({"ETH": eth});
       console.log("@dew1204/metamask balances -------------->", eth);
     } catch (err) {
