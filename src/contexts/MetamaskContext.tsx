@@ -64,6 +64,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     } 
     
     try {
+      setIsConnecting (true);
+      setXBalances ({});
+
       if (chainId !== 1) {
         await _changeNetwork ();
       }
@@ -72,18 +75,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         address: string,
         asset: string
       }
-  
       const tokens: Token[] = [
         { address: "", asset: "ETH" },
         { address: USDC_ADDRESS, asset: "USDC" },
         { address: USDT_ADDRESS, asset: "USDT" },
         { address: WSTETH_ADDRESS, asset: "WSTETH" },
       ]
-  
-      setIsConnecting (true);
-      setXBalances ({});
       const prices = await _getPrices();
-  
       console.log("@dew1204/fetching start chain balances----------------->");
       //@ts-ignore
       const balances: IBalance[] = await Promise.all(tokens.map(async({address, asset}: Token) => {
@@ -124,9 +122,10 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   
       setXBalances({"ETH": eth});
       console.log("@dew1204/metamask balances -------------->", eth);
-      setIsConnecting(false);
     } catch (err) {
       console.log(err)
+    } finally {
+      setIsConnecting(false);
     }
   }
 
