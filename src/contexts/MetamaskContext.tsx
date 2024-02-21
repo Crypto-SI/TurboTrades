@@ -148,8 +148,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   const connectToMetamask = () => new Promise(async(resolve, reject) => {
-    // if (account) reject("already connected");
-    
     try {
       setIsWalletDetected (false);
       await activate(injected, async (error) => {
@@ -163,13 +161,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       return reject();
     }
   });
-
-  // React.useEffect(() => {
-  //   if (chainList.length === 0) {
-  //     router.push("/");
-  //   }
-  // // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [chainList])
 
   return (
     <MetamaskContext.Provider value={{ connectToMetamask, getBalanceWithMetamask }}>

@@ -274,7 +274,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     const eth: IWallet = {
       address: account as string,
       balance: balances,
-      walletType: "METAMASK",
+      walletType: "XDEFI",
       chain: "ETH",
     }
 
@@ -352,7 +352,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("@dew1204/xDefi balances -------------->", _xBalances);
     setIsConnecting(false);
   }
-  
+
   return (
     <XDefiContext.Provider value={{ connectToXDefi, getBalancesWithXDefi }}>
       {children}
