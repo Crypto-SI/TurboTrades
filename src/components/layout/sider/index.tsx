@@ -1,31 +1,32 @@
 "use client"
 import Image from "next/image";
 import React, { useMemo } from 'react';
+//hooks
 import { usePathname, useRouter } from 'next/navigation';
-import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useAtom } from 'jotai';
-
-
+//methods
+import { reduceAmount } from "@/utils/methods";
+//atoms
+import {
+  stageAtom, currentModalTypeAtom, curBalanceAtom
+} from '@/store';
 const _socialLinks: { img: string, url: string }[] = [
   { img: "/images/twitter.svg", url: "" },
   { img: "/images/facebook.svg", url: "" },
   { img: "/images/instagram.svg", url: "" }
 ] 
 
-import {
-  stageAtom, currentModalTypeAtom
-} from '@/store';
-
 const Sider = () => {
-
+  //hooks
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-
+  //atoms
   const [, setStage] = useAtom(stageAtom);
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
-
+  const [curBalance] = useAtom(curBalanceAtom);
+  //handle navigate
   const handleNavigate = (url: string) => {
     if (url === "/") {
       setStage("swap");
@@ -33,8 +34,7 @@ const Sider = () => {
     } 
     router.push(url);
   }
-
-
+  //render link item 
   const _renderLinkItem = (_name: string, _icon: string, _url: string) => (
     <li onClick={() => handleNavigate(_url)} className={`border border-[#DCE4EF] flex items-center p-2 text-black dark:text-white gap-2 dark:border-black hover:border-[#F7F9FC] hover:bg-[#F7F9FC] my-1 dark:hover:bg-[#10152E] rounded-xl cursor-pointer text-sm ${ _url === pathname && 'dark:bg-[#10152E] border-none bg-[#F7F9FC]' }`}>
       <Image
@@ -48,18 +48,17 @@ const Sider = () => {
     </li>
   )
 
-
   return (
     <div className="dark:bg-gradient-to-tr dark:from-[#FF6A00] dark:via-[#10152E] dark:to-[#F81969] p-[1px] rounded-2xl md:w-[310px] w-full">
       <div className="bg-white dark:bg-black rounded-2xl p-6 w-full h-full">
         <p className="text-[14px] text-[#111214] dark:text-[#8D98AF]">My Balance</p>
         <div className="flex justify-between text-black dark:text-white">
-          <div className="text-lg my-1">19,49673139</div>
+          <div className="text-lg my-1">{ curBalance ? String(curBalance?.balance[0].amount).substr(0, 10) : '0' }</div>
           <div>
-            <div className="bg-[#F59E0B] px-4 py-1 flex rounded-full text-[12px]">BTC</div>
+            <div className="bg-[#F59E0B] px-4 py-1 flex rounded-full text-[12px]">{ curBalance ? curBalance?.balance[0].ticker : "BTC" }</div>
           </div>
         </div>
-        <p className="text-[14px] text-[#8D98AF]">$932,128.00 USD</p>
+        <p className="text-[14px] text-[#8D98AF]">$ { reduceAmount(Number(curBalance?.balance[0].amount) * Number(curBalance?.balance[0].value)) } USD</p>
 
         <ul className="text-white text-md mt-5">
           { _renderLinkItem("Swap", "/images/swap.svg", "/") }

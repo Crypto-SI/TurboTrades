@@ -10,7 +10,8 @@ import { useWeb3React } from "@web3-react/core";
 import {
   stageAtom, currentModalTypeAtom, isConnectingAtom,
   xBalancesAtom,
-  walletAtom
+  walletAtom,
+  curBalanceAtom
 } from '@/store';
 //router
 import { useRouter } from "next/navigation";
@@ -27,17 +28,19 @@ import useAutoConnect from "@/hooks/useAutoConnect";
 
 const Header = () => {
 
-  const { deactivate } = useWeb3React();
-
+  //state
+  const [visible, setVisible] = React.useState<Boolean>(false);
   //router
   const router = useRouter ();
   //atoms
+  const [, setStage] = useAtom(stageAtom);
+  const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
   const [isConnecting] = useAtom(isConnectingAtom);
   const [xBalances] = useAtom(xBalancesAtom);
   const [wallet] = useAtom(walletAtom);//current wallet
-  //state
-  const [curBalance, setCurBalance] = React.useState<IWallet | undefined>();
+  const [curBalance, setCurBalance] = useAtom(curBalanceAtom);
   //hooks
+  const { theme } = useTheme();
   const { disconnectWallet } = useAutoConnect ();
 
   React.useEffect(() => {
@@ -47,16 +50,13 @@ const Header = () => {
     } else {
       setCurBalance(undefined);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [xBalances]);
-
-  const [visible, setVisible] = React.useState<Boolean>(false);
 
   const handleToggle = () => {
     setVisible(prev => !prev);
   }
 
-  const [, setStage] = useAtom(stageAtom);
-  const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
   //connect wallet
   const handleConnectWallet = () => {
     setStage("wallet");
@@ -112,7 +112,6 @@ const Header = () => {
     </Dropdown>
   )
 
-  const { theme } = useTheme();
   return (
     <div className="bg-white dark:bg-black border-[#e2e2e2] dark:border-[#1c1c1c] border rounded-2xl p-4 px-8">
       <div className="flex justify-between items-center">
