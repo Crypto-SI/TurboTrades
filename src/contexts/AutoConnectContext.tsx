@@ -21,6 +21,7 @@ const AutoConnectProvider = ({children}: {children: React.ReactNode}) => {
   // const { connectKeyStoreWallet } = useXChain ();
   const { connectToXDefi } = useXDefi();
   const { connectToMetamask } = useMetamask();
+  const [ isFirst, setIsFirst ] = React.useState<boolean>(true);
 
   const [chainList, setChainList] = useAtom(chainListAtom);
   const _autoLogin = async (wallet: string) => {
@@ -41,7 +42,7 @@ const AutoConnectProvider = ({children}: {children: React.ReactNode}) => {
 
   React.useEffect(() => {
     const count = chainList.reduce((count, item:ChainType) => item.selected ? count + 1 : count, 0);
-    if (count > 0) {
+    if (count > 0 && isFirst) {
       // console.log(chainList.reduce((count, item: ChainType) => item.selected ? count + 1 : count, 0));
       const wallet = window.localStorage.getItem("lastWallet");
       if (wallet === "XDEFI") {
@@ -49,6 +50,7 @@ const AutoConnectProvider = ({children}: {children: React.ReactNode}) => {
       } else if (wallet === "Metamask") {
         connectToMetamask ();
       }
+      setIsFirst (false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chainList])
