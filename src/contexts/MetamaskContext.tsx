@@ -61,65 +61,73 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (!account) {
       return;
-    }
-
-    type Token = {
-      address: string,
-      asset: string
-    }
-
-    const tokens: Token[] = [
-      { address: "", asset: "ETH" },
-      { address: USDC_ADDRESS, asset: "USDC" },
-      { address: USDT_ADDRESS, asset: "USDT" },
-      { address: WSTETH_ADDRESS, asset: "WSTETH" },
-    ]
-
-    setIsConnecting (true);
-    setXBalances ({});
-    const prices = await _getPrices();
-
-    console.log("@dew1204/fetching start chain balances----------------->");
-    //@ts-ignore
-    const balances: IBalance[] = await Promise.all(tokens.map(async({address, asset}: Token) => {
-      try {
-        if (asset === "ETH") {
-          const _eth = await library.getSigner().provider.getBalance(account);
-          console.log(ethers.utils.formatEther(_eth))
-          return {
-            address: account,
-            symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
-            amount: String(ethers.utils.formatEther(_eth))
-          }
-        } else {
-          const contract = new ethers.Contract(address, ERC20, library.getSigner());
-          const balance = await contract.balanceOf(account)
-          return {
-            address: account,
-            symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
-            amount: String(ethers.utils.formatEther(balance))
-          }
-        }
-      } catch (err) {
-        console.log(err)
-        return {
-          account,
-          symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
-          amount: "0"
-        }
+    } 
+    
+    try {
+      if (chainId !== 1) {
+        await _changeNetwork ();
       }
-    }));
-
-    const eth: IWallet = {
-      address: account as string,
-      balance: balances,
-      walletType: "METAMASK",
-      chain: "ETH",
+  
+      type Token = {
+        address: string,
+        asset: string
+      }
+  
+      const tokens: Token[] = [
+        { address: "", asset: "ETH" },
+        { address: USDC_ADDRESS, asset: "USDC" },
+        { address: USDT_ADDRESS, asset: "USDT" },
+        { address: WSTETH_ADDRESS, asset: "WSTETH" },
+      ]
+  
+      setIsConnecting (true);
+      setXBalances ({});
+      const prices = await _getPrices();
+  
+      console.log("@dew1204/fetching start chain balances----------------->");
+      //@ts-ignore
+      const balances: IBalance[] = await Promise.all(tokens.map(async({address, asset}: Token) => {
+        try {
+          if (asset === "ETH") {
+            const _eth = await library.getSigner().provider.getBalance(account);
+            console.log(ethers.utils.formatEther(_eth))
+            return {
+              address: account,
+              symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+              amount: String(ethers.utils.formatEther(_eth))
+            }
+          } else {
+            const contract = new ethers.Contract(address, ERC20, library.getSigner());
+            const balance = await contract.balanceOf(account)
+            return {
+              address: account,
+              symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+              amount: String(ethers.utils.formatEther(balance))
+            }
+          }
+        } catch (err) {
+          console.log(err)
+          return {
+            account,
+            symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+            amount: "0"
+          }
+        }
+      }));
+  
+      const eth: IWallet = {
+        address: account as string,
+        balance: balances,
+        walletType: "METAMASK",
+        chain: "ETH",
+      }
+  
+      setXBalances({"ETH": eth});
+      console.log("@dew1204/metamask balances -------------->", eth);
+      setIsConnecting(false);
+    } catch (err) {
+      console.log(err)
     }
-
-    setXBalances({"ETH": eth});
-    console.log("@dew1204/metamask balances -------------->", eth);
-    setIsConnecting(false);
   }
 
   React.useEffect(() => {
@@ -129,10 +137,28 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
 
+  const _changeNetwork = () => new Promise(async(resolve, reject) => {
+    //@ts-ignore
+    if (window.ethereum) {
+      try {
+        //@ts-ignore
+        await ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x1' }],
+        })
+        resolve("");
+      } catch (error) {
+        console.error(error);
+        reject("");
+      }
+    }
+  });
+
   const connectToMetamask = () => new Promise(async(resolve, reject) => {
-    if (account) reject("already connected");
-    setIsWalletDetected (false);
+    // if (account) reject("already connected");
+    
     try {
+      setIsWalletDetected (false);
       await activate(injected, async (error) => {
         console.log(error.message);
         reject ("Cancel the operation...");
