@@ -182,10 +182,9 @@ const Swap = () => {
       if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain}`;
 
       console.log("@/dew1204 --------------------------->", quoteSwapResponse);
-      // console.log(wallet)
-      // if (wallet?.name === "Keystore") {
-      //   doMayaSwap (fromAmount);
-      // }
+      if (wallet?.name === "Keystore") {
+        doMayaSwap (fromAmount);
+      }
 
     } catch (err) {
       showNotification (err, "info");
