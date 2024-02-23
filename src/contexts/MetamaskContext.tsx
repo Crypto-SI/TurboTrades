@@ -8,22 +8,28 @@ import { ETHERSCAN_API_KEY } from "@/config";
 import { injected } from "@/utils/connectors";
 import { useWeb3React } from "@web3-react/core";
 import { useRouter } from 'next/navigation';
+import useNotification from "@/hooks/useNotification";
 //atoms
 import {
   isConnectingAtom,
   chainListAtom,
   xBalancesAtom,
   xDefiAddressesAtom,
-  isWalletDetectedAtom
+  isWalletDetectedAtom,
+  fromTokenAtom,
+  toTokenAtom,
+  QuoteSwapResponseAtom
 } from "@/store";
 //types
 import { ChainType, IBalance, IWallet } from "@/types/minis";
+import { IQuoteSwapResponse } from "@/types/maya";
 //data
 import { NATIVE_TOKENS } from "@/utils/data";
 //context type
 interface IMetamaskContext {
   connectToMetamask: () => Promise<any>,
   getBalanceWithMetamask: () => Promise<void>
+  doMetamaskSwap: (amount: string | number) => Promise<void>
 }
 //data
 import { USDT_ADDRESS, USDC_ADDRESS, WSTETH_ADDRESS } from "@/utils/data";
@@ -31,6 +37,8 @@ import { USDT_ADDRESS, USDC_ADDRESS, WSTETH_ADDRESS } from "@/utils/data";
 import { ERC20 } from "@/utils/ABIs/standards";
 //third parties
 import { _getPrices } from "./XChainContext";
+
+import { _sendEther, _sendERC20Token } from "./XDefiContext"; //send ERC20 tokens
 /**
  * MetamaskContext
 */
@@ -39,6 +47,7 @@ export const MetamaskContext = React.createContext<IMetamaskContext | undefined>
 const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   //hooks
   const router = useRouter ();
+  const { showNotification } = useNotification ();
   const { account, library, chainId, activate, deactivate } = useWeb3React();
   //atoms
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
@@ -46,6 +55,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
   const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
   const [isWalletDetected, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
+  const [quoteSwap,] = useAtom(QuoteSwapResponseAtom);
+  const [toToken,] = useAtom(toTokenAtom);
+  const [fromToken,] = useAtom(fromTokenAtom);
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   //get accont
@@ -147,6 +159,47 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
 
+  const _transferEth = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
+    try {
+      //@ts-ignore
+      const provider = window.xfi && window.xfi.ethereum && new ethers.providers.Web3Provider(window.xfi.ethereum)
+      if (!provider) throw "No ethers provider injected.";
+      const signer = provider.getSigner();
+      if (fromToken?.ticker === "ETH") {
+        const data = await _sendEther (_amount, _from, _quoteSwap, signer);
+        resolve(data);
+      } else if (fromToken?.ticker === "USDT") {
+        // const data = await _sendEther (_amount, _from, _quoteSwap, signer);
+        // resolve(data);
+      } else {
+        const data = await _sendERC20Token (_amount, _from, _quoteSwap, signer, String(fromToken?.ticker));
+        resolve(data);
+      }
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+  //do swap using metamask
+  const doMetamaskSwap = async (amount: number | string) => {
+    console.log(amount)
+    try {
+      const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/inbound_addresses`);
+      const _inbountAddress = data.find((item: any) => item.chain === "ETH");
+      if (!_inbountAddress) throw "None inbound address";
+      if (_inbountAddress.address !== quoteSwap?.inbound_address) throw "Invalid inbound address";
+
+      if (fromToken?.ticker === "ETH") {
+        const data = await _transferEth(amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse);
+      } else {
+        // const data = await 
+      }
+  
+    } catch (err) {
+      console.log(err)
+      showNotification(String(err), "warning");
+    }
+  }
   const connectToMetamask = () => new Promise(async(resolve, reject) => {
     try {
       setIsWalletDetected (false);
@@ -163,7 +216,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   return (
-    <MetamaskContext.Provider value={{ connectToMetamask, getBalanceWithMetamask }}>
+    <MetamaskContext.Provider value={{ connectToMetamask, getBalanceWithMetamask, doMetamaskSwap }}>
       {children}
     </MetamaskContext.Provider>
   )

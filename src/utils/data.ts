@@ -5,7 +5,8 @@ export const NATIVE_TOKENS = {
   DASH: "DASH",
   KUJI: "KUJI",
   MAYA: "CACAO",
-  BTC: "BTC"
+  BTC: "BTC",
+  ETH: "ETH",
 }
 /**
  * initial wallet list
@@ -288,3 +289,9 @@ export const CHAIN_BY_TOKEN = {
 export const USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 export const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 export const WSTETH_ADDRESS = '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0';
+
+export const ERC_20_ADDRESSES: Record<string, string> = {
+  "USDT": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+  "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "WSTETH": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0"
+}

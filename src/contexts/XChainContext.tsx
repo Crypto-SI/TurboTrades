@@ -33,7 +33,10 @@ import {
   isWalletDetectedAtom,
   fromTokenAtom,
   toTokenAtom,
-  QuoteSwapResponseAtom
+  QuoteSwapResponseAtom,
+  isSwapingAtom,
+  trxUrlAtom,
+  showTrxModalAtom
 } from "@/store";
 //public utils
 import useNotification from "@/hooks/useNotification";
@@ -44,7 +47,7 @@ import { NATIVE_TOKENS } from "@/utils/data";
 interface IXChainContext {
   connectKeyStoreWallet: (phrase: string) => Promise<void>,
   getBalances: () => Promise<void>,
-  doMayaSwap: (amount: string | number) => Promise<void>
+  doMayaSwap: (amount: string | number, affiliateBps: number) => Promise<void>
 }
 
 /**
@@ -108,8 +111,14 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const [fromToken] = useAtom(fromTokenAtom);
   const [toToken] = useAtom(toTokenAtom);
   const [quoteSwapResponse] = useAtom(QuoteSwapResponseAtom);
-  const [wallet, setWallet] = React.useState<Wallet|undefined>(undefined);
+  const [isSwaping, setIsSwaping] = useAtom(isSwapingAtom);
+  const [showTrxModal, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
+  const [trxUrl, setTrxUrl] = useAtom(trxUrlAtom);
 
+
+  //states
+  const [wallet, setWallet] = React.useState<Wallet|undefined>(undefined);
+  //hooks
   const {showNotification} = useNotification ();
 
   //chains that is selected at this moment
@@ -143,7 +152,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       MAYA: new MayaClient(settings),
     });
 
-    console.log(_wallet);
     setWallet(_wallet);
 
     const _clients: XClients = {};
@@ -194,7 +202,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       //@ts-ignore
-      const balances: Balance[] = await client.getBalance(address).catch(err => { });
+      const balances: Balance[] = await client.getBalance(address).catch(err => { console.log(err) });
       console.log(chain + "------------------->", balances)
 
       //@ts-ignore
@@ -266,54 +274,108 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       warning: quoteSwap.warning,
     })
   }
-  //do swap for maya-do-swap
+  /**
+   * send ETH to recipient
+   * @param quoteSwapParams 
+   * @param memo memo to add
+   * @param recipient address to send
+   * @returns transaction id
+   */
+  const _transferEther = (quoteSwapParams: QuoteSwapParams, memo: string, recipient: string) => new Promise(async (resolve, reject) => {
+    try {
+      const ethClient = xClients["ETH"];
+      const amount = assetToBase(assetAmount(quoteSwapParams.amount.assetAmount.amount().toString(), 18))
+      const asset = quoteSwapParams.fromAsset;
+
+      console.log("@dew/ swap to eth ---------------------------->", {
+        ethClient,
+        amount,
+        asset,
+        recipient,
+        memo
+      });
+      const txid = await ethClient.transfer({
+        "amount": amount,
+        "recipient": recipient,
+        "walletIndex": 0,
+        "asset": asset,
+        "memo": memo
+      });
+      resolve(txid);
+    } catch (error) {
+      reject (error);
+    }
+  });
+  //do maya swap
   const doSwap = async (mayachainAmm: MayachainAMM, quoteSwapParams: QuoteSwapParams) => {
     try {
-      const quoteSwap = await mayachainAmm.estimateSwap(quoteSwapParams)
+      const valid = await mayachainAmm.validateSwap(quoteSwapParams);
+      console.log("validate------>", valid);
       console.log('______________________    ESTIMATION   ____________________')
-      printQuoteSwap(quoteSwap)
-      if (quoteSwap.canSwap) {
-        console.log('______________________      RESULT     ____________________')
-        console.log(
-          `Executing swap from ${assetToString(quoteSwapParams.fromAsset)} to ${assetToString(
-            quoteSwapParams.destinationAsset,
-          )}`,
-        )
-        const txSubmitted = await mayachainAmm.doSwap(quoteSwapParams);
-        showNotification ("Transaction success", "success");
-        console.log(`Tx hash: ${txSubmitted.hash},\n Tx url: ${txSubmitted.url}\n`)
+      const quoteSwap = await mayachainAmm.estimateSwap(quoteSwapParams);
+      
+      printQuoteSwap(quoteSwap);
+      if (!quoteSwap.canSwap) throw { message:  quoteSwap.errors[0] }; //can't swap
+      console.log('______________________      RESULT     ____________________')
+      console.log(
+        `Executing swap from ${assetToString(quoteSwapParams.fromAsset)} to ${assetToString(
+          quoteSwapParams.destinationAsset,
+        )}`,
+      );
+
+      const { chain, symbol } = quoteSwapParams.fromAsset;
+      if (chain === "ETH" && symbol === "ETH") {
+        console.log("@dew1204/start with _own transfer ---------------------------------->");
+        const txId = await _transferEther (quoteSwapParams, quoteSwap.memo, quoteSwap.toAddress);
+        console.log("Transaction success..", txId);
+        console.log(txId)
+
+        showNotification ("Transaction sent successfully", "success");
+        setTrxUrl(txId as string);
+        setShowTrxModal(true);
       } else {
-        showNotification(quoteSwap.errors[0], "info");
+        const txSubmitted = await mayachainAmm.doSwap(quoteSwapParams);
+        console.log(`Tx hash: ${txSubmitted.hash},\n Tx url: ${txSubmitted.url}\n`);
+
+        showNotification ("Transaction sent successfully", "success");
+        setTrxUrl(txSubmitted.url);
+        setShowTrxModal(true);
       }
     } catch (error) {
-      console.error(error)
+      console.log("@dew1204/swap error -------------------------------->", error);
       //@ts-ignore
-      showNotification(error.message, "warning");
+      if (String(error).includes("insufficient funds for intrinsic transaction cost")) {
+        showNotification("Insufficient funds for intrinsic transaction cost.", "warning");
+      } else {
+        //@ts-ignore
+        showNotification(String(error.message), "warning");
+      }
     }
   }
+  /**
+   * 
+   * @param amount amount to swap
+   * @param affiliateBps default 0.75%
+   */
+  const doMayaSwap = async (amount: string | number, affiliateBps: number = 75) => {
 
-  const doMayaSwap = async (amount: string | number, affiliateBps: number = 25) => {
-
-    return;
-    const decimals = fromToken?.chain === "MAYA" ? 10 : 8;
-    console.log(amount, decimals);
+    let decimals = 8;
+    if ( fromToken?.chain === "MAYA" )  decimals = 10;
+    if ( fromToken?.chain === "KUJI" )  decimals = 6;
+    
     const fromAsset = assetFromString(fromToken?.asset as string)
     const toAsset = assetFromString(toToken?.asset as string);
-    // const affiliateAddress = process.argv[8]
     const toChain = toAsset?.synth ? MayaChain : toAsset?.chain
     const quoteSwapParams: QuoteSwapParams = {
       fromAsset: fromAsset as Asset,
       destinationAsset: toAsset as Asset,
       amount: new CryptoAmount(assetToBase(assetAmount(amount, decimals)), fromAsset as Asset),
-      affiliateAddress: "maya16y3cuuk4ux4vup9yq238wm8afuna80e53ec87v",
+      affiliateAddress: "maya",
       affiliateBps,
       destinationAddress: await wallet?.getAddress(toChain as string),
-      // destinationAddress: xBalances[toToken?.chain as string].address,
     }
 
-    console.log('====================== DO SWAP EXAMPLE ====================')
-    console.log('\n\n\n')
-    console.log('______________________    SWAP TO DO   ____________________')
+    console.log('@dew1204/______________________    SWAP TO DO   ____________________');
     console.log({ ...quoteSwapParams, amount: quoteSwapParams.amount.assetAmount.amount().toString() });
 
     const mayachainAmm = new MayachainAMM(new MayachainQuery(), wallet);

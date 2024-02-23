@@ -18,7 +18,8 @@ import {
   xBalancesAtom,
   QuoteSwapResponseAtom,
   tokenPricesAtom,
-  walletAtom
+  walletAtom,
+  isSwapingAtom
 } from '@/store';
 //types
 import { IPool } from "@/types/maya";
@@ -30,22 +31,25 @@ import { reduceAmount, Address } from "@/utils/methods";
 //hooks
 import useNotification from "@/hooks/useNotification";
 import useXChain from "@/hooks/useXChain";
+import useXDefi from "@/hooks/useXDefiWallet";
+//trxModal
+import TransactionModal from "@/components/swap/transactionModal";
+import useMetamask from "@/hooks/useMetamask";
 
 
 const Swap = () => {
-  //pools in Maya chain
-  const [pools, setPools] = useAtom(poolsAtom);
+
   //stage and quoteSwapResponse
-  const [stage, setStage] = useAtom(stageAtom);
+  const [, setStage] = useAtom(stageAtom);
   const [quoteSwapResponse, setQuoteSwapResponse] = useAtom(QuoteSwapResponseAtom);
   //token prices Record <name, price>
-  const [tokenPrices, setTokenPrices] = useAtom(tokenPricesAtom);
-  const [wallet, setWallet] = useAtom(walletAtom);
+  const [tokenPrices,] = useAtom(tokenPricesAtom);
+  const [wallet,] = useAtom(walletAtom);
   //token selector modal visible
   const [showFromTokens, setShowFromTokens] = React.useState<boolean>(false);
   const [showToTokens, setShowToTokens] = React.useState<boolean>(false);
   //my wallet balances
-  const [xBalances, setXBalances] = useAtom(xBalancesAtom);
+  const [xBalances,] = useAtom(xBalancesAtom);
   //token pairs
   const [fromToken, setFromToken] = useAtom(fromTokenAtom);
   const [toToken, setToToken] = useAtom(toTokenAtom);
@@ -58,7 +62,26 @@ const Swap = () => {
   //hooks
   const { showNotification }  = useNotification ();
   const { doMayaSwap } = useXChain ();
+  const { doXDefiSwap } = useXDefi ();
+  const { doMetamaskSwap } = useMetamask ();
+  //is swaping ..
+  const [isSwaping, setIsSwaping] = React.useState<boolean>(false);
 
+  //set from amount with percent of balance
+  const _setPercentToSwap = (percent: number) => {
+    try {
+      if (!toToken || !fromToken) throw 0;
+      if (Object.keys(xBalances).length === 0) throw 0;
+      for (const key in xBalances) {
+        xBalances[key].balance.forEach((balance: IBalance) => {
+          if (fromToken.ticker === balance.ticker) throw balance.amount;
+        })
+      }
+      throw 0;
+    } catch (value) {
+      setFromAmount(String(Number(value) * percent * 0.01));
+    }
+  }
   /**
    * calculate src balance
    * @returns string
@@ -112,91 +135,124 @@ const Swap = () => {
     const value = e.target.value;
     //@ts-ignore
     if (Number(value) < 0 || isNaN(Number(value)) || value.length > 15) {
+      setToAmount("0");
       return;
     }
     setFromAmount(value);
   }
-  //calculate estimated amount for swaping
+  /**
+   * Estimate inbound amount of token when pair and fromAmount is changed...
+   */
   const _estimateAmount = async () => {
-    
     setIsEstimating (true);
+    
+    const _decimals = (chain: string) => {
+      if (chain === "MAYA") return 10**10;
+      // if (chain === "KUJI") return 10**6;
+      return 10**8;
+    }
+
     let _des: string = "";
     const destination = xBalances[toToken?.chain as string];
     if (destination) {
       _des= `&destination=${destination.address}`
     }
 
-    const decimals = fromToken?.ticker === "CACAO" ? 10**10 : 10**8;
-    let amount: any = Number(fromAmount)*decimals;
+    const decimals = _decimals(fromToken?.chain as string);
+    let amount: any = Math.floor(Number(fromAmount)*decimals);
     amount = amount.toLocaleString('fullwide', {useGrouping:false});
-    const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&amount=${amount}${_des}`);
+    const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&affiliate_bps=75&affiliate=maya&amount=${amount}${_des}`);
     if (data.error) {
       setError(data.error);
       setQuoteSwapResponse(undefined);
       setToAmount ("0");
     } else {
-      const decimals = toToken?.ticker === "CACAO" ? 10**10 : 10**8;
+      const decimals = _decimals(toToken?.chain as string);
       setQuoteSwapResponse(data);
       const outBount: any = (Number(data.expected_amount_out) / decimals).toLocaleString('fullwide', {useGrouping:false});
       setToAmount(outBount);
       setError("");
-      // console.log("@/memo ----------------->", data);
     }
     setIsEstimating (false);
   }
-  //hook for calculating estimated amount
+  /**
+   * hook for calculating estimated amount
+   */
   React.useEffect(() => {
-    // if (fromToken && toToken) {
+    // if from and to tokens are all available
     if (fromToken && toToken && Number(fromAmount) > 0) {
       _estimateAmount ();
     } else if (fromAmount === "") {
       setToAmount ("");
+      setQuoteSwapResponse(undefined);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromAmount, fromToken, toToken]);
-
+  /**
+   * when cross button is clicked
+   */
   const handleExchange = () => {
     const temp: IPool = { ...fromToken };
     setFromToken ({ ...toToken });
     setToToken ({ ...temp });
     setFromAmount(toAmount);
   }
-  //when source token is selected
+  /**
+   * when fromToken is selected
+   * @param token 
+   */
   const handleSelectFromToken = (token: IPool) => {
     if (token.asset !== toToken?.asset) {
       setFromToken(token);
     }
   } 
-  //when destination is selected
+  /**
+   * when destination is selected
+   * @param token 
+   */
   const handleSelectToToken = (token: IPool) => {
     if (token.asset !== fromToken?.asset) {
       setToToken(token);
     }
   }
-  //handle swap
+  /**
+   * handle Swap when click swap button 
+   * @returns 
+   */
   const handleSwap = async () => {
+    if (isSwaping) return;
+    setIsSwaping (true);
     try {
-      if (Number(fromAmount) <= 0) throw "Please input amount to swap";
+      if (Number(fromAmount) <= 0) throw "Please Input token amount to swap";
       if (error) throw "Can't swap as invaild setting.";
       if (!quoteSwapResponse) throw "Please confirm token pair and amount.";
+      if (!xBalances[fromToken?.chain as string]) throw  `Please connect ${fromToken?.chain}`;
+      if (!xBalances[toToken?.chain as string]) throw  `Please connect ${toToken?.chain}`;
       if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain}`;
 
-      console.log("@/dew1204 --------------------------->", quoteSwapResponse);
+      console.log("@token paris ------------------->", { fromToken, toToken });
+      //do swap with several wallets
       if (wallet?.name === "Keystore") {
-        doMayaSwap (fromAmount);
+        await doMayaSwap (fromAmount, 75);
+      } else if (wallet?.name === "XDEFI") {
+        await doXDefiSwap (fromAmount);
+      } else if (wallet?.name === "Metamask") {
+        await doMetamaskSwap (fromAmount);
       }
-
     } catch (err) {
       showNotification (err, "info");
+    } finally {
+      setIsSwaping (false);
     }
   }
 
   return (
     <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full md:w-[calc(100vw-360px)] lg:w-[460px]">
+      <TransactionModal />
       <div className="rounded-2xl p-4 bg-white dark:bg-[#0A0C0F] text-[#8A8D92] dark:text-white">
         <div className="flex text-sm flex-wrap justify-between">
           {
-            ["25", "50", "75", "100"].map((item: string) => <div key={item} className="w-[49%] mt-1 xxs:mt-0 xxs:w-[24%] bg-[#F3F7FC] text-black dark:text-white dark:bg-[#171A1F] border border-[#F3F7FC] dark:border-[#222832] p-5 rounded-xl flex items-center justify-center">{item}%</div>)
+            [25, 50, 75, 100].map((item: number) => <div onClick={() => _setPercentToSwap(item)} key={item} className={`cursor-pointer hover:opacity-60 w-[49%] mt-1 xxs:mt-0 xxs:w-[24%] bg-[#F3F7FC] text-black dark:text-white dark:bg-[#171A1F] border border-[#F3F7FC] dark:border-[#222832] p-5 rounded-xl flex items-center justify-center`}>{item}%</div>)
           }
         </div>
         <div className={`text-center text-black bg-[#FFC107] w-full rounded-xl mt-5 px-4 py-3 ${ !error && "hidden" }`}>
@@ -287,7 +343,7 @@ const Swap = () => {
           </div>
         </div>
 
-        <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-8 px-1 flex-col xxs:flex-row">
+        <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-8 px-2 flex-col xxs:flex-row justify-between">
           <span className="text-[#C5C7CC] dark:text-[#C5C7CC]">Currency: </span>
           <div className="flex gap-4 items-center">
             <div className="flex gap-2">
@@ -316,19 +372,23 @@ const Swap = () => {
           </div>
         </div>
 
-        <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-2 px-1 flex-col xxs:flex-row text-sm">
+        <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-2 px-2 flex-col xxs:flex-row text-sm justify-between">
           <span className="text-[#C5C7CC] dark:text-[#C5C7CC]">Amount:&nbsp;</span>
           <span className="dark:text-[#6978A0]">{fromAmount ? fromAmount : "0"} {fromToken?.ticker} ({toAmount ? toAmount : "0"} {toToken?.ticker})</span>
         </div>
 
-        <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-2 px-1 flex-col xxs:flex-row">
-          <span className="text-[#C5C7CC] dark:text-[#C5C7CC]">Estimated Fee:&nbsp;</span>
+        <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-2 px-2 flex-col xxs:flex-row justify-between">
+          <span className="text-[#C5C7CC] dark:text-[#C5C7CC]">Affiliate Fee:&nbsp;</span>
+          <span className="dark:text-[#6978A0] text-sm">{toAmount ? reduceAmount(Number(toAmount) *0.0075) : "0"} {toToken?.ticker} ({quoteSwapResponse ? reduceAmount(Number(toToken?.assetPriceUSD) * Number( Number(toAmount)* 0.0075 )) : "0"} $)</span>
+        </div>
+        <div className="flex xxs:items-center gap-1 xxs:gap-5 mt-2 px-2 flex-col xxs:flex-row justify-between">
+          <span className="text-[#C5C7CC] dark:text-[#C5C7CC]">Outbound Fee:&nbsp;</span>
           <span className="dark:text-[#6978A0] text-sm">{quoteSwapResponse ? reduceAmount(Number(quoteSwapResponse.fees.outbound) / 10**8) : "0"} {toToken?.ticker} ({quoteSwapResponse ? reduceAmount(Number(toToken?.assetPriceUSD) * Number(quoteSwapResponse.fees.outbound) / 10**8) : "0"} $)</span>
         </div>
         {
           Object.keys(xBalances).length > 0 ? 
           <button onClick={() => handleSwap()} data-tooltip-target="tooltip-default" className="flex justify-center items-center gap-3 text-white mt-7 p-5 w-full rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] hover:from-[#ff6702de] hover:to-[#ee0e739f]">
-            Swap
+            { isSwaping ? <div className="flex items-center gap-2"><Icon icon="icomoon-free:spinner9" className="spin"/>Swapping...</div> : "Swap" }
           </button> :
           <button onClick={() => setStage("wallet")} data-tooltip-target="tooltip-default" className="flex justify-center items-center gap-3 text-white mt-7 p-5 w-full rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] hover:from-[#ff6702de] hover:to-[#ee0e739f]">
             Connect Wallet

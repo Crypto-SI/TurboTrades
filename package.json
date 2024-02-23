@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@archwayhq/arch3.js": "^0.6.0",
+    "@cosmjs/launchpad": "^0.27.1",
     "@iconify/react": "^4.1.1",
     "@types/downloadjs": "^1.4.6",
     "@web3-react/core": "^6.1.9",
