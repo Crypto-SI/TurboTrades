@@ -31,13 +31,13 @@ const Home = () => {
   const [toToken, setToToken] = useAtom(toTokenAtom);
   const [tokenPrices, setTokenPrices] = useAtom(tokenPricesAtom);
 
-  //get pools
+  /**
+   * get Pools from Mayachain and store pool information
+   */
   React.useEffect(() => {
     async function init () {
       try {
-
         const _prices: Record<string, string> = {};
-
         const _cacao = await axios.get("https://midgard.mayachain.info/v2/stats");
         const cacao: IPool = {
           assetPriceUSD: _cacao.data.cacaoPriceUSD,
@@ -52,7 +52,7 @@ const Home = () => {
         _prices["MAYA.CACAO"] =  _cacao.data.cacaoPriceUSD; //cacao token price with USD
 
         const { data } = await axios.get("https://midgard.mayachain.info/v2/pools");
-        console.log(data)
+        console.log("@fetched pools from maya ---------------------");
         const _pools: IPool[] = data.map((item: any) => {
           const { asset } = item;
           _prices[asset] =  item.assetPriceUSD; //token price with USD
@@ -72,7 +72,6 @@ const Home = () => {
           return {
             ...item,
             token: "s" + TOKEN_DATA[asset].ticker,
-            // chain: TOKEN_DATA[asset].chain,
             chain: "MAYA",
             image: TOKEN_DATA[asset].image,
             ticker: "s" + TOKEN_DATA[asset].ticker,
@@ -85,7 +84,7 @@ const Home = () => {
         setToToken(_pools[0]);
         setPools ([cacao, ..._pools, ..._synPools]);
       } catch (err) {
-        console.log("err fetching pools ------------------------>", err);
+        console.log("@error fetching pools ------------------------", err);
       }
     }
     init ();

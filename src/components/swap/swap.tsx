@@ -226,9 +226,9 @@ const Swap = () => {
       if (Number(fromAmount) <= 0) throw "Please Input token amount to swap";
       if (error) throw "Can't swap as invaild setting.";
       if (!quoteSwapResponse) throw "Please confirm token pair and amount.";
-      if (!xBalances[fromToken?.chain as string]) throw  `Please connect ${fromToken?.chain}`;
-      if (!xBalances[toToken?.chain as string]) throw  `Please connect ${toToken?.chain}`;
-      if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain}`;
+      if (!xBalances[fromToken?.chain as string]) throw  `Please connect ${fromToken?.chain} chain.`;
+      if (!xBalances[toToken?.chain as string]) throw  `Please connect ${toToken?.chain} chain.`;
+      if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain} chain.`;
 
       console.log("@token paris ------------------->", { fromToken, toToken });
       //do swap with several wallets
