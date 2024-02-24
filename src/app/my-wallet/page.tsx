@@ -130,7 +130,7 @@ const Home = () => {
                 priority={true}
                 className='rounded-full'
               />
-              <span>{item.symbol}</span>
+              <span>{item.ticker}</span>
               <span>
                 {  reduceAmount (item.amount)  }
                 &nbsp;&nbsp;( { reduceAmount(Number(item.amount) * Number(item.value)) }$ )

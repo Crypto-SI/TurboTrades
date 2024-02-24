@@ -18,7 +18,9 @@ import {
   isWalletDetectedAtom,
   fromTokenAtom,
   toTokenAtom,
-  QuoteSwapResponseAtom
+  QuoteSwapResponseAtom,
+  showTrxModalAtom,
+  trxUrlAtom
 } from "@/store";
 //types
 import { ChainType, IBalance, IWallet } from "@/types/minis";
@@ -37,7 +39,7 @@ import { USDT_ADDRESS, USDC_ADDRESS, WSTETH_ADDRESS } from "@/utils/data";
 import { ERC20 } from "@/utils/ABIs/standards";
 //third parties
 import { _getPrices } from "./XChainContext";
-
+//methods to send ETH, and ERC20 tokens
 import { _sendEther, _sendERC20Token } from "./XDefiContext"; //send ERC20 tokens
 /**
  * MetamaskContext
@@ -58,6 +60,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const [quoteSwap,] = useAtom(QuoteSwapResponseAtom);
   const [toToken,] = useAtom(toTokenAtom);
   const [fromToken,] = useAtom(fromTokenAtom);
+  const [showTrxModal, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
+  const [trxUrl, setTrxUrl] = useAtom(trxUrlAtom);
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   /**
@@ -91,19 +95,19 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           if (asset === "ETH") {
             const _eth = await library.getSigner().provider.getBalance(account);
-            console.log(ethers.utils.formatEther(_eth))
             return {
               address: account,
               symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
               amount: String(ethers.utils.formatEther(_eth))
             }
           } else {
+            const _decimals = ( asset === "WSTETH" ) ? 10**18 : 10**6; //decimals USDT, USDC: 6, WSTETH: 18
             const contract = new ethers.Contract(address, ERC20, library.getSigner());
-            const balance = await contract.balanceOf(account)
+            const balance = await contract.balanceOf(account);
             return {
               address: account,
               symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
-              amount: String(ethers.utils.formatEther(balance))
+              amount: String(Number(balance)/_decimals)
             }
           }
         } catch (err) {
@@ -159,30 +163,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
   /**
-   * Send token to another address using Metamask
-   * @param _amount amount to swap
-   * @param _from from account
-   * @param _quoteSwap QuoteSwapParams
-   * @returns Promise<void>
+   * show transaction Modal
+   * @param _url 
    */
-  const _transferEth = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
-    try {
-      //@ts-ignore
-      const signer = library.getSigner();
-      if (fromToken?.ticker === "ETH") { // if token is Eth, transfer Eth
-        const data = await _sendEther (_amount, _from, _quoteSwap, signer);
-        resolve(data);
-      } else if (fromToken?.ticker === "USDT") { //else send ERC20 token
-        // const data = await _sendEther (_amount, _from, _quoteSwap, signer);
-        // resolve(data);
-      } else {
-        const data = await _sendERC20Token (_amount, _from, _quoteSwap, signer, String(fromToken?.ticker));
-        resolve(data);
-      }
-    } catch (err) {
-      reject(err);
-    }
-  });
+  const _showTxModal = (_url: string) => {
+    setTrxUrl(_url);
+    setShowTrxModal(true);
+  }
   /**
    * Do swap using metamask
    * @param amount token amount to swap ...ETH, USDT, USDC, WSTETH
@@ -194,10 +181,16 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       if (!_inbountAddress) throw "Inbound address is none.";
       if (_inbountAddress.address !== quoteSwap?.inbound_address) throw "Invalid Inbound Address";
 
+      const signer = library.getSigner();
+
       if (fromToken?.ticker === "ETH") {
-        const data = await _transferEth(amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse);
+        const data = await _sendEther (amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse, signer);
+        console.log("@ETH metamask transaction ----------------------------->", data);
+        _showTxModal (`https://etherscan.io/tx/${data.hash}`);
       } else {
-        // const data = await 
+        const data = await _sendERC20Token (amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse, signer, String(fromToken?.ticker));
+        console.log("@ETH metamask transaction ----------------------------->", data);
+        _showTxModal (`https://etherscan.io/tx/${data.hash}`);
       }
     } catch (err) {
       console.log(err)

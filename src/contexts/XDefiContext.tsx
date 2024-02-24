@@ -20,6 +20,8 @@ import {
   QuoteSwapResponseAtom,
   fromTokenAtom,
   toTokenAtom,
+  showTrxModalAtom,
+  trxUrlAtom
 } from "@/store";
 //types
 import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
@@ -42,10 +44,17 @@ import { IQuoteSwapResponse } from "@/types/maya";
 */
 export const XDefiContext = React.createContext<IXDefiContext | undefined>(undefined);
 
-//send ETH
-export const _sendEther = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, signer: any) => {
+/**
+ * send to account ETH
+ * @param _amount amount to swap 
+ * @param _from fromAddress
+ * @param _quoteSwap QuoteSwap
+ * @param signer Provider Signer
+ * @returns 
+ */
+export const _sendEther = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any) => {
   try {
-    console.log({ memo: _quoteSwap.memo, _amount, recipient: _quoteSwap.inbound_address })
+    console.log("@swap ETH ------------------------", { memo: _quoteSwap.memo, _amount, recipient: _quoteSwap.inbound_address })
     const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
     const recipient = _quoteSwap.inbound_address;
     // const data = ethers.utils.formatBytes32String(memo);
@@ -54,8 +63,8 @@ export const _sendEther = async (_amount: number, _from: string, _quoteSwap: IQu
       data: memo,
       value: ethers.utils.parseEther(String(_amount)),
     }
-    const tx = await signer.sendTransaction(transaction);
-    console.log(tx)
+    const tx = await _signer.sendTransaction(transaction);
+    console.log("Swap ETH with Metamask transaction ------------------", tx);
     return Promise.resolve(tx);
   } catch (err) {
     return Promise.reject(err);
@@ -70,34 +79,45 @@ export const _sendEther = async (_amount: number, _from: string, _quoteSwap: IQu
  * @param symbol token symbol "USDT", "USDC", "WSTETH"
  * @returns Promise<>
  */
-export const _sendERC20Token = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, signer: any, symbol: string) => {
+export const _sendERC20Token = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any, _symbol: string) => {
   try {
-    const contract = new ethers.Contract(ERC_20_ADDRESSES[symbol], ERC20, signer);
+
+    console.log("@ERC20 swap -----------------------", { _symbol, memo: _quoteSwap.memo, _amount, contract_address: ERC_20_ADDRESSES[_symbol] });
+
+    const contract = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20, _signer);
     // const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
     const memo = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(_quoteSwap.memo));
     const recipient = _quoteSwap.inbound_address;
-    const data = contract.interface.encodeFunctionData('transfer', [recipient, ethers.utils.parseEther(String(_amount))]);
+    const data = contract.interface.encodeFunctionData('transfer', [recipient, ethers.utils.parseEther(String(1))]);
 
     const transaction = {
-      to: recipient,
+      to: ERC_20_ADDRESSES[_symbol],
       // we need to slice the memo to remove 0x before appending
       data: data + memo.slice(2),
     };
-    const tx = await signer.sendTransaction(transaction);
+    const tx = await _signer.sendTransaction(transaction);
     console.log("@dew1204--------------------------->", tx);
     const hexMemo = tx.data.substring(138, tx.data.length);
 
     const memoString = ethers.utils.toUtf8String("0x" + hexMemo);
 
     console.log("memoString: " + memoString) ;
-    return Promise.resolve("");
+    return Promise.resolve(tx);
   } catch (err) {
     console.log(err)
-    return Promise.reject(err);
+    //@ts-ignore
+    if (err.code && err.code === 4001) { //user rejected....
+      return Promise.reject("Rejected the operation.");
+    } else {
+      return Promise.reject(err);
+    }
   }
 }
-
-
+/**
+ * Chain Provider
+ * @param param0 
+ * @returns 
+ */
 const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
   const router = useRouter();
@@ -106,9 +126,11 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
   const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
   const [isWalletDetected, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
-  const [quoteSwap, setQuoteSwap] = useAtom(QuoteSwapResponseAtom);
+  const [quoteSwap,] = useAtom(QuoteSwapResponseAtom);
   const [toToken,] = useAtom(toTokenAtom);
   const [fromToken,] = useAtom(fromTokenAtom);
+  const [showTrxModal, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
+  const [trxUrl, setTrxUrl] = useAtom(trxUrlAtom);
   const { showNotification } = useNotification();
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
@@ -337,12 +359,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
             amount: String(ethers.utils.formatEther(_eth))
           }
         } else {
+          const _decimals = ( asset === "WSTETH" ) ? 10**18 : 10**6; //decimals USDT, USDC: 6, WSTETH: 18
           const contract = new ethers.Contract(address, ERC20, provider.getSigner());
           const balance = await contract.balanceOf(account)
           return {
             address: account,
             symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
-            amount: String(ethers.utils.formatEther(balance))
+            amount: String(Number(balance)/_decimals)
           }
         }
       } catch (err) {
@@ -642,11 +665,11 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       if (fromToken?.ticker === "ETH") {
         const data = await _sendEther (_amount, _from, _quoteSwap, signer);
         resolve(data);
-      } else if (fromToken?.ticker === "USDT") {
-        // const data = await _sendEther (_amount, _from, _quoteSwap, signer);
-        // resolve(data);
-      } else if (fromToken?.ticker === "USDC") {
-        const data = await _sendERC20Token (_amount, _from, _quoteSwap, signer, "USDC");
+      } else if (fromToken?.ticker === "ETH") {
+        const data = await _sendEther (_amount, _from, _quoteSwap, signer);
+        resolve(data);
+      } else if (fromToken?.ticker === "USDT" || fromToken?.ticker === "USDC" || fromToken?.ticker === "WSTETH") {
+        const data = await _sendERC20Token (_amount, _from, _quoteSwap, signer, fromToken?.ticker as string);
         resolve(data);
       }
     } catch (err) {
@@ -654,7 +677,14 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       reject(err);
     }
   });
-
+  /**
+   * show transaction Modal
+   * @param _url 
+   */
+  const _showTxModal = (_url: string) => {
+    setTrxUrl(_url);
+    setShowTrxModal(true);
+  }
   const doXDefiSwap = async (amount: number | string) => {
     try {
       const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/inbound_addresses`);
@@ -678,8 +708,10 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           await _transferKUJI(amount as number, xBalances["KUJI"].address, quoteSwap as IQuoteSwapResponse);
           break;
         case "ETH":
-          const data = await _transferEth(amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse);
-          console.log(data);
+          const data: any = await _transferEth(amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse);
+          console.log("@xDefi transaction ----------------------------->", data);
+          _showTxModal (`https://etherscan.io/tx/${data.hash}`);
+          //0x0d2cec01a1c0b0729ebd044c85c4c2863bd7e70bc39369aaeb272c0357739534
           break;
       }
       showNotification ("Transaction transfered successfully, It will take for a while", "info");

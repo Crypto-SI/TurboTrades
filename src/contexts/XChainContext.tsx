@@ -213,6 +213,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           symbol: NATIVE_TOKENS[chain], chain: chain, ticker: NATIVE_TOKENS[chain], value: prices[NATIVE_TOKENS[chain]],
           amount: 0,
         }] :
+        
         balances.map((item: any) => ({
           address,
           symbol: item.asset.symbol,
