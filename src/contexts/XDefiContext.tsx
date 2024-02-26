@@ -105,8 +105,9 @@ export const _depositERC20Token = async (_amount: number, _from: string, _quoteS
     const amount = ethers.utils.parseUnits(String(_amount), ERC20_DECIMALS[_symbol]);
     console.log(ERC_20_ADDRESSES[_symbol], _amount, _memo, expiration);
     
+    console.log(ERC_20_ADDRESSES[_symbol])
     const Contract_ERC20 = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20_ABI, _signer);
-    const tx = await Contract_ERC20.approve(EVM_ROUTER_ADDRESS, amount);
+    const tx = await Contract_ERC20.approve(EVM_ROUTER_ADDRESS, amount, { gasLimit: 80000 });
     await tx.wait();
     //depositWithExpiry(address vault,address asset,uint256 amount,string memo,uint256 expiration)
     const Contract = new ethers.Contract(EVM_ROUTER_ADDRESS, EVM_ROUTER_ABI, _signer);
@@ -125,39 +126,6 @@ export const _depositERC20Token = async (_amount: number, _from: string, _quoteS
   } finally {
     
   }
-  // try {
-
-  //   console.log("@ERC20 swap -----------------------", { _symbol, memo: _quoteSwap.memo, _amount, contract_address: ERC_20_ADDRESSES[_symbol] });
-
-  //   const contract = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20_ABI[_symbol], _signer);
-  //   console.log(ERC_20_ADDRESSES[_symbol], ERC20_ABI[_symbol])
-  //   // const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
-  //   const memo = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(_quoteSwap.memo));
-  //   const recipient = _quoteSwap.inbound_address;
-  //   const data = contract.interface.encodeFunctionData('transfer', [recipient, ethers.utils.parseEther(String(1))]);
-
-  //   const transaction = {
-  //     to: ERC_20_ADDRESSES[_symbol],
-  //     // we need to slice the memo to remove 0x before appending
-  //     data: data + memo.slice(2),
-  //   };
-  //   const tx = await _signer.sendTransaction(transaction);
-  //   console.log("@dew1204--------------------------->", tx);
-  //   const hexMemo = tx.data.substring(138, tx.data.length);
-
-  //   const memoString = ethers.utils.toUtf8String("0x" + hexMemo);
-
-  //   console.log("memoString: " + memoString) ;
-  //   return Promise.resolve(tx);
-  // } catch (err) {
-  //   console.log(err)
-  //   //@ts-ignore
-  //   if (err.code && err.code === 4001) { //user rejected....
-  //     return Promise.reject("Rejected the operation.");
-  //   } else {
-  //     return Promise.reject(err);
-  //   }
-  // }
 }
 /**
  * Chain Provider
