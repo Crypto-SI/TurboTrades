@@ -107,17 +107,13 @@ export const _depositERC20Token = async (_amount: number, _from: string, _quoteS
     
     const Contract_ERC20 = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20_ABI, _signer);
     const tx = await Contract_ERC20.approve(EVM_ROUTER_ADDRESS, amount);
-    await tx.await();
-    // depositWithExpiry(address vault,address asset,uint256 amount,string memo,uint256 expiration)
+    await tx.wait();
+    //depositWithExpiry(address vault,address asset,uint256 amount,string memo,uint256 expiration)
     const Contract = new ethers.Contract(EVM_ROUTER_ADDRESS, EVM_ROUTER_ABI, _signer);
     const data = await Contract.depositWithExpiry(recipient, ERC_20_ADDRESSES[_symbol], amount, _memo, expiration);
 
     return Promise.resolve(data);
 
-    // const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
-    // const memo = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(_quoteSwap.memo));
-    // const recipient = _quoteSwap.inbound_address;
-    // const data = contract.interface.encodeFunctionData('transfer', [recipient, ethers.utils.parseEther(String(1))]);
   } catch (err) {
     console.log(err)
     //@ts-ignore
