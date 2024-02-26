@@ -1,8 +1,8 @@
 "use client"
 
-import React from "react";
+import React, { memo } from "react";
 import { useAtom } from "jotai";
-import { ethers } from 'ethers';
+import { Signer, ethers } from 'ethers';
 import axios from 'axios';
 import { ETHERSCAN_API_KEY } from "@/config";
 import { SigningCosmosClient } from "@cosmjs/launchpad";
@@ -26,19 +26,28 @@ import {
 //types
 import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
 //data
-import { NATIVE_TOKENS, USDT_ADDRESS, USDC_ADDRESS, WSTETH_ADDRESS, ERC_20_ADDRESSES } from "@/utils/data";
+import { ERC_20_ADDRESSES, EVM_ROUTER_ADDRESS, ERC20_DECIMALS } from "@/utils/data";
+//abis
+import USDT_ABI from '@/utils/ABIs/usdt.json';
+import EVM_ROUTER_ABI from '@/utils/ABIs/evmRouter.json';
+import ERC20_ABI from "@/utils/ABIs/erc20.json";
 //context type
 interface IXDefiContext {
   connectToXDefi: () => Promise<void>,
   getBalancesWithXDefi: () => Promise<void>,
   doXDefiSwap: (amount: number | string) => Promise<void>
 }
-//abis
-import { ERC20 } from "@/utils/ABIs/standards";
 //prices methods
 import { _getPrices } from "./XChainContext";
 import { QuoteSwapParams } from "@xchainjs/xchain-mayachain-query";
 import { IQuoteSwapResponse } from "@/types/maya";
+import { Finlandica } from "next/font/google";
+
+const ERC20_ABIs: Record<string, any> = {
+  "USDT": USDT_ABI,
+  "USDC": USDT_ABI,
+  "WSTETH": USDT_ABI,
+}
 /**
  * XDefiContext
 */
@@ -52,22 +61,27 @@ export const XDefiContext = React.createContext<IXDefiContext | undefined>(undef
  * @param signer Provider Signer
  * @returns 
  */
-export const _sendEther = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any) => {
+export const _sendEther: any = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any) => {
   try {
-    console.log("@swap ETH ------------------------", { memo: _quoteSwap.memo, _amount, recipient: _quoteSwap.inbound_address })
-    const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
+    console.log("@swap ETH ------------------------", { memo: _quoteSwap.memo, amount:_amount, recipient: _quoteSwap.inbound_address, from: _from });
+    // const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
     const recipient = _quoteSwap.inbound_address;
-    // const data = ethers.utils.formatBytes32String(memo);
-    const transaction = {
-      to: recipient,
-      data: memo,
-      value: ethers.utils.parseEther(String(_amount)),
-    }
-    const tx = await _signer.sendTransaction(transaction);
+    const memo = _quoteSwap.memo;
+    const amount = ethers.utils.parseEther(String(_amount));
+    const expiration = (await _signer.provider.getBlock("latest")).timestamp + 60*60;
+
+    const Contract = new ethers.Contract(EVM_ROUTER_ADDRESS, EVM_ROUTER_ABI, _signer);
+    const tx = await Contract.depositWithExpiry(recipient, ERC_20_ADDRESSES["ETH"], amount, memo, expiration, { from: _from, value: amount });
+
     console.log("Swap ETH with Metamask transaction ------------------", tx);
     return Promise.resolve(tx);
   } catch (err) {
-    return Promise.reject(err);
+    //@ts-ignore
+    if (err.code && err.code === 4001) { //user rejected....
+      return Promise.reject("Rejected the operation.");
+    } else {
+      return Promise.reject(err);
+    }
   }
 }
 /**
@@ -79,30 +93,31 @@ export const _sendEther = async (_amount: number, _from: string, _quoteSwap: IQu
  * @param symbol token symbol "USDT", "USDC", "WSTETH"
  * @returns Promise<>
  */
-export const _sendERC20Token = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any, _symbol: string) => {
+export const _depositERC20Token = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any, _symbol: string) => {
   try {
-
     console.log("@ERC20 swap -----------------------", { _symbol, memo: _quoteSwap.memo, _amount, contract_address: ERC_20_ADDRESSES[_symbol] });
 
-    const contract = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20, _signer);
-    // const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
-    const memo = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(_quoteSwap.memo));
     const recipient = _quoteSwap.inbound_address;
-    const data = contract.interface.encodeFunctionData('transfer', [recipient, ethers.utils.parseEther(String(1))]);
+    const _memo = _quoteSwap.memo;
+    const { gasLimit, timestamp } = await _signer.provider.getBlock('latest');
+    const expiration = timestamp + 60*60;
+    const gasPrice = await _signer.provider.getGasPrice();
+    const amount = ethers.utils.parseUnits(String(_amount), ERC20_DECIMALS[_symbol]);
+    console.log(ERC_20_ADDRESSES[_symbol], _amount, _memo, expiration);
+    
+    const Contract_ERC20 = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20_ABI, _signer);
+    const tx = await Contract_ERC20.approve(EVM_ROUTER_ADDRESS, amount);
+    await tx.await();
+    // depositWithExpiry(address vault,address asset,uint256 amount,string memo,uint256 expiration)
+    const Contract = new ethers.Contract(EVM_ROUTER_ADDRESS, EVM_ROUTER_ABI, _signer);
+    const data = await Contract.depositWithExpiry(recipient, ERC_20_ADDRESSES[_symbol], amount, _memo, expiration);
 
-    const transaction = {
-      to: ERC_20_ADDRESSES[_symbol],
-      // we need to slice the memo to remove 0x before appending
-      data: data + memo.slice(2),
-    };
-    const tx = await _signer.sendTransaction(transaction);
-    console.log("@dew1204--------------------------->", tx);
-    const hexMemo = tx.data.substring(138, tx.data.length);
+    return Promise.resolve(data);
 
-    const memoString = ethers.utils.toUtf8String("0x" + hexMemo);
-
-    console.log("memoString: " + memoString) ;
-    return Promise.resolve(tx);
+    // const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
+    // const memo = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(_quoteSwap.memo));
+    // const recipient = _quoteSwap.inbound_address;
+    // const data = contract.interface.encodeFunctionData('transfer', [recipient, ethers.utils.parseEther(String(1))]);
   } catch (err) {
     console.log(err)
     //@ts-ignore
@@ -111,7 +126,42 @@ export const _sendERC20Token = async (_amount: number, _from: string, _quoteSwap
     } else {
       return Promise.reject(err);
     }
+  } finally {
+    
   }
+  // try {
+
+  //   console.log("@ERC20 swap -----------------------", { _symbol, memo: _quoteSwap.memo, _amount, contract_address: ERC_20_ADDRESSES[_symbol] });
+
+  //   const contract = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20_ABI[_symbol], _signer);
+  //   console.log(ERC_20_ADDRESSES[_symbol], ERC20_ABI[_symbol])
+  //   // const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
+  //   const memo = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(_quoteSwap.memo));
+  //   const recipient = _quoteSwap.inbound_address;
+  //   const data = contract.interface.encodeFunctionData('transfer', [recipient, ethers.utils.parseEther(String(1))]);
+
+  //   const transaction = {
+  //     to: ERC_20_ADDRESSES[_symbol],
+  //     // we need to slice the memo to remove 0x before appending
+  //     data: data + memo.slice(2),
+  //   };
+  //   const tx = await _signer.sendTransaction(transaction);
+  //   console.log("@dew1204--------------------------->", tx);
+  //   const hexMemo = tx.data.substring(138, tx.data.length);
+
+  //   const memoString = ethers.utils.toUtf8String("0x" + hexMemo);
+
+  //   console.log("memoString: " + memoString) ;
+  //   return Promise.resolve(tx);
+  // } catch (err) {
+  //   console.log(err)
+  //   //@ts-ignore
+  //   if (err.code && err.code === 4001) { //user rejected....
+  //     return Promise.reject("Rejected the operation.");
+  //   } else {
+  //     return Promise.reject(err);
+  //   }
+  // }
 }
 /**
  * Chain Provider
@@ -332,23 +382,11 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   //get ETH balance
   const _getEthBalance = async (account: string, prices: Record<string, number>) => {
 
-    type Token = {
-      address: string,
-      asset: string
-    }
-
-    const tokens: Token[] = [
-      { address: "", asset: "ETH" },
-      { address: USDC_ADDRESS, asset: "USDC" },
-      { address: USDT_ADDRESS, asset: "USDT" },
-      { address: WSTETH_ADDRESS, asset: "WSTETH" },
-    ]
-
     console.log("@dew1204/fetching start eth balance in xDefi ----------------->");
     //@ts-ignore
     const provider = window.xfi && window.xfi.ethereum && new ethers.providers.Web3Provider(window.xfi.ethereum);
     //@ts-ignore
-    const balances: IBalance[] = await Promise.all(tokens.map(async ({ address, asset }: Token) => {
+    const balances: IBalance[] = await Promise.all(Object.keys(ERC_20_ADDRESSES).map(async (asset: string) => {
       try {
         if (asset === "ETH") {
           const _eth = await provider.getBalance(account);
@@ -360,7 +398,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           }
         } else {
           const _decimals = ( asset === "WSTETH" ) ? 10**18 : 10**6; //decimals USDT, USDC: 6, WSTETH: 18
-          const contract = new ethers.Contract(address, ERC20, provider.getSigner());
+          const contract = new ethers.Contract(ERC_20_ADDRESSES[asset], ERC20_ABI, provider.getSigner());
           const balance = await contract.balanceOf(account)
           return {
             address: account,
@@ -665,11 +703,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       if (fromToken?.ticker === "ETH") {
         const data = await _sendEther (_amount, _from, _quoteSwap, signer);
         resolve(data);
-      } else if (fromToken?.ticker === "ETH") {
-        const data = await _sendEther (_amount, _from, _quoteSwap, signer);
-        resolve(data);
       } else if (fromToken?.ticker === "USDT" || fromToken?.ticker === "USDC" || fromToken?.ticker === "WSTETH") {
-        const data = await _sendERC20Token (_amount, _from, _quoteSwap, signer, fromToken?.ticker as string);
+        const data = await _depositERC20Token (_amount, _from, _quoteSwap, signer, fromToken?.ticker as string);
         resolve(data);
       }
     } catch (err) {

@@ -286,12 +286,19 @@ export const CHAIN_BY_TOKEN = {
   "KUJI": "Kuji chain"
 }
 
-export const USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
-export const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-export const WSTETH_ADDRESS = '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0';
-
+//ERC20 token addresses
 export const ERC_20_ADDRESSES: Record<string, string> = {
+  "ETH": "0x0000000000000000000000000000000000000000",
   "USDT": "0xdac17f958d2ee523a2206206994597c13d831ec7",
   "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
   "WSTETH": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0"
+}
+//Ethereum Router
+export const EVM_ROUTER_ADDRESS = "0xe3985E6b61b814F7Cdb188766562ba71b446B46d";
+//ERC20 decimals
+export const ERC20_DECIMALS: Record<string, number> ={
+  "ETH": 18,
+  "USDT": 6,
+  "USDC": 6,
+  "WSTETH": 18
 }

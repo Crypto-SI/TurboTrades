@@ -34,13 +34,13 @@ interface IMetamaskContext {
   doMetamaskSwap: (amount: string | number) => Promise<void>
 }
 //data
-import { USDT_ADDRESS, USDC_ADDRESS, WSTETH_ADDRESS } from "@/utils/data";
+import { ERC_20_ADDRESSES } from "@/utils/data";
 //abis
-import { ERC20 } from "@/utils/ABIs/standards";
+import ERC20 from "@/utils/ABIs/erc20.json";
 //third parties
 import { _getPrices } from "./XChainContext";
 //methods to send ETH, and ERC20 tokens
-import { _sendEther, _sendERC20Token } from "./XDefiContext"; //send ERC20 tokens
+import { _sendEther, _depositERC20Token } from "./XDefiContext"; //send ERC20 tokens
 /**
  * MetamaskContext
 */
@@ -78,20 +78,11 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       if (chainId !== 1) {
         await _switchToMainnet ();
       }
-      type Token = {
-        address: string,
-        asset: string
-      }
-      const tokens: Token[] = [
-        { address: "", asset: "ETH" },
-        { address: USDC_ADDRESS, asset: "USDC" },
-        { address: USDT_ADDRESS, asset: "USDT" },
-        { address: WSTETH_ADDRESS, asset: "WSTETH" },
-      ]
+
       const prices = await _getPrices();
       console.log("@dew1204/fetching start chain balances----------------->");
       //@ts-ignore
-      const balances: IBalance[] = await Promise.all(tokens.map(async({address, asset}: Token) => {
+      const balances: IBalance[] = await Promise.all(Object.keys(ERC_20_ADDRESSES).map(async(asset: string) => {
         try {
           if (asset === "ETH") {
             const _eth = await library.getSigner().provider.getBalance(account);
@@ -102,7 +93,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
             }
           } else {
             const _decimals = ( asset === "WSTETH" ) ? 10**18 : 10**6; //decimals USDT, USDC: 6, WSTETH: 18
-            const contract = new ethers.Contract(address, ERC20, library.getSigner());
+            const contract = new ethers.Contract(ERC_20_ADDRESSES[asset], ERC20, library.getSigner());
             const balance = await contract.balanceOf(account);
             return {
               address: account,
@@ -188,7 +179,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         console.log("@ETH metamask transaction ----------------------------->", data);
         _showTxModal (`https://etherscan.io/tx/${data.hash}`);
       } else {
-        const data = await _sendERC20Token (amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse, signer, String(fromToken?.ticker));
+        const data = await _depositERC20Token (amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse, signer, String(fromToken?.ticker));
         console.log("@ETH metamask transaction ----------------------------->", data);
         _showTxModal (`https://etherscan.io/tx/${data.hash}`);
       }
