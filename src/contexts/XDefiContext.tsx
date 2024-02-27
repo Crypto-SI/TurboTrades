@@ -105,7 +105,6 @@ export const _depositERC20Token = async (_amount: number, _from: string, _quoteS
     const amount = ethers.utils.parseUnits(String(_amount), ERC20_DECIMALS[_symbol]);
     console.log(ERC_20_ADDRESSES[_symbol], _amount, _memo, expiration);
     
-    console.log(ERC_20_ADDRESSES[_symbol])
     const Contract_ERC20 = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20_ABI, _signer);
     const tx = await Contract_ERC20.approve(EVM_ROUTER_ADDRESS, amount, { gasLimit: 80000 });
     await tx.wait();
@@ -128,7 +127,7 @@ export const _depositERC20Token = async (_amount: number, _from: string, _quoteS
   }
 }
 /**
- * Chain Provider
+ * XDefi Provider ** wrapp child components with xDefi wallet provider
  * @param param0 
  * @returns 
  */
@@ -148,7 +147,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const { showNotification } = useNotification();
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
-  //get accont
+
+  /**
+   * get account using xfi wallet
+   * @param chain "THOR" | "MAYA" | "BTC"
+   * @returns address "xxxxxx..."
+   */
   const _getAccount = (chain: string) => new Promise((resolve, reject) => {
     const methods: Record<string, string> = {
       "THOR": "thorchain",
@@ -177,7 +181,10 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       reject("");
     }
   });
-  //get kujira account
+  /**
+   * get kujira account
+   * @returns address "xxxxxx..."
+   */
   const _getKujiraAccount = async () => {
     //@ts-ignore
     if (!window.xfi?.keplr) {
@@ -192,7 +199,10 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       return accounts[0].address;
     }
   }
-  //get ethereum account
+  /**
+   * get Ethereum account
+   * @returns address "0xXXXXXX..."
+   */
   const _getEVMAccount = async () => {
     //@ts-ignore
     const provider = window.xfi && window.xfi.ethereum && new ethers.providers.Web3Provider(window.xfi.ethereum);
@@ -204,7 +214,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       return ethers.utils.getAddress(accounts[0]);
     }
   }
-  //get btc balance
+  /**
+   * get BTC balance
+   * @param address btc address 
+   * @param prices tokens prices 
+   * @returns 
+   */
   const getBTCbalance = async (address: string, prices: Record<string, number>) => {
     try {
       const { data } = await axios.get(`https://blockchain.info/q/addressbalance/${address}`);
@@ -213,7 +228,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         balance: [{
           address: "",
           symbol: "BTC", chain: "BTC", ticker: "BTC", value: prices["BTC"],
-          amount: data
+          amount: data / 10**8
         }],
         walletType: "XDEFI",
         chain: "BTC",
@@ -233,7 +248,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
   }
-  //get MAYA balance ($CACAO token)
+  /**
+   * get MAYA balance (@cacao token)
+   * @param address maya address 
+   * @param prices tokens prices 
+   * @returns 
+   */
   const getMayaBalance = async (address: string, prices: Record<string, number>) => {
     const empty = {
       address,
@@ -264,7 +284,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
   }
-  //get Kuji balance 
+  /**
+   * get KUJI balance
+   * @param address kuji address 
+   * @param prices tokens prices 
+   * @returns 
+   */
   const getKujiraBalance = async (address: string, prices: Record<string, number>) => {
     const empty = {
       address,
@@ -302,7 +327,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
   }
-  //get thor balance
+  /**
+   * get THOR balance (@RUNE token)
+   * @param address thor address 
+   * @param prices tokens prices 
+   * @returns 
+   */
   const getThorBalance = async (address: string, prices: Record<string, number>) => {
     const empty = {
       address,
@@ -343,7 +373,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
   }
-  //get ETH balance
+  /**
+   * get ETH balance
+   * @param account eth address "0xXXXX...."
+   * @param prices token prices...
+   * @returns 
+   */
   const _getEthBalance = async (account: string, prices: Record<string, number>) => {
 
     console.log("@dew1204/fetching start eth balance in xDefi ----------------->");
@@ -391,7 +426,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     return eth;
   }
   /**
-   * connect wallet with xDefi
+   * connect wallet with xDefi ** use window.xfi ***
    */
   const connectToXDefi = async () => {
     setIsWalletDetected(false);
@@ -425,7 +460,10 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       console.log(err);
     }
   }
-  //get wallet balances with xDefi
+  /**
+   * get wallet balance with xfi
+   * @param addresses 
+   */
   const getBalancesWithXDefi = async (addresses: Record<string, string> = xDefiAddresses) => {
     console.log("@dew1204/fetching start chain balances----------------->");
 
@@ -462,7 +500,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     setIsConnecting(false);
   }
 
-  //send Maya
+  /**
+   * send token in MAYA chain
+   */
   const _transferMaya = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
 
     console.log("---------------- Do cacao transfer -----------------------");
@@ -476,7 +516,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       from: _from,
       recipient: _quoteSwap.inbound_address,
       amount: {
-        amount: _amount,
+        amount: _amount * 10**8,
         decimals: 8
       },
       memo: _quoteSwap.memo,
@@ -484,9 +524,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     };
     try {
       //@ts-ignore
-      const data = await window.xfi.mayachain.request(
+      await window.xfi.mayachain.request(
         {
-          method: 'transfer',
+          method: 'deposit',
           params: [
             {
               asset,
@@ -505,7 +545,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           if (error) {
             reject(error);
           } else {
-            console.log(result);
+            //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
+            console.log("@xDefi thor transaction ----------------------------->", result);
+            _showTxModal (`https://www.mayascan.org/tx/${result}`);
             resolve(result);
           }
         }
@@ -519,6 +561,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const _transferTHOR = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
 
     console.log("---------------- Do Thor transfer -----------------------");
+    
 
     const { asset, from, recipient, amount, memo, gasLimit } = {
       asset: {
@@ -529,7 +572,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       from: _from,
       recipient: _quoteSwap.inbound_address,
       amount: {
-        amount: _amount,
+        amount: _amount * 10**8,
         decimals: 8
       },
       memo: _quoteSwap.memo,
@@ -538,7 +581,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log(from, recipient)
       //@ts-ignore
-      const data = await window.xfi.thorchain.request(
+      await window.xfi.thorchain.request(
         {
           method: 'transfer',
           params: [
@@ -556,10 +599,14 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         (error, result) => {
           // console.debug(error, result);
           // this.lastResult = { error, result };
+          console.log(error)
           if (error) {
             reject(error);
           } else {
-            console.log(result);
+            //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
+            console.log("@xDefi thor transaction ----------------------------->", result);
+            _showTxModal (`https://viewblock.io/thorchain/tx/${result}`);
+
             resolve(result);
           }
         }
@@ -575,7 +622,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("---------------- Do btc transfer -----------------------");
 
     console.log(_from)
-    const { from, recipient, amount, memo, gasLimit } = {
+    const { from, recipient, amount, memo } = {
       from: _from,
       recipient: _quoteSwap.inbound_address,
       amount: {
@@ -583,7 +630,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         decimals: 8
       },
       memo: _quoteSwap.memo,
-      gasLimit: '10000000', // optional
     };
     try {
       //@ts-ignore
@@ -657,7 +703,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
   })
-  //transfer Eth
+  /**
+   * transfer ERC20 token in ethereum mainnet
+   * @param _amount 
+   * @param _from 
+   * @param _quoteSwap 
+   * @returns 
+   */
   const _transferEth = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
     try {
       //@ts-ignore
