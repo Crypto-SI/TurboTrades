@@ -146,8 +146,9 @@ const Swap = () => {
   const _estimateAmount = async () => {
     setIsEstimating (true);
     
-    const _decimals = (chain: string) => {
-      if (chain === "MAYA") return 10**10;
+    const _decimals = (token: IPool) => {
+      console.log(token )
+      if (token?.chain === "MAYA" && !token?.synth) return 10**10;
       // if (chain === "KUJI") return 10**6;
       return 10**8;
     }
@@ -158,7 +159,7 @@ const Swap = () => {
       _des= `&destination=${destination.address}`
     }
 
-    const decimals = _decimals(fromToken?.chain as string);
+    const decimals = _decimals(fromToken as IPool);
     let amount: any = Math.floor(Number(fromAmount)*decimals);
     amount = amount.toLocaleString('fullwide', {useGrouping:false});
     const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&affiliate_bps=75&affiliate=maya&amount=${amount}${_des}`);
@@ -167,7 +168,7 @@ const Swap = () => {
       setQuoteSwapResponse(undefined);
       setToAmount ("0");
     } else {
-      const decimals = _decimals(toToken?.chain as string);
+      const decimals = _decimals(toToken as IPool);
       setQuoteSwapResponse(data);
       const outBount: any = (Number(data.expected_amount_out) / decimals).toLocaleString('fullwide', {useGrouping:false});
       setToAmount(outBount);

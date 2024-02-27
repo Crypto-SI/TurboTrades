@@ -22,7 +22,8 @@ export interface IPool {
   token?: string,
   ticker?: string,
   image?: string,
-  name?: string
+  name?: string,
+  synth?: boolean
 }
 
 export interface IQuoteSwapResponse {

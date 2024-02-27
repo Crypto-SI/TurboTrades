@@ -52,7 +52,6 @@ const ERC20_ABIs: Record<string, any> = {
  * XDefiContext
 */
 export const XDefiContext = React.createContext<IXDefiContext | undefined>(undefined);
-
 /**
  * send to account ETH
  * @param _amount amount to swap 
@@ -396,13 +395,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
             amount: String(ethers.utils.formatEther(_eth))
           }
         } else {
-          const _decimals = ( asset === "WSTETH" ) ? 10**18 : 10**6; //decimals USDT, USDC: 6, WSTETH: 18
+          const _decimals = ERC20_DECIMALS[asset]; //decimals USDT, USDC: 6, WSTETH: 18
           const contract = new ethers.Contract(ERC_20_ADDRESSES[asset], ERC20_ABI, provider.getSigner());
           const balance = await contract.balanceOf(account)
           return {
             address: account,
             symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
-            amount: String(Number(balance)/_decimals)
+            amount: String(Number(balance)/10**_decimals)
           }
         }
       } catch (err) {
@@ -506,22 +505,24 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const _transferMaya = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
 
     console.log("---------------- Do cacao transfer -----------------------");
+    const _asset = fromToken?.asset === "MAYA.CACAO" ? "CACAO" : fromToken?.asset;
 
     const { asset, from, recipient, amount, memo, gasLimit } = {
       asset: {
         chain: "MAYA",
-        symbol: "CACAO",
-        ticker: "CACAO",
+        symbol: _asset,
+        ticker: _asset,
       },
       from: _from,
       recipient: _quoteSwap.inbound_address,
       amount: {
-        amount: _amount * 10**8,
-        decimals: 8
+        amount: Math.floor(_amount * 10**10),
+        decimals: 10
       },
       memo: _quoteSwap.memo,
       gasLimit: '10000000', // optional
     };
+    console.log({_from, recipient})
     try {
       //@ts-ignore
       await window.xfi.mayachain.request(
@@ -531,7 +532,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
             {
               asset,
               from,
-              recipient,
+              // recipient,
               amount,
               memo,
               gasLimit,
@@ -572,7 +573,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       from: _from,
       recipient: _quoteSwap.inbound_address,
       amount: {
-        amount: _amount * 10**8,
+        amount: Math.floor(_amount * 10**8),
         decimals: 8
       },
       memo: _quoteSwap.memo,
@@ -626,7 +627,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       from: _from,
       recipient: _quoteSwap.inbound_address,
       amount: {
-        amount: _amount,
+        amount: Math.floor(_amount*10**8),
         decimals: 8
       },
       memo: _quoteSwap.memo,

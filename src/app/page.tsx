@@ -52,7 +52,7 @@ const Home = () => {
         _prices["MAYA.CACAO"] =  _cacao.data.cacaoPriceUSD; //cacao token price with USD
 
         const { data } = await axios.get("https://midgard.mayachain.info/v2/pools");
-        console.log("@fetched pools from maya ---------------------");
+        console.log("@fetched pools from maya ---------------------", data);
         const _pools: IPool[] = data.map((item: any) => {
           const { asset } = item;
           _prices[asset] =  item.assetPriceUSD; //token price with USD
@@ -76,7 +76,8 @@ const Home = () => {
             image: TOKEN_DATA[asset].image,
             ticker: "s" + TOKEN_DATA[asset].ticker,
             name: TOKEN_DATA[asset].name,
-            asset: asset.replace(".", "/")
+            asset: asset.replace(".", "/"),
+            synth: true
           }
         });
         setTokenPrices(_prices);

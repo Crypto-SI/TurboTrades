@@ -1,17 +1,22 @@
 import React from 'react';
 import { Icon } from '@iconify/react';
 import { useAtom } from 'jotai';
+import Image from "next/image";
 //atoms
 import {
   showTrxModalAtom,
-  trxUrlAtom
+  trxUrlAtom,
+  fromTokenAtom,
+  toTokenAtom
 } from "@/store";
 // @ts-ignore
 
 const TransactionModal = () => {
   //atoms
   const [showTrxModal, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
-  const [trxUrl, setTrxUrl] = useAtom(trxUrlAtom);
+  const [trxUrl,] = useAtom(trxUrlAtom);
+  const [fromToken,] = useAtom(fromTokenAtom);
+  const [toToken,] = useAtom(toTokenAtom);
 
   const handleClose = () => {
     setShowTrxModal(false);
@@ -36,6 +41,25 @@ const TransactionModal = () => {
             <div className='px-2 py-2 flex gap-2 items-center'>
               <Icon icon="uil:comment-info" width={30}/> Transaction Sent Successfully.
               {/* <Tooltip placement="right" title="Password for recovery"><span className='cursor-pointer text-[8px] px-2'> ?</span></Tooltip> */}
+            </div>
+            <div className='flex gap-3 items-center px-2 py-2'>
+              <Image
+                src={fromToken?.image + ""}
+                width={30}
+                height={30}
+                alt={"sun"}      
+                priority={true}
+                className='rounded-full'
+              />
+              <Icon icon="tdesign:swap" />
+              <Image
+                src={toToken?.image + ""}
+                width={30}
+                height={30}
+                alt={"sun"}      
+                priority={true}
+                className='rounded-full'
+              />
             </div>
             <div className='px-2 text-cyan-400 text-sm'>
               <a href={trxUrl} target='_blank' className='underline'>{_reduceHash(trxUrl)}</a>
