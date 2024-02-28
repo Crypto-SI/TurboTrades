@@ -4,13 +4,18 @@ import React from "react";
 import { useAtom } from "jotai";
 import { ethers } from 'ethers';
 import axios from 'axios';
-import { ETHERSCAN_API_KEY } from "@/config";
-import { SigningCosmosClient } from "@cosmjs/launchpad";
 import { useRouter } from "next/navigation";
 import useNotification from "@/hooks/useNotification";
-import { SigningArchwayClient } from '@archwayhq/arch3.js';
-import BigNumber from 'bignumber.js';
-
+//for cosmos
+import {
+  defaultRegistryTypes as defaultStargateTypes,
+  SigningStargateClient,
+} from "@cosmjs/stargate";
+import {
+  DirectSecp256k1HdWallet,
+  Registry,
+} from "@cosmjs/proto-signing";
+//atoms
 import {
   isConnectingAtom,
   chainListAtom,
@@ -40,12 +45,10 @@ interface IXDefiContext {
 //prices methods
 import { _getPrices } from "./XChainContext";
 import { IQuoteSwapResponse } from "@/types/maya";
-
-const ERC20_ABIs: Record<string, any> = {
-  "USDT": USDT_ABI,
-  "USDC": USDT_ABI,
-  "WSTETH": USDT_ABI,
-}
+//msg type
+import { types } from "@/types/proto/MsgCompiled";
+//minis
+const bech32 = require("bech32-buffer");
 /**
  * XDefiContext
 */
@@ -145,6 +148,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const { showNotification } = useNotification();
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
+  //MsgDeposit
+  const { MsgDeposit, MsgSend } = types;
 
   /**
    * get account using xfi wallet
@@ -676,39 +681,58 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    */
   const _transferKUJI = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
     try {
+
+      const TICKERS: Record<string, string> = { //this is for kuji asset
+        "USK": "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk",
+        "KUJI": "ukuji"
+      }
+
+
+      const { from, recipient, memo, denom } = {
+        from: _from,
+        recipient: _quoteSwap.inbound_address,
+        memo: _quoteSwap.memo,
+        denom: TICKERS[String(fromToken?.ticker)]
+      };
+
+      console.log("------------------ xDefi kuji swap ------------------");
+      console.log({ from, recipient, memo, denom });
+
       //@ts-ignore
-      if (!window.xfi?.keplr) throw "Can't find keplr wallet provider";
-      const chainId = "kaiyo-1";
+      await keplr.enable("kaiyo-1");
       //@ts-ignore
-      const keplr = window.xfi.keplr;
-      await keplr.enable(chainId);
-      const offlineSigner = keplr.getOfflineSigner(chainId);
-      const accounts = await offlineSigner.getAccounts();
-      const account = accounts[0].address;
-      const recepient = _quoteSwap.inbound_address;
-      const cosmJS = new SigningCosmosClient(
-        "https://lcd-cosmoshub.keplr.app/rest",
-        accounts[0].address,
-        offlineSigner
+      const offlineSigner = window.keplr.getOfflineSigner("kaiyo-1");
+      //cosmos tx client          
+      const txClient = await SigningStargateClient.connectWithSigner("https://kujira.rpc.kjnodes.com/", offlineSigner);
+
+      const fee = {
+        amount: [
+          {
+            denom: "ukuji", // Use the appropriate fee denom for your chain
+            amount: "120000",
+          },
+        ],
+        gas: "100000", // Set arbitrarily high gas limit; this is not actually deducted from user account.
+      };
+
+      const response = await txClient.sendTokens(
+        from, 
+        recipient, 
+        [{
+          denom,
+          amount: String(Math.floor(_amount*10**6))
+        }],
+        fee,
+        memo
       );
 
-      // console.log("----------------- kuji swap --------------");
-      const amount = [{ denom: "ukuji", amount: String(_amount * 10 ** 6) }];
-      const memo = _quoteSwap.memo;
-
-      // const result = await cosmJS.sendTokens(_quoteSwap.inbound_address, amount, memo);
-      // console.log("Transaction result:", result);
-      // resolve(result)
-
-      const sendResult = await cosmJS.sendTokens(
-        recepient,
-        amount,
-        memo
-      )
-      console.log("Transaction result:", sendResult);
+      //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
+      console.log("@xDefi KUJI transaction ----------------------------->", response);
+      _showTxModal (`https://atomscan.com/kujira/transactions/${response.transactionHash}`);
+      resolve(response);
     } catch (err) {
-      console.log(err);
-      reject();
+      console.error(`Error sending transaction: ${err}`);
+      reject (err)
     }
   })
   /**

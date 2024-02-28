@@ -9,8 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@archwayhq/arch3.js": "^0.6.0",
-    "@cosmjs/launchpad": "^0.27.1",
+    "@cosmjs/cosmwasm-stargate": "^0.32.2",
     "@iconify/react": "^4.1.1",
     "@types/downloadjs": "^1.4.6",
     "@web3-react/core": "^6.1.9",
@@ -32,6 +31,7 @@
     "@xchainjs/xchain-mayachain-amm": "^1.0.9",
     "@xchainjs/xchain-mayachain-query": "^0.1.7",
     "@xchainjs/xchain-thorchain": "^1.0.3",
+    "bech32-buffer": "^0.2.1",
     "downloadjs": "^1.4.7",
     "ethers": "^5.7.2",
     "eventemitter3": "^5.0.1",
