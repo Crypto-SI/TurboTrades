@@ -346,6 +346,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       });
       resolve(txid);
     } catch (error) {
+      console.log("error in transfer ETH using xchainjs")
       reject (error);
     }
   });
