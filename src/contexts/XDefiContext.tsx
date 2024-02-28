@@ -505,6 +505,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
     console.log("---------------- Do cacao transfer -----------------------");
     const _asset = fromToken?.asset === "MAYA.CACAO" ? "CACAO" : fromToken?.asset;
+    const _decimals = (_asset === "CACAO") ? 10 : 8; // CACAO: 10, SYNTH: 8
+    console.log("decimals -----------------------", _decimals);
     const { asset, from, recipient, amount, memo, gasLimit } = {
       asset: {
         chain: "MAYA",
@@ -514,8 +516,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       from: _from,
       recipient: _quoteSwap.inbound_address,
       amount: {
-        amount: Math.floor(_amount * 10**10),
-        decimals: 10
+        amount: Math.floor(_amount * 10**_decimals),
+        decimals: _decimals
       },
       memo: _quoteSwap.memo,
       gasLimit: '10000000', // optional
@@ -643,7 +645,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           "method": "transfer",
           "params": [
             {
-              feeRate: 8, //5 should be...
+              feeRate: 70, //5 should be...
               from,
               recipient,
               amount,
