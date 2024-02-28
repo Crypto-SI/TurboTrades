@@ -1,10 +1,8 @@
 "use client"
-
 import React from "react";
 import { useAtom } from "jotai";
 import { ethers } from 'ethers';
 import axios from 'axios';
-import { ETHERSCAN_API_KEY } from "@/config";
 import { injected } from "@/utils/connectors";
 import { useWeb3React } from "@web3-react/core";
 import { useRouter } from 'next/navigation';
@@ -14,10 +12,8 @@ import {
   isConnectingAtom,
   chainListAtom,
   xBalancesAtom,
-  xDefiAddressesAtom,
   isWalletDetectedAtom,
   fromTokenAtom,
-  toTokenAtom,
   QuoteSwapResponseAtom,
   showTrxModalAtom,
   trxUrlAtom
@@ -26,7 +22,7 @@ import {
 import { ChainType, IBalance, IWallet } from "@/types/minis";
 import { IQuoteSwapResponse } from "@/types/maya";
 //data
-import { NATIVE_TOKENS, ERC20_DECIMALS } from "@/utils/data";
+import { ERC20_DECIMALS } from "@/utils/data";
 //context type
 interface IMetamaskContext {
   connectToMetamask: () => Promise<any>,
@@ -52,16 +48,14 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const { showNotification } = useNotification ();
   const { account, library, chainId, activate, deactivate } = useWeb3React();
   //atoms
-  const [xBalances, setXBalances] = useAtom(xBalancesAtom);
-  const [chainList, setChainList] = useAtom(chainListAtom);
-  const [, setIsConnecting] = useAtom(isConnectingAtom);
-  const [, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
-  const [, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
+  const [chainList,] = useAtom(chainListAtom);
   const [quoteSwap,] = useAtom(QuoteSwapResponseAtom);
-  const [toToken,] = useAtom(toTokenAtom);
   const [fromToken,] = useAtom(fromTokenAtom);
-  const [showTrxModal, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
-  const [trxUrl, setTrxUrl] = useAtom(trxUrlAtom);
+  const [, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
+  const [, setIsConnecting] = useAtom(isConnectingAtom);
+  const [, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
+  const [, setTrxUrl] = useAtom(trxUrlAtom);
+  const [xBalances, setXBalances] = useAtom(xBalancesAtom);
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   /**

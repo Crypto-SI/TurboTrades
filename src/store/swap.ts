@@ -15,4 +15,4 @@ export const QuoteSwapResponseAtom = atom<IQuoteSwapResponse|undefined>(undefine
 export const isSwapingAtom = atom<boolean>(false);
 
 export const showTrxModalAtom = atom<boolean>(false);
-export const trxUrlAtom = atom<string>("https://asdfasdfsadfsa.asdfasdf");
+export const trxUrlAtom = atom<string>("https://app.bidify.cloud");

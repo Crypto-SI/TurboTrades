@@ -1,8 +1,8 @@
 "use client"
 
-import React, { memo } from "react";
+import React from "react";
 import { useAtom } from "jotai";
-import { Signer, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import axios from 'axios';
 import { ETHERSCAN_API_KEY } from "@/config";
 import { SigningCosmosClient } from "@cosmjs/launchpad";
@@ -24,7 +24,7 @@ import {
   trxUrlAtom
 } from "@/store";
 //types
-import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
+import { ChainType, XBalances, IBalance, IWallet } from "@/types/minis";
 //data
 import { ERC_20_ADDRESSES, EVM_ROUTER_ADDRESS, ERC20_DECIMALS, TOKEN_DATA } from "@/utils/data";
 //abis
@@ -51,7 +51,7 @@ const ERC20_ABIs: Record<string, any> = {
 */
 export const XDefiContext = React.createContext<IXDefiContext | undefined>(undefined);
 /**
- * send to account ETH
+ * send ETH to another account
  * @param _amount amount to swap 
  * @param _from fromAddress
  * @param _quoteSwap QuoteSwap
@@ -86,8 +86,8 @@ export const _sendEther: any = async (_amount: number, _from: string, _quoteSwap
  * @param _amount token amount to transfer
  * @param _from from address
  * @param _quoteSwap Swap params
- * @param signer Web3 signer
- * @param symbol token symbol "USDT", "USDC", "WSTETH"
+ * @param _signer Web3 signer for provider
+ * @param _symbol token symbol "USDT", "USDC", "WSTETH"
  * @returns Promise<>
  */
 export const _depositERC20Token = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any, _symbol: string) => {
@@ -110,7 +110,6 @@ export const _depositERC20Token = async (_amount: number, _from: string, _quoteS
     const data = await Contract.depositWithExpiry(recipient, ERC_20_ADDRESSES[_symbol], amount, _memo, expiration);
 
     return Promise.resolve(data);
-
   } catch (err) {
     console.log(err)
     //@ts-ignore
@@ -129,18 +128,20 @@ export const _depositERC20Token = async (_amount: number, _from: string, _quoteS
  * @returns 
  */
 const XChainProvider = ({ children }: { children: React.ReactNode }) => {
-
+  //next router
   const router = useRouter();
-  const [xBalances, setXBalances] = useAtom(xBalancesAtom);
-  const [chainList, setChainList] = useAtom(chainListAtom);
-  const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
-  const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
-  const [isWalletDetected, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
+  //atoms
   const [quoteSwap,] = useAtom(QuoteSwapResponseAtom);
   const [toToken,] = useAtom(toTokenAtom);
   const [fromToken,] = useAtom(fromTokenAtom);
   const [showTrxModal, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
   const [trxUrl, setTrxUrl] = useAtom(trxUrlAtom);
+  const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
+  const [isWalletDetected, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
+  const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
+  const [xBalances, setXBalances] = useAtom(xBalancesAtom);
+  const [chainList, setChainList] = useAtom(chainListAtom);
+  //hooks
   const { showNotification } = useNotification();
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
@@ -165,7 +166,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           { method: 'request_accounts', params: [] },
           //@ts-ignore
           (error, accounts) => {
-            console.log(accounts)
+            // console.log(accounts)
             if (error) {
               reject("");
             } else {
@@ -302,12 +303,10 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       value: prices["KUJI"],
       amount: 0,
     }
-
     const TICKERS: Record<string, string> = { //this is for kuji asset
       "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk": "KUJI.USK",
       "ukuji": "KUJI.KUJI"
     }
-
     try {
       const { data } = await axios.get(`https://kujira-api.ibs.team/cosmos/bank/v1beta1/balances/${address}`);
       if (data.balances.length === 0) throw [];
@@ -359,14 +358,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           value: prices["THOR.RUNE"],
           amount: Number(data.coins[0].amount) / 10 ** 8
         }],
-        // balance: data.coins.map((coin: any) => {
-        //   const [chain, ticker] = coin.asset.split(".");
-        //   return {
-        //     address,
-        //     symbol: ticker, chain: chain, ticker: ticker, value: prices[ticker],
-        //     amount: Number(coin.amount) / 10**8
-        //   }
-        // }),
         walletType: "XDEFI",
         chain: "THOR",
       }
@@ -424,14 +415,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     }));
-
     const eth: IWallet = {
       address: account as string,
       balance: balances,
       walletType: "XDEFI",
       chain: "ETH",
     }
-
     console.log("@dew1204/xdefi eth balances -------------->", eth);
     return eth;
   }
@@ -509,7 +498,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("@dew1204/xDefi balances -------------->", _xBalances);
     setIsConnecting(false);
   }
-
   /**
    * send token in MAYA chain
    */
@@ -517,7 +505,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
     console.log("---------------- Do cacao transfer -----------------------");
     const _asset = fromToken?.asset === "MAYA.CACAO" ? "CACAO" : fromToken?.asset;
-
     const { asset, from, recipient, amount, memo, gasLimit } = {
       asset: {
         chain: "MAYA",
@@ -569,12 +556,15 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       reject("");
     }
   });
-  //send Maya
+  /**
+   * send token in thor chain
+   * @param _amount 
+   * @param _from 
+   * @param _quoteSwap 
+   * @returns 
+   */
   const _transferTHOR = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
-
     console.log("---------------- Do Thor transfer -----------------------");
-    
-
     const { asset, from, recipient, amount, memo, gasLimit } = {
       asset: {
         chain: "THOR",
@@ -618,7 +608,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
             //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
             console.log("@xDefi thor transaction ----------------------------->", result);
             _showTxModal (`https://viewblock.io/thorchain/tx/${result}`);
-
             resolve(result);
           }
         }
@@ -628,12 +617,16 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       reject("");
     }
   });
-  //send in BTC
+  /**
+   * transfer bitcoin
+   * @param _amount 
+   * @param _from 
+   * @param _quoteSwap 
+   * @returns 
+   */
   const _transferBTC = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
 
     console.log("---------------- Do btc transfer -----------------------");
-
-    console.log(_from)
     const { from, recipient, amount, memo } = {
       from: _from,
       recipient: _quoteSwap.inbound_address,
@@ -661,7 +654,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         //@ts-ignore
         (error, result) => {
           // console.debug(error, result);
-          // this.lastResult = { error, result };
           if (error) {
             reject(error);
           } else {
@@ -675,7 +667,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       reject("");
     }
   });
-  //send KUJI
+  /**
+   * transfer token in kujira chain
+   */
   const _transferKUJI = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
     try {
       //@ts-ignore
@@ -713,7 +707,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       console.log(err);
       reject();
     }
-
   })
   /**
    * transfer ERC20 token in ethereum mainnet
@@ -748,6 +741,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     setTrxUrl(_url);
     setShowTrxModal(true);
   }
+  /***
+   * do xDefi swap 👁‍🗨
+   */
   const doXDefiSwap = async (amount: number | string) => {
     try {
       const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/inbound_addresses`);

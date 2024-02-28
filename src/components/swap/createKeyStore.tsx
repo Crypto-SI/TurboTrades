@@ -38,7 +38,9 @@ const CreateKeyStore = () => {
       }, 1000);
     }
   }
-
+  /**
+   * create keystore wallet with password
+   */
   const handleCreate = async () => {
     try {
       if (!password) throw "Input password.";

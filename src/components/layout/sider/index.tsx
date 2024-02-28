@@ -12,6 +12,7 @@ import {
   stageAtom, currentModalTypeAtom, curBalanceAtom
 } from '@/store';
 import { TOKEN_DATA } from "@/utils/data";
+//social links
 const _socialLinks: { img: string, url: string }[] = [
   { img: "/images/twitter.svg", url: "" },
   { img: "/images/facebook.svg", url: "" },

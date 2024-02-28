@@ -103,24 +103,19 @@ export const _getPrices = async () => {
 
 const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   //atoms
+  const [fromToken,] = useAtom(fromTokenAtom);
+  const [toToken,] = useAtom(toTokenAtom);
+  const [, setIsConnecting] = useAtom(isConnectingAtom);
+  const [, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
   const [xClients, setXClients] = useAtom(xClientsAtom);
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
   const [chainList, setChainList] = useAtom(chainListAtom);
-  const [, setIsConnecting] = useAtom(isConnectingAtom);
-  const [, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
-  const [fromToken] = useAtom(fromTokenAtom);
-  const [toToken] = useAtom(toTokenAtom);
-  const [quoteSwapResponse] = useAtom(QuoteSwapResponseAtom);
-  const [isSwaping, setIsSwaping] = useAtom(isSwapingAtom);
   const [showTrxModal, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
   const [trxUrl, setTrxUrl] = useAtom(trxUrlAtom);
-
-
   //states
   const [wallet, setWallet] = React.useState<Wallet|undefined>(undefined);
   //hooks
   const {showNotification} = useNotification ();
-
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   /**
@@ -151,11 +146,10 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       THOR: new THORClient(settings),
       MAYA: new MayaClient(settings),
     });
-
     setWallet(_wallet);
-    // await _getBalance(_wallet, 'ETH', [assetFromStringEx('ETH.USDT-0xdAC17F958D2ee523a2206206994597C13D831ec7'), assetFromStringEx('ETH.USDC-0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48')])
-    
-
+    setIsWalletDetected(true);
+    getBalances (_wallet);
+    //save xchainjs clients for if...
     const _clients: XClients = {};
     clients.forEach((_client: XChainClient) => {
       //@ts-ignore
@@ -164,10 +158,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         _clients[_client.chain] = _client;
       }
     });
-    setIsWalletDetected(true);
     setXClients(_clients);
-    // getBalances(_clients)
-    getBalances (_wallet);
   }
 
   const _getBalance = async (wallet: Wallet, chain: Chain,  prices: Record<string, number>, assets?: Asset[]) => {
@@ -284,7 +275,10 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       setIsConnecting(false);
     }
   }
-  //print quote swap
+  /**
+   * print quote swap
+   * @param quoteSwap 
+   */
   const printQuoteSwap = (quoteSwap: QuoteSwap) => {
     console.log({
       toAddress: quoteSwap.toAddress,

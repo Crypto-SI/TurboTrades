@@ -24,14 +24,19 @@ const ImportPhrase = () => {
     // setStage("swap");
     setCurrentModalType("");
   }
-
+  /**
+   * when phrase is changed
+   * @param event 
+   */
   const handlePhraseChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const _phrase = event.target.value;
     const _words: string[] = _phrase.trim().split(" ").filter((item) => /\S/.test(item)).map(item => item.trim());
     setWords(_words);
     setPhrase(_phrase);
   }
-
+  /**
+   * backup the keystore file
+   */
   const handleBackup = async () => {
     try {
       if (!phrase) throw "Input phrase to backup.";
