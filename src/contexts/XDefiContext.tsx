@@ -503,9 +503,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("@dew1204/xDefi balances -------------->", _xBalances);
     setIsConnecting(false);
   }
-  /**
-   * send token in MAYA chain
-   */
+/**
+ * send token in maya chain * CACAO, and synth tokens including sETH, sBTC, ... *
+ * @param _amount 
+ * @param _from 
+ * @param _quoteSwap 
+ * @returns 
+ */
   const _transferMaya = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
 
     console.log("---------------- Do cacao transfer -----------------------");
@@ -685,20 +689,16 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    */
   const _transferKUJI = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
     try {
-
       const TICKERS: Record<string, string> = { //this is for kuji asset
         "USK": "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk",
         "KUJI": "ukuji"
       }
-
-
       const { from, recipient, memo, denom } = {
         from: _from,
         recipient: _quoteSwap.inbound_address,
         memo: _quoteSwap.memo,
         denom: TICKERS[String(fromToken?.ticker)]
       };
-
       console.log("------------------ xDefi kuji swap ------------------");
       console.log({ from, recipient, memo, denom });
 
@@ -718,7 +718,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         ],
         gas: "100000", // Set arbitrarily high gas limit; this is not actually deducted from user account.
       };
-
       const response = await txClient.sendTokens(
         from, 
         recipient, 
@@ -729,7 +728,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         fee,
         memo
       );
-
       //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
       console.log("@xDefi KUJI transaction ----------------------------->", response);
       _showTxModal (`https://atomscan.com/kujira/transactions/${response.transactionHash}`);
