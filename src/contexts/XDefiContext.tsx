@@ -638,12 +638,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     };
     try {
       //@ts-ignore
-      window.xfi.bitcoin.request(
+      await window.xfi.bitcoin.request(
         {
-          method: "transfer",
-          params: [
+          "method": "transfer",
+          "params": [
             {
-              feeRate: 70,
+              feeRate: 8, //5 should be...
               from,
               recipient,
               amount,
@@ -657,7 +657,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           if (error) {
             reject(error);
           } else {
-            console.log(result);
+            //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
+            console.log("@xDefi btc transaction ----------------------------->", result);
+            _showTxModal (`https://mempool.space/tx/${result}`);
             resolve(result);
           }
         }
@@ -701,7 +703,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         amount,
         memo
       )
-
       console.log("Transaction result:", sendResult);
     } catch (err) {
       console.log(err);
@@ -778,7 +779,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       console.log(err)
       showNotification(String(err), "warning");
     }
-
   }
 
   return (
