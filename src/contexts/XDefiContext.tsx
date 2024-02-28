@@ -26,7 +26,7 @@ import {
 //types
 import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
 //data
-import { ERC_20_ADDRESSES, EVM_ROUTER_ADDRESS, ERC20_DECIMALS } from "@/utils/data";
+import { ERC_20_ADDRESSES, EVM_ROUTER_ADDRESS, ERC20_DECIMALS, TOKEN_DATA } from "@/utils/data";
 //abis
 import USDT_ABI from '@/utils/ABIs/usdt.json';
 import EVM_ROUTER_ABI from '@/utils/ABIs/evmRouter.json';
@@ -39,9 +39,7 @@ interface IXDefiContext {
 }
 //prices methods
 import { _getPrices } from "./XChainContext";
-import { QuoteSwapParams } from "@xchainjs/xchain-mayachain-query";
 import { IQuoteSwapResponse } from "@/types/maya";
-import { Finlandica } from "next/font/google";
 
 const ERC20_ABIs: Record<string, any> = {
   "USDT": USDT_ABI,
@@ -226,7 +224,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         address,
         balance: [{
           address: "",
-          symbol: "BTC", chain: "BTC", ticker: "BTC", value: prices["BTC"],
+          asset: "BTC.BTC",
+          value: prices["BTC.BTC"],
           amount: data / 10**8
         }],
         walletType: "XDEFI",
@@ -239,7 +238,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         balance: [{
           address,
           //@ts-ignore
-          symbol: "BTC", chain: "BTC", ticker: "BTC", value: prices["BTC"],
+          symbol: "BTC", chain: "BTC", ticker: "BTC", value: prices["BTC.BTC"],
           amount: 0,
         }],
         walletType: "XDEFI",
@@ -257,19 +256,25 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     const empty = {
       address,
       //@ts-ignore
-      symbol: "CACAO", chain: "MAYA", ticker: "CACAO", value: prices["CACAO"],
+      asset: "MAYA.CACAO", 
+      value: prices["MAYA.CACAO"],
       amount: 0,
     }
     try {
       const { data } = await axios.get(`https://midgard.mayachain.info/v2/balance/${address}`);
+      console.log(data)
       if (data.coins.length === 0) throw [];
       const wallet: any = {
         address,
-        balance: data.coins.map((coin: any) => ({
-          address,
-          symbol: coin.asset, chain: "MAYA", ticker: coin.asset, value: prices[coin.asset],
-          amount: Number(coin.amount) / 10 ** 10
-        })),
+        balance: data.coins.map((coin: any) => {
+          const _asset = (coin.asset === "CACAO") ? "MAYA.CACAO" : coin.asset
+          return {
+            address,
+            value: prices[_asset.replace("/", ".")], //synth -> original [ 'THOR/RUME' -> 'THOR.RUNE' ]
+            amount: Number(coin.amount) / 10**TOKEN_DATA[_asset].decimals,
+            asset: _asset
+          }
+        }),
         walletType: "XDEFI",
         chain: "MAYA",
       }
@@ -293,24 +298,25 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     const empty = {
       address,
       //@ts-ignore
-      symbol: "KUJI", chain: "KUJI", ticker: "KUJI", value: prices["KUJI"],
+      asset: "KUJI.KUJI", 
+      value: prices["KUJI"],
       amount: 0,
     }
 
     const TICKERS: Record<string, string> = { //this is for kuji asset
-      "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk": "USK",
-      "ukuji": "KUJI"
+      "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk": "KUJI.USK",
+      "ukuji": "KUJI.KUJI"
     }
 
     try {
       const { data } = await axios.get(`https://kujira-api.ibs.team/cosmos/bank/v1beta1/balances/${address}`);
-      console.log(data)
       if (data.balances.length === 0) throw [];
       const wallet: any = {
         address,
         balance: data.balances.map((coin: any) => ({
           address,
-          symbol: coin.asset, chain: "KUJI", ticker: TICKERS[coin.denom], value: prices[TICKERS[coin.denom]],
+          asset: TICKERS[coin.denom], 
+          value: prices[TICKERS[coin.denom]],
           amount: Number(coin.amount) / 10 ** 6
         })),
         walletType: "XDEFI",
@@ -336,19 +342,21 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     const empty = {
       address,
       //@ts-ignore
-      symbol: "RUNE", chain: "THOR", ticker: "RUNE", value: prices["RUNE"],
+      asset: "THOR.RUNE", 
+      value: prices["THOR.RUNE"],
       amount: 0,
     }
     try {
       const { data } = await axios.get(`https://midgard.ninerealms.com/v2/balance/${address}`);
 
       if (data.coins.length === 0) throw [];
-      const [chain, ticker] = data.coins[0].asset.split(".");
+      // const [chain, ticker] = data.coins[0].asset.split(".");
       const wallet: any = {
         address,
         balance: [{
           address,
-          symbol: ticker, chain: chain, ticker: ticker, value: prices[ticker],
+          asset: data.coins[0].asset,
+          value: prices["THOR.RUNE"],
           amount: Number(data.coins[0].amount) / 10 ** 8
         }],
         // balance: data.coins.map((coin: any) => {
@@ -385,30 +393,33 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     const provider = window.xfi && window.xfi.ethereum && new ethers.providers.Web3Provider(window.xfi.ethereum);
     //@ts-ignore
     const balances: IBalance[] = await Promise.all(Object.keys(ERC_20_ADDRESSES).map(async (asset: string) => {
+      const _asset = "ETH." + asset;
       try {
         if (asset === "ETH") {
           const _eth = await provider.getBalance(account);
           console.log(ethers.utils.formatEther(_eth))
           return {
             address: account,
-            symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+            asset: _asset, 
+            value: prices[_asset],
             amount: String(ethers.utils.formatEther(_eth))
           }
         } else {
-          const _decimals = ERC20_DECIMALS[asset]; //decimals USDT, USDC: 6, WSTETH: 18
           const contract = new ethers.Contract(ERC_20_ADDRESSES[asset], ERC20_ABI, provider.getSigner());
           const balance = await contract.balanceOf(account)
           return {
             address: account,
-            symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
-            amount: String(Number(balance)/10**_decimals)
+            asset: _asset, 
+            value: prices[_asset],
+            amount: String(Number(balance)/10**TOKEN_DATA[_asset].decimals)
           }
         }
       } catch (err) {
         console.log(err)
         return {
           account,
-          symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+          asset: _asset, 
+          value: prices[_asset],
           amount: "0"
         }
       }

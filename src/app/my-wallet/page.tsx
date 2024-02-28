@@ -123,14 +123,14 @@ const Home = () => {
           <div key={"balance_" + index} className='justify-between border-b dark:border-[#2B2E41] border-[#DCE4EF] w-full pl-7 py-3 pr-4 flex items-center dark:text-[#A6A9B9] text-[#A6A9B9]'>
             <div className="flex items-center md:gap-4 gap-2">
               <Image
-                src={TOKEN_DATA[`${item.chain}.${item.ticker}`] ? TOKEN_DATA[`${item.chain}.${item.ticker}`].image : ""}
+                src={TOKEN_DATA[String(item?.asset)] ? TOKEN_DATA[String(item?.asset)].image : ""}
                 width={38}
                 height={38}
                 alt={"refresh"}
                 priority={true}
-                className='rounded-full'
+                className={`rounded-full ${item?.asset?.includes("/") && 'border-[3px] border-white'}`}
               />
-              <span>{item.ticker}</span>
+              <span>{TOKEN_DATA[String(item?.asset)] && TOKEN_DATA[String(item?.asset)].ticker}</span>
               <span>
                 {  reduceAmount (item.amount)  }
                 &nbsp;&nbsp;( { reduceAmount(Number(item.amount) * Number(item.value)) }$ )

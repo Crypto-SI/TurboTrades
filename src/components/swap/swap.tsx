@@ -69,12 +69,13 @@ const Swap = () => {
 
   //set from amount with percent of balance
   const _setPercentToSwap = (percent: number) => {
+    console.log(fromToken, toToken)
     try {
       if (!toToken || !fromToken) throw 0;
       if (Object.keys(xBalances).length === 0) throw 0;
       for (const key in xBalances) {
         xBalances[key].balance.forEach((balance: IBalance) => {
-          if (fromToken.ticker === balance.ticker) throw balance.amount;
+          if (fromToken.ticker === TOKEN_DATA[String(balance.asset)].ticker) throw balance.amount; //alternative
         })
       }
       throw 0;
@@ -92,7 +93,7 @@ const Swap = () => {
       if (Object.keys(xBalances).length === 0) throw "0";
       for (const key in xBalances) {
         xBalances[key].balance.forEach((balance: IBalance) => {
-          if (fromToken.ticker === balance.ticker) throw balance.amount;
+          if (fromToken.ticker === TOKEN_DATA[String(balance.asset)].ticker) throw balance.amount;
         })
       }
       throw "0";
@@ -114,7 +115,7 @@ const Swap = () => {
       if (Object.keys(xBalances).length === 0) throw "0";
       for (const key in xBalances) {
         xBalances[key].balance.forEach((balance: IBalance) => {
-          if (toToken.ticker === balance.ticker) throw balance.amount;
+          if (toToken.ticker === TOKEN_DATA[String(balance.asset)].ticker) throw balance.amount;
         });
       }
       throw "0";

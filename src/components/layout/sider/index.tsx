@@ -11,6 +11,7 @@ import { reduceAmount } from "@/utils/methods";
 import {
   stageAtom, currentModalTypeAtom, curBalanceAtom
 } from '@/store';
+import { TOKEN_DATA } from "@/utils/data";
 const _socialLinks: { img: string, url: string }[] = [
   { img: "/images/twitter.svg", url: "" },
   { img: "/images/facebook.svg", url: "" },
@@ -55,7 +56,7 @@ const Sider = () => {
         <div className="flex justify-between text-black dark:text-white">
           <div className="text-lg my-1">{ curBalance ? String(curBalance?.balance[0].amount).substr(0, 10) : '0' }</div>
           <div>
-            <div className="bg-[#F59E0B] px-4 py-1 flex rounded-full text-[12px]">{ curBalance ? curBalance?.balance[0].ticker : "BTC" }</div>
+            <div className="bg-[#F59E0B] px-4 py-1 flex rounded-full text-[12px]">{ TOKEN_DATA[String(curBalance?.balance[0]?.asset)] ? TOKEN_DATA[String(curBalance?.balance[0]?.asset)].ticker : "BTC" }</div>
           </div>
         </div>
         <p className="text-[14px] text-[#8D98AF]">$ { reduceAmount(Number(curBalance?.balance[0].amount) * Number(curBalance?.balance[0].value)) } USD</p>

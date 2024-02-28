@@ -26,7 +26,7 @@ import {
 import { ChainType, IBalance, IWallet } from "@/types/minis";
 import { IQuoteSwapResponse } from "@/types/maya";
 //data
-import { NATIVE_TOKENS } from "@/utils/data";
+import { NATIVE_TOKENS, ERC20_DECIMALS } from "@/utils/data";
 //context type
 interface IMetamaskContext {
   connectToMetamask: () => Promise<any>,
@@ -88,24 +88,30 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
             const _eth = await library.getSigner().provider.getBalance(account);
             return {
               address: account,
-              symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+              chain: "ETH", 
+              value: prices["ETH.ETH"], 
+              asset: "ETH.ETH",
               amount: String(ethers.utils.formatEther(_eth))
             }
           } else {
-            const _decimals = ( asset === "WSTETH" ) ? 10**18 : 10**6; //decimals USDT, USDC: 6, WSTETH: 18
             const contract = new ethers.Contract(ERC_20_ADDRESSES[asset], ERC20, library.getSigner());
             const balance = await contract.balanceOf(account);
+            const _asset = "ETH" + "." + asset;
             return {
               address: account,
-              symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
-              amount: String(Number(balance)/_decimals)
+              symbol: asset, 
+              chain: "ETH", 
+              asset: _asset,
+              value: prices[_asset],
+              amount: String(Number(balance)/10**ERC20_DECIMALS[asset]) //decimals USDT, USDC: 6, WSTETH: 18
             }
           }
         } catch (err) {
           console.log(err)
           return {
             account,
-            symbol: asset, chain: "ETH", asset, value: prices[asset], ticker: asset,
+            asset: "ETH.ETH", 
+            value: prices["ETH.ETH"],
             amount: "0"
           }
         }

@@ -14,7 +14,7 @@ import { Client as KujiraClient, defaultKujiParams } from '@xchainjs/xchain-kuji
 import { Client as THORClient } from "@xchainjs/xchain-thorchain";
 import { MayachainAMM } from '@xchainjs/xchain-mayachain-amm'
 import { MayaChain, MayachainQuery, QuoteSwap, QuoteSwapParams } from '@xchainjs/xchain-mayachain-query';
-import { CryptoAmount, assetAmount, assetFromString, assetToBase, assetToString, Address, Asset, Chain } from '@xchainjs/xchain-util';
+import { CryptoAmount, assetAmount, assetFromString, assetToBase, assetToString, Address, Asset, Chain, assetFromStringEx } from '@xchainjs/xchain-util';
 import { Wallet } from '@xchainjs/xchain-wallet'
 import axios from "axios";
 // import { Client as BNBClient } from "@xchainjs/xchain-binance";
@@ -67,34 +67,34 @@ export const _getPrices = async () => {
 
   const cacaoInfo = data.find((item: any) => item.asset === "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48");
   const value = cacaoInfo.balance_asset / cacaoInfo.balance_cacao;
-  prices.CACAO = value * 100;
-  prices.USDC = 1;
+  prices["MAYA.CACAO"] = value * 100;
+  prices['ETH.USDC'] = 1;
 
   data.forEach((item: any) => {
     switch (item.asset) {
       case "ETH.ETH":
-        prices.ETH = item.balance_cacao / item.balance_asset * value;
+        prices['ETH.ETH'] = item.balance_cacao / item.balance_asset * value;
         break;
       case "BTC.BTC":
-        prices.BTC = item.balance_cacao / item.balance_asset * value;
-        break;
-      case "KUJI.KUJI":
-        prices.KUJI = item.balance_cacao / item.balance_asset * value;
+        prices["BTC.BTC"] = item.balance_cacao / item.balance_asset * value;
         break;
       case "THOR.RUNE":
-        prices.RUNE = item.balance_cacao / item.balance_asset * value;
+        prices['THOR.RUNE'] = item.balance_cacao / item.balance_asset * value;
         break;
       case "DASH.DASH":
-        prices.DASH = item.balance_cacao / item.balance_asset * value;
+        prices["DASH.DASH"] = item.balance_cacao / item.balance_asset * value;
+        break;
+      case "KUJI.KUJI":
+        prices['KUJI.KUJI'] = item.balance_cacao / item.balance_asset * value;
         break;
       case "KUJI.USK":
-        prices.USK = item.balance_cacao / item.balance_asset * value;
+        prices["KUJI.USK"] = item.balance_cacao / item.balance_asset * value;
         break;
       case "ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7":
-        prices.USDT = item.balance_cacao / item.balance_asset * value;
+        prices['ETH.USDT'] = item.balance_cacao / item.balance_asset * value;
         break;
       case "ETH.WSTETH-0X7F39C581F595B53C5CB19BD0B3F8DA6C935E2CA0":
-        prices.WSTETH = item.balance_cacao / item.balance_asset * value;
+        prices['ETH.WSTETH'] = item.balance_cacao / item.balance_asset * value;
         break;
     }
   });
@@ -153,6 +153,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     setWallet(_wallet);
+    // await _getBalance(_wallet, 'ETH', [assetFromStringEx('ETH.USDT-0xdAC17F958D2ee523a2206206994597C13D831ec7'), assetFromStringEx('ETH.USDC-0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48')])
+    
 
     const _clients: XClients = {};
     clients.forEach((_client: XChainClient) => {
@@ -164,76 +166,122 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     });
     setIsWalletDetected(true);
     setXClients(_clients);
-    getBalances(_clients)
+    // getBalances(_clients)
+    getBalances (_wallet);
+  }
+
+  const _getBalance = async (wallet: Wallet, chain: Chain,  prices: Record<string, number>, assets?: Asset[]) => {
+    try {
+      const balances = await wallet.getBalance(chain, assets);
+      if (balances.length === 0 || balances === undefined) throw "no balance" //there is no balance
+      return balances.map((balance) => ({
+        asset: assetToString(balance.asset).split("-")[0],
+        amount: baseToAsset(balance.amount).amount().toString(),
+        value: prices[assetToString(balance.asset).split("-")[0]]//ETH.USDT-0xdAC17F958 -> ETH.USDT
+      }))
+    } catch (err) {
+      return [{
+        asset: NATIVE_TOKENS[chain],
+        amount: 0,
+        value: prices[NATIVE_TOKENS[chain]]
+      }]
+    }
   }
   /**
-   * 
+   * get wallet balances
+   * @param _wallet 
    */
-  const getBalances = async (_xClients: XClients = xClients) => {
+  const getBalances = async (_wallet: Wallet = wallet as Wallet) => {
     setXBalances({});
     const prices = await _getPrices();
     try {
       setIsConnecting(true);
       const _xBalances: XBalances = {};
       const balances = await Promise.all(chains.map(async (chain: string) => {
-        _xBalances[chain] = await _getWalletBalance(_xClients[chain as string], prices);
+        switch (chain) {
+          case "ETH": {
+            const data = await _getBalance(_wallet, 'ETH', prices, [assetFromStringEx('ETH.ETH'), assetFromStringEx('ETH.USDT-0xdAC17F958D2ee523a2206206994597C13D831ec7'), assetFromStringEx('ETH.USDC-0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'), assetFromStringEx('ETH.WSTETH-0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0')])
+            const address = await _wallet.getAddress(chain);
+            _xBalances[chain] = {
+              address,
+              chain: chain,
+              balance: data,
+              walletType: "Keystore"
+            }
+            break;
+          }
+          case "BTC": {
+            const data = await _getBalance(_wallet, 'BTC', prices)
+            const address = await _wallet.getAddress(chain);
+            _xBalances[chain] = {
+              address,
+              chain: chain,
+              balance: data,
+              walletType: "Keystore"
+            }
+            break;
+          }
+          case "KUJI": {
+            const data = await _getBalance(_wallet, 'KUJI', prices)
+            const address = await _wallet.getAddress(chain);
+            _xBalances[chain] = {
+              address,
+              chain: chain,
+              balance: data,
+              walletType: "Keystore"
+            }
+            break;
+          }
+          case "THOR": {
+            const data = await _getBalance(_wallet, 'THOR', prices, [assetFromStringEx('THOR.RUNE')])
+            const address = await _wallet.getAddress(chain);
+            _xBalances[chain] = {
+              address,
+              chain: chain,
+              balance: data,
+              walletType: "Keystore"
+            }
+            break;
+          }
+          case "MAYA": {
+            const assets = [
+              "MAYA.CACAO",
+              "KUJI/KUJI",
+              "KUJI/USK",
+              "ETH/USDT-0xdAC17F958D2ee523a2206206994597C13D831ec7",
+              "ETH/USDC-0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+              "ETH/WSTETH-0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
+            ]
+            const data = await _getBalance(_wallet, 'MAYA', prices, assets.map((_asset: string) => assetFromStringEx(_asset)));
+            const address = await _wallet.getAddress(chain);
+            _xBalances[chain] = {
+              address,
+              chain: chain,
+              balance: data,
+              walletType: "Keystore"
+            }
+            break;
+          }
+          case "DASH": {
+            const data = await _getBalance(_wallet, 'DASH', prices);
+            const address = await _wallet.getAddress(chain);
+            _xBalances[chain] = {
+              address,
+              chain: chain,
+              balance: data,
+              walletType: "Keystore"
+            }
+          }
+        }
+        // _xBalances[chain] = await _getWalletBalance(_xClients[chain as string], prices);
         setXBalances({ ..._xBalances, [chain]: _xBalances[chain] });
-        return chain;
+        return _xBalances[chain];
       }));
       console.log("balances ------------------>", balances);
     } catch (err) {
 
     } finally {
       setIsConnecting(false);
-    }
-  }
-  // XChainClient is the superclass to all client implementations.
-  const _getWalletBalance = async (client: XChainClient, prices: Record<string, number>) => {
-    try {
-      //@ts-ignore
-      let address = client.getAddress()
-      //@ts-ignore
-      const chain: string = client.chain;
-
-      if (client.validateAddress(address) === false) {
-        console.log(`Address: ${address} is invalid`);
-        //@ts-ignore
-        return null;
-      }
-
-      //@ts-ignore
-      const balances: Balance[] = await client.getBalance(address).catch(err => { console.log(err) });
-      console.log(chain + "------------------->", balances)
-
-      //@ts-ignore
-      const _balances: IBalance[] = (balances === undefined || balances.length === 0) ?
-        [{
-          address,
-          //@ts-ignore
-          symbol: NATIVE_TOKENS[chain], chain: chain, ticker: NATIVE_TOKENS[chain], value: prices[NATIVE_TOKENS[chain]],
-          amount: 0,
-        }] :
-        
-        balances.map((item: any) => ({
-          address,
-          symbol: item.asset.symbol,
-          chain: item.asset.chain,
-          ticker: item.asset.ticker,
-          value: prices[item.asset.ticker],
-          amount: baseToAsset(item.amount).amount(),
-        }));
-
-      const wallet: any = {
-        address,
-        balance: _balances,
-        walletType: "Keystore",
-        //@ts-ignore
-        chain: client.chain,
-      }
-      //@ts-ignore
-      return wallet;
-    } catch (err) {
-      console.log(err)
     }
   }
   //print quote swap

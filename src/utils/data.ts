@@ -1,12 +1,12 @@
 import { ChainType, WalletType } from "@/types/minis";
 
-export const NATIVE_TOKENS = {
-  THOR: "RUNE",
-  DASH: "DASH",
-  KUJI: "KUJI",
-  MAYA: "CACAO",
-  BTC: "BTC",
-  ETH: "ETH",
+export const NATIVE_TOKENS: Record<string, string> = {
+  THOR: "THOR.RUNE",
+  DASH: "DASH.DASH",
+  KUJI: "KUJI.KUJI",
+  MAYA: "MAYA.CACAO",
+  BTC: "BTC.BTC",
+  ETH: "ETH.ETH",
 }
 /**
  * initial wallet list
@@ -57,78 +57,175 @@ export const TOKEN_DATA: Record<string, any> = {
     ticker: "CACAO",
     chain: "MAYA",
     name: "Maya chain",
+    decimals: 10,
     image: "/images/tokens/cacao.png"
   },
   "BTC.BTC": {
     ticker: "BTC",
     chain: "BTC",
     name: "Bitcoin",
+    decimals: 8,
     image: "/images/tokens/btc.webp"
   },
   "ETH.ETH": {
     ticker: "ETH",
     chain: "ETH",
     name: "Ethereum",
+    decimals: 18,
     image: "/images/tokens/eth.png"
   },
   "KUJI.KUJI": {
     ticker: "KUJI",
     chain: "KUJI",
     name: "Kuji chain",
+    decimals: 6,
     image: "/images/tokens/kuji.png"
   },
   "DASH.DASH": {
     ticker: "DASH",
     chain: "DASH",
     name: "Dash chain",
+    decimals: 8,
     image: "/images/tokens/dash.png"
   },
   "THOR.RUNE": {
     ticker: "RUNE",
     chain: "THOR",
     name: "Thorchain",
+    decimals: 8,
     image: "/images/tokens/rune.png"
   },
   "ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7": {
     ticker: "USDT",
     chain: "ETH",
+    decimals: 6,
     name: "Ethereum",
+    image: "/images/tokens/usdt.png"
+  },
+  "ETH.USDT": {
+    ticker: "USDT",
+    chain: "ETH",
+    name: "Ethereum",
+    decimals: 6,
     image: "/images/tokens/usdt.png"
   },
   "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48": {
     ticker: "USDC",
     chain: "ETH",
     name: "Ethereum",
+    decimals: 6,
+    image: "/images/tokens/usdc.png"
+  },
+  "ETH.USDC": {
+    ticker: "USDC",
+    chain: "ETH",
+    name: "Ethereum",
+    decimals: 6,
     image: "/images/tokens/usdc.png"
   },
   "ETH.WSTETH-0X7F39C581F595B53C5CB19BD0B3F8DA6C935E2CA0": {
     ticker: "WSTETH",
     chain: "ETH",
     name: "Ethereum",
+    decimals: 18,
+    image: "/images/tokens/wsteth.png"
+  },
+  "ETH.WSTETH": {
+    ticker: "WSTETH",
+    chain: "ETH",
+    name: "Ethereum",
+    decimals: 18,
     image: "/images/tokens/wsteth.png"
   },
   "KUJI.USK": {
     ticker: "USK",
     chain: "KUJI",
     name: "KUJI chain",
+    decimals: 6,
     image: "/images/tokens/usk.png"
   },
-  "ETH.USDT": {
-    ticker: "USDT",
-    chain: "ETH",
+  "BTC/BTC": {
+    ticker: "sBTC",
+    chain: "MAYA",
+    name: "Bitcoin",
+    decimals: 8,
+    image: "/images/tokens/btc.webp"
+  },
+  "ETH/ETH": {
+    ticker: "sETH",
+    chain: "MAYA",
+    decimals: 18,
     name: "Ethereum",
+    image: "/images/tokens/eth.png"
+  },
+  "KUJI/KUJI": {
+    ticker: "sKUJI",
+    chain: "MAYA",
+    decimals: 8,
+    name: "Kuji chain",
+    image: "/images/tokens/kuji.png"
+  },
+  "DASH/DASH": {
+    ticker: "sDASH",
+    chain: "MAYA",
+    name: "Dash chain",
+    decimals: 8,
+    image: "/images/tokens/dash.png"
+  },
+  "THOR/RUNE": {
+    ticker: "sRUNE",
+    chain: "MAYA",
+    name: "Thorchain",
+    decimals: 8,
+    image: "/images/tokens/rune.png"
+  },
+  "ETH/USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7": {
+    ticker: "sUSDT",
+    chain: "MAYA",
+    name: "Ethereum",
+    decimals: 6,
     image: "/images/tokens/usdt.png"
   },
-  "ETH.USDC": {
-    ticker: "USDC",
-    chain: "ETH",
+  "ETH/USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48": {
+    ticker: "sUSDC",
+    chain: "MAYA",
+    decimals: 6,
     name: "Ethereum",
     image: "/images/tokens/usdc.png"
   },
-  "ETH.WSTETH": {
-    ticker: "WSTETH",
-    chain: "ETH",
+  "ETH/WSTETH-0X7F39C581F595B53C5CB19BD0B3F8DA6C935E2CA0": {
+    ticker: "sWSTETH",
+    chain: "MAYA",
+    decimals: 18,
     name: "Ethereum",
+    image: "/images/tokens/wsteth.png"
+  },
+  "KUJI/USK": {
+    ticker: "sUSK",
+    chain: "MAYA",
+    name: "KUJI chain",
+    decimals: 8,
+    image: "/images/tokens/usk.png"
+  },
+  "ETH/USDT": {
+    ticker: "sUSDT",
+    chain: "MAYA",
+    name: "Ethereum",
+    decimals: 18,
+    image: "/images/tokens/usdt.png"
+  },
+  "ETH/USDC": {
+    ticker: "sUSDC",
+    chain: "MAYA",
+    name: "Ethereum",
+    decimals: 6,
+    image: "/images/tokens/usdc.png"
+  },
+  "ETH/WSTETH": {
+    ticker: "sWSTETH",
+    chain: "MAYA",
+    name: "Ethereum",
+    decimals: 18,
     image: "/images/tokens/wsteth.png"
   },
 }

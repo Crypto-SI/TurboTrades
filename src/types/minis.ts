@@ -18,15 +18,16 @@ export type ChainType = {
 };
 
 export interface IBalance {
-  bigIntValue?: string;
   address?: string,
   chain?: string,
   decimal?:number,
-  amount: BigNumber,
-  decimalMultiplier?: string,
-  symbol?: string,
-  ticker?: string
+  amount: BigNumber | string | number,
+  asset?: string,
   value?: number,
+  // bigIntValue?: string;
+  // symbol?: string,
+  // ticker?: string,
+  // decimalMultiplier?: string,
 };
 
 export interface IWallet {
