@@ -677,7 +677,11 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
   /**
-   * transfer token in kujira chain
+   * transfer token with KUJI chain
+   * @param _amount 
+   * @param _from 
+   * @param _quoteSwap 
+   * @returns 
    */
   const _transferKUJI = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
     try {
