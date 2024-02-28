@@ -17,15 +17,24 @@ const TransactionModal = () => {
   const [trxUrl,] = useAtom(trxUrlAtom);
   const [fromToken,] = useAtom(fromTokenAtom);
   const [toToken,] = useAtom(toTokenAtom);
-
+  /**
+   * close the current modal
+   */
   const handleClose = () => {
     setShowTrxModal(false);
   }
-
+  /**
+   * reduce hash for beautify...
+   * @param hash 
+   * @returns 
+   */
   const _reduceHash = (hash: string) => {
     return hash.substr(0, 10) + "......" + hash.substring(hash.length-12, hash.length-1)
   }
-
+  /**
+   * open new window for observing transaction...
+   * @param url 
+   */
   const _gotoHash = (url: string) => {
     if (window) {
       window.open(url, "_blank");

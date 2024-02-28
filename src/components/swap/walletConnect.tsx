@@ -33,28 +33,19 @@ const CreateKeyStore = dynamic(() => import("@/components/swap/createKeyStore"))
 const ImportPhrase = dynamic(() => import("@/components/swap/importPhrase"));
 
 const WalletConnect = () => {
-
+  //next router
   const router = useRouter();
-  // const [isConnecting] = useAtom(isConnectingAtom);
-  // const [isConnected] = useAtom(isConnectedAtom);
-  // const [isFetchingBalances] = useAtom(isFetchingBalancesAtom);
-  
   //wallet loading
   const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
-  const [xClients] = useAtom(xClientsAtom);
-  
+  //wallet Modals and Modal types
   const [stage, setStage] = useAtom(stageAtom);
   const [currentModalType, setCurrentModalType] = useAtom(currentModalTypeAtom);
-
-  const { showNotification } = useNotification();
-
+  //atoms
   const [walletList, setWalletList] = useAtom(walletListAtom);
   const [chainList, setChainList] = useAtom(chainListAtom);
-
   const [wallet, setWallet] = useAtom(walletAtom);
-
-  //data from wallet context
-  // const { connectKeyStoreWallet } = useWallet ();
+  //hooks
+  const { showNotification } = useNotification();
   const { connectKeyStoreWallet } = useXChain ();
   const { connectToXDefi } = useXDefi();
   const { connectToMetamask } = useMetamask();
@@ -70,7 +61,9 @@ const WalletConnect = () => {
       setWalletList(walletList.map((_wallet: WalletType) => ({ ..._wallet, focused: false })));
     }
   }, [wallet]);
-
+  /**
+   * chainList is changed
+   */
   React.useEffect(() => {
 
     const countFocusedChains = chainList.reduce((_count: number, _chain: ChainType) => _chain.focused ? _count + 1 : _count, 0);
@@ -93,7 +86,11 @@ const WalletConnect = () => {
       }))
     }
   }, [chainList]);
-
+  /**
+   * chain items are clicked...
+   * @param chain 
+   * @returns 
+   */
   const handleChainClick = (chain: ChainType) => {
     if (false) { //check if loading currently
       return;
@@ -113,7 +110,11 @@ const WalletConnect = () => {
       setChainList([ ...tempChainList ]);
     }
   }
-
+  /**
+   * when wallet items is clicked
+   * @param _wallet 
+   * @returns 
+   */
   const handleWalletClick = (_wallet: WalletType) => {
     if (isConnecting) { //check if loading currently
       return;
@@ -140,13 +141,14 @@ const WalletConnect = () => {
       setWallet(_wallet);
     } 
   }
-
+  /**
+   * when clickding connect wallet button...
+   */
   const handleConnectWallet = async () => {
     try {
       if (isConnecting) { //check if loading wallet...
         throw "Loading wallet...Please wait for a sec.";
       }
-  
       if (wallet?.name === "Keystore") {
         setCurrentModalType("importKeyStore");
       } else if (wallet?.name === "XDEFI") {
@@ -154,8 +156,6 @@ const WalletConnect = () => {
         if (_chains.length === 0) {
           throw "Select chains for wallet";
         } else {
-          // walletConnect (WalletOption.XDEFI);
-          // connectKeyStoreWallet("fix hole garden staff input athlete bicycle account acquire patrol dilemma hamster", _chains);
           await connectToXDefi ();
           router.push("/my-wallet");
         }
@@ -174,7 +174,6 @@ const WalletConnect = () => {
       showNotification(err, "info");
     }
   }
-
   /**
    * render wallet list item
    * @returns 
@@ -196,7 +195,6 @@ const WalletConnect = () => {
       { _wallet.name === wallet?.name && <Icon className="text-[#000000af] dark:text-white absolute -left-2 -top-2" width={20} icon="pepicons-print:chain-circle-filled" /> }
     </div>
   )
-
   /**
    * render chain list item
    * @returns 

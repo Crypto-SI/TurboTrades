@@ -8,11 +8,9 @@ import { IPool } from '@/types/maya';
 import {
   poolsAtom,
 } from '@/store';
-
-import {
-  CHAIN_DATA
-} from "@/utils/data";
-
+/**
+ * Propstype...
+ */
 type PropsType = {
   visible: boolean,
   setVisible: React.Dispatch<React.SetStateAction<boolean>>,
@@ -22,7 +20,10 @@ type PropsType = {
 const TokenSelector = (props: PropsType) => {
 
   const [pools,] = useAtom(poolsAtom);
-  
+  /**
+   * when token is selected
+   * @param token 
+   */
   const handleSelect = (token: IPool) => {
     props.setToken(token);
     props.setVisible(false);

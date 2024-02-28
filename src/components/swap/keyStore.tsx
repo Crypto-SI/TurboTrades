@@ -1,42 +1,48 @@
 import React from 'react';
-
 import { Icon } from '@iconify/react';
 import { useAtom } from 'jotai';
 import useNotification from '@/hooks/useNotification';
+//methods
 import { readDataFromFile } from '@/utils/methods';
+//xchainJSs
 import { decryptFromKeystore } from "@xchainjs/xchain-crypto";
+//router
 import { useRouter } from 'next/navigation';
-
+//atoms
 import {
   currentModalTypeAtom,
   stageAtom,
   chainListAtom
 } from "@/store";
-
+//custom hooks
 import useXChain from '@/hooks/useXChain';
 
 const KeyStore = () => {
-
+  //next router
   const router = useRouter();
-  
-  const { showNotification } = useNotification ();
-
+  //modals
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
   const [, setStage] = useAtom(stageAtom);
   const [chains] = useAtom(chainListAtom);
-
+  //close current modal
   const handleClose = () => {
     // setStage("swap");
     setCurrentModalType("");
   }
+  //ref
   const keyFileRef = React.useRef(null);
-
+  //state
   const [password, setPassword] = React.useState<string>("");
   const [key, setKey] = React.useState<any>();
   const [keyStoreFile, setKeyStoreFile] = React.useState<File|undefined>(undefined);
-
+  //hooks
   const { connectKeyStoreWallet } = useXChain ();
-
+  const { showNotification } = useNotification ();
+  /**
+   * read keystore file
+   * @param e 
+   * @returns 
+   */
   const handleReadKeyFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
 
     if (e.target.files?.length === 0) {
@@ -73,7 +79,9 @@ const KeyStore = () => {
       keyFileRef.current.value = "";
     }
   }
-
+  /**
+   * decrypt the keystore file
+   */
   const handleUnlock = async () => {
     try {
       if (!key) {

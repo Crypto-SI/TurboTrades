@@ -67,9 +67,11 @@ const Swap = () => {
   //is swaping ..
   const [isSwaping, setIsSwaping] = React.useState<boolean>(false);
 
-  //set from amount with percent of balance
+  /**
+   * set from amount as percent of balance with quick 25%, 50%, 75%, 100%
+   * @param percent 
+   */
   const _setPercentToSwap = (percent: number) => {
-    console.log(fromToken, toToken)
     try {
       if (!toToken || !fromToken) throw 0;
       if (Object.keys(xBalances).length === 0) throw 0;
@@ -148,7 +150,6 @@ const Swap = () => {
     setIsEstimating (true);
     
     const _decimals = (token: IPool) => {
-      console.log(token )
       if (token?.chain === "MAYA" && !token?.synth) return 10**10;
       // if (chain === "KUJI") return 10**6;
       return 10**8;
@@ -232,7 +233,7 @@ const Swap = () => {
       if (!xBalances[toToken?.chain as string]) throw  `Please connect ${toToken?.chain} chain.`;
       if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain} chain.`;
 
-      console.log("@token paris ------------------->", { fromToken, toToken });
+      console.log("@token pairs ------------------->", { fromToken, toToken });
       //do swap with several wallets
       if (wallet?.name === "Keystore") {
         await doMayaSwap (fromAmount, 75);
