@@ -10,6 +10,7 @@ const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: Re
   return (
     <div className="grow w-full md:w-[calc(100vw-360px)] md:pl-3">
       <Header/>
+      { children }
     </div>
   );
 };
