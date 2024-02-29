@@ -6,7 +6,7 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ['assets.coingecko.com'],
+    // remotePatterns: ['assets.coingecko.com'],
   },
 };
 

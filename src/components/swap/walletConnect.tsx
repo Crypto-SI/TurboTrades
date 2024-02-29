@@ -52,13 +52,13 @@ const WalletConnect = () => {
 
   React.useEffect(() => {
     if (wallet) {
-      const countSelectedChains = chainList.reduce((_count: number, _chain: ChainType) => _chain.selected && wallet.supportedChains?.find((item: string) => item === _chain.label) ? _count + 1 : _count, 0);
-      if (countSelectedChains > 0) {
-        setChainList(chainList.map((_chain: ChainType) => isSupportedChain(wallet, _chain) ? { ..._chain, focused: true } : { ..._chain, selected: false, focused: false }))
-      } else {
-        setChainList(chainList.map((_chain: ChainType) => isSupportedChain(wallet, _chain) ? { ..._chain, selected: true, focused: true } : { ..._chain, selected: false, focused: false }))
-      }
-      setWalletList(walletList.map((_wallet: WalletType) => ({ ..._wallet, focused: false })));
+      // const countSelectedChains = chainList.reduce((_count: number, _chain: ChainType) => _chain.selected && wallet.supportedChains?.find((item: string) => item === _chain.label) ? _count + 1 : _count, 0);
+      // if (countSelectedChains > 0) {
+      //   setChainList(chainList.map((_chain: ChainType) => isSupportedChain(wallet, _chain) ? { ..._chain, focused: true } : { ..._chain, selected: false, focused: false }))
+      // } else {
+      setChainList(chainList.map((_chain: ChainType) => isSupportedChain(wallet, _chain) ? { ..._chain, selected: true, focused: true } : { ..._chain, selected: false, focused: false }))
+      // }
+      // setWalletList(walletList.map((_wallet: WalletType) => ({ ..._wallet, focused: false })));
     }
   }, [wallet]);
   /**

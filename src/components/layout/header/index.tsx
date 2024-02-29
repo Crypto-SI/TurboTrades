@@ -5,7 +5,6 @@ import { useTheme } from "next-themes";
 import { Icon } from '@iconify/react';
 import { useAtom } from "jotai";
 import { Dropdown } from 'flowbite-react';
-import { useWeb3React } from "@web3-react/core";
 //atom from store
 import {
   stageAtom, currentModalTypeAtom, isConnectingAtom,

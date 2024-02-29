@@ -399,3 +399,8 @@ export const ERC20_DECIMALS: Record<string, number> ={
   "USDC": 6,
   "WSTETH": 18
 }
+//dust thresholds
+export const DUST_THRESHOLDS = {
+  "BTC": 0.0001,
+  "DASH": 0.0001
+}

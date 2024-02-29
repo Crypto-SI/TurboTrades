@@ -233,6 +233,16 @@ const Swap = () => {
       if (!xBalances[toToken?.chain as string]) throw  `Please connect ${toToken?.chain} chain.`;
       if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain} chain.`;
 
+      const _balanceTemp = xBalances[String(fromToken?.chain)].balance.find((item: IBalance) => item.asset === fromToken?.asset);
+      const _balance: any = _balanceTemp ? _balanceTemp.amount : 0;
+      console.log("@estimate ------------->", { balance: _balance, amount: fromAmount });
+      // if (!_balance || _balance.amount < fromAmount) {
+      //   throw "Insufficient balance..";
+      // }
+      if (fromToken?.asset === "DASH.DASH" || fromToken?.asset === "BTC.BTC") {
+        if (Number(fromAmount) < 0.0001) throw "Make sure to swap over dust threshold";
+      }
+
       console.log("@token pairs ------------------->", { fromToken, toToken });
       //do swap with several wallets
       if (wallet?.name === "Keystore") {

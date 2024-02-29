@@ -64,8 +64,8 @@ const Sider = () => {
 
         <ul className="text-white text-md mt-5">
           { _renderLinkItem("Swap", "/images/swap.svg", "/") }
-          { _renderLinkItem("Add Liquidity", "/images/add-liquidity.svg", "/add-liquidity") }
-          { _renderLinkItem("Remove Liquidity", "/images/remove-liquidity.svg", "/remove-liquidity") }
+          { _renderLinkItem("Add Liquidity", "/images/add-liquidity.svg", "/liquidity/add") }
+          { _renderLinkItem("Remove Liquidity", "/images/remove-liquidity.svg", "/liquidity/remove") }
           { _renderLinkItem("My Wallet", "/images/my-wallet.svg", "/my-wallet") }
           { _renderLinkItem("Savers", "/images/savers.svg", "/savers") }
         </ul>
