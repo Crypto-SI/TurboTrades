@@ -243,11 +243,9 @@ const Swap = () => {
       if (fromToken?.asset === "DASH.DASH" || fromToken?.asset === "BTC.BTC") {
         if (Number(fromAmount) < 0.0001) throw "Amount to swap must be greater than the dust threshold value (0.0001). Don't set your transaction amount too low, as transactions that are too small may be refunded.";
       }
-
       if (fromToken?.asset === "DASH.DASH" && Number(fromAmount) < 0.02) {
         throw "Recommend that you swap a afordable amount, it can be refunded. (0.02)"
       }
-
       console.log("@token pairs ------------------->", { fromToken, toToken });
       //do swap with several wallets
       if (wallet?.name === "Keystore") {
