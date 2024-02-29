@@ -236,11 +236,16 @@ const Swap = () => {
       const _balanceTemp = xBalances[String(fromToken?.chain)].balance.find((item: IBalance) => item.asset === fromToken?.asset);
       const _balance: any = _balanceTemp ? _balanceTemp.amount : 0;
       console.log("@estimate ------------->", { balance: _balance, amount: fromAmount });
-      if (!_balance || _balance.amount < fromAmount) {
+      if (_balance < fromAmount) {
         throw "Insufficient balance..";
       }
+      console.log(fromToken?.asset);
       if (fromToken?.asset === "DASH.DASH" || fromToken?.asset === "BTC.BTC") {
-        if (Number(fromAmount) < 0.0001) throw "Make sure to swap over dust threshold";
+        if (Number(fromAmount) < 0.0001) throw "Amount to swap must be greater than the dust threshold value (0.0001). Don't set your transaction amount too low, as transactions that are too small may be refunded.";
+      }
+
+      if (fromToken?.asset === "DASH.DASH" && Number(fromAmount) < 0.02) {
+        throw "Recommend that you swap a afordable amount, it can be refunded. (0.02)"
       }
 
       console.log("@token pairs ------------------->", { fromToken, toToken });
