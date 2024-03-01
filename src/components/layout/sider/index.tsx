@@ -1,6 +1,8 @@
 "use client"
 import Image from "next/image";
 import React, { useMemo } from 'react';
+import { Icon } from '@iconify/react';
+import { Dropdown } from 'flowbite-react';
 //hooks
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from "next-themes";
@@ -9,25 +11,29 @@ import { useAtom } from 'jotai';
 import { reduceAmount } from "@/utils/methods";
 //atoms
 import {
-  stageAtom, currentModalTypeAtom, curBalanceAtom
+  stageAtom, currentModalTypeAtom, curBalanceAtom, xBalancesAtom
 } from '@/store';
 import { TOKEN_DATA } from "@/utils/data";
+import { CHAIN_DATA } from '@/utils/data';
 //social links
 const _socialLinks: { img: string, url: string }[] = [
   { img: "/images/twitter.svg", url: "" },
   { img: "/images/facebook.svg", url: "" },
   { img: "/images/instagram.svg", url: "" }
 ] 
+import useAutoConnect from "@/hooks/useAutoConnect";
 
 const Sider = () => {
   //hooks
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const { disconnectWallet } = useAutoConnect ();
   //atoms
   const [, setStage] = useAtom(stageAtom);
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
-  const [curBalance] = useAtom(curBalanceAtom);
+  const [xBalances] = useAtom(xBalancesAtom);
+  const [curBalance, setCurBalance] = useAtom(curBalanceAtom);
   //handle navigate
   const handleNavigate = (url: string) => {
     if (url === "/") {
@@ -49,6 +55,19 @@ const Sider = () => {
       { _name }
     </li>
   )
+  //to connect page
+  const handleToConnectPage = () => {
+    setStage("wallet");
+    setCurrentModalType("");
+    router.push("/");
+  }
+  //disconnect wallet
+  const handleDisconnect = async () => {
+    disconnectWallet ();
+  }
+  const _renderCurrentItem = () => (
+    <div className="cursor-pointer bg-[#F59E0B] px-4 py-1 flex rounded-full text-[12px]">{ TOKEN_DATA[String(curBalance?.balance[0]?.asset)] ? TOKEN_DATA[String(curBalance?.balance[0]?.asset)].ticker : "BTC" }</div>
+  )
 
   return (
     <div className="dark:bg-gradient-to-tr dark:from-[#FF6A00] dark:via-[#10152E] dark:to-[#F81969] p-[1px] rounded-2xl flex-none md:w-[310px] w-full">
@@ -57,7 +76,30 @@ const Sider = () => {
         <div className="flex justify-between text-black dark:text-white">
           <div className="text-lg my-1">{ curBalance ? String(curBalance?.balance[0].amount).substr(0, 10) : '0' }</div>
           <div>
-            <div className="bg-[#F59E0B] px-4 py-1 flex rounded-full text-[12px]">{ TOKEN_DATA[String(curBalance?.balance[0]?.asset)] ? TOKEN_DATA[String(curBalance?.balance[0]?.asset)].ticker : "BTC" }</div>
+          {
+            Object.keys(xBalances).length > 0 ?
+            <Dropdown label="" renderTrigger={_renderCurrentItem}>
+              <Dropdown.Item onClick={handleToConnectPage}><Icon icon="gg:add" className="mr-2" width={26}/>Add chain</Dropdown.Item>
+              <Dropdown.Divider />
+              {
+                Object.keys(xBalances).map((key:string, index: number) => (
+                  <Dropdown.Item onClick={() => setCurBalance(xBalances[key])} key={"chain_" + index} className="flex gap-3">
+                    <Image
+                      className='cursor-pointer rounded-full'
+                      src={CHAIN_DATA[xBalances[key].chain as string].image}
+                      width={22}
+                      height={22}
+                      alt={"refresh"}
+                      priority={true}
+                    /> {CHAIN_DATA[xBalances[key].chain as string].name}
+                  </Dropdown.Item>
+                ))
+              }
+              <Dropdown.Divider />
+              <Dropdown.Item onClick={handleDisconnect}><Icon icon="tabler:logout" className="mr-2" width={26}/>Disconnect</Dropdown.Item>
+            </Dropdown> :
+            <div className="cursor-pointer bg-[#F59E0B] px-4 py-1 flex rounded-full text-[12px]">&nbsp;</div>
+          }
           </div>
         </div>
         <p className="text-[14px] text-[#8D98AF]">$ { reduceAmount(Number(curBalance?.balance[0].amount) * Number(curBalance?.balance[0].value)) } USD</p>
