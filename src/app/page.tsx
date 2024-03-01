@@ -6,7 +6,7 @@ import axios from "axios";
 //components
 const WalletConnect = dynamic(() => import("@/components/swap/walletConnect"));
 const Swap = dynamic(() => import('@/components/swap/swap'));
-//atom
+//atoms
 import {
   stageAtom,
   fromTokenAtom,
@@ -18,8 +18,6 @@ import {
 import {
   TOKEN_DATA
 } from "@/utils/data";
-//utils
-
 //types
 import { IPool } from '@/types/maya';
 
