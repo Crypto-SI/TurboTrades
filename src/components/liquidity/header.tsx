@@ -113,8 +113,6 @@ const Header = () => {
     </div>
   )
 
-  console.log(pools)
-
   return (
     <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full grow">
       <div className="rounded-2xl px-5 py-6 bg-white dark:bg-[#0B0F16] dark:text-white flex flex-col lg:flex-row gap-3 lg:items-center">
