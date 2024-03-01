@@ -77,21 +77,21 @@ const Header = () => {
       <div className="rounded-2xl px-5 py-6 bg-white dark:bg-[#0B0F16] dark:text-white flex flex-col lg:flex-row gap-3 lg:items-center">
         <div>
           <Dropdown label=""  renderTrigger={_renderDropdownCollapse}>
-          <Dropdown.Item>Liquidity Pools</Dropdown.Item>
-          <Dropdown.Divider />
-          {
-            ["USDT/USDC", "BTC/USDT"].map((item: any) => 
-            <Dropdown.Item key={item} className='flex gap-2'>
-              {/* <Image
-                src="/images/tokens/btc.webp"
-                width={19}
-                height={19}
-                alt={"logo"}      
-                priority={true}
-              /> */}
-              {item}
-            </Dropdown.Item>)
-          }
+            <Dropdown.Item>Liquidity Pools</Dropdown.Item>
+            <Dropdown.Divider />
+            {
+              ["USDT/USDC", "BTC/USDT"].map((item: any) => 
+              <Dropdown.Item key={item} className='flex gap-2'>
+                {/* <Image
+                  src="/images/tokens/btc.webp"
+                  width={19}
+                  height={19}
+                  alt={"logo"}      
+                  priority={true}
+                /> */}
+                {item}
+              </Dropdown.Item>)
+            }
           </Dropdown>
           <div className='text-md text-[#22C55E]'>
             0.000010394

@@ -51,7 +51,7 @@ const Sider = () => {
   )
 
   return (
-    <div className="dark:bg-gradient-to-tr dark:from-[#FF6A00] dark:via-[#10152E] dark:to-[#F81969] p-[1px] rounded-2xl md:w-[310px] w-full">
+    <div className="dark:bg-gradient-to-tr dark:from-[#FF6A00] dark:via-[#10152E] dark:to-[#F81969] p-[1px] rounded-2xl flex-none md:w-[310px] w-full flex-none">
       <div className="bg-white dark:bg-black rounded-2xl p-6 w-full h-full">
         <p className="text-[14px] text-[#111214] dark:text-[#8D98AF]">My Balance</p>
         <div className="flex justify-between text-black dark:text-white">

@@ -8,7 +8,7 @@ const Header = dynamic(() => import("@/components/liquidity/header"), {
 const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: React.ReactNode}) => {
 
   return (
-    <div className="grow w-full md:w-[calc(100vw-360px)] md:pl-3">
+    <div className="grow w-full md:pl-3">
       <Header/>
       { children }
     </div>

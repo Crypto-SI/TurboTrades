@@ -93,7 +93,7 @@ const Home = () => {
   }, []);
   
   return (
-    <div className="flex-grow flex justify-center items-center">
+    <div className="flex-grow flex justify-center items-center sm:pl-0 md:pl-3">
       { stage === "swap" && <Swap/> }
       { stage === "wallet" && <WalletConnect/> }
     </div>
