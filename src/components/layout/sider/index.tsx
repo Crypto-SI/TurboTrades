@@ -11,7 +11,7 @@ import { useAtom } from 'jotai';
 import { reduceAmount } from "@/utils/methods";
 //atoms
 import {
-  stageAtom, currentModalTypeAtom, curBalanceAtom, xBalancesAtom
+  currentModalTypeAtom, curBalanceAtom, xBalancesAtom
 } from '@/store';
 import { TOKEN_DATA } from "@/utils/data";
 import { CHAIN_DATA } from '@/utils/data';
@@ -30,21 +30,16 @@ const Sider = () => {
   const { theme, setTheme } = useTheme();
   const { disconnectWallet } = useAutoConnect ();
   //atoms
-  const [, setStage] = useAtom(stageAtom);
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
   const [xBalances] = useAtom(xBalancesAtom);
   const [curBalance, setCurBalance] = useAtom(curBalanceAtom);
   //handle navigate
   const handleNavigate = (url: string) => {
-    if (url === "/") {
-      setStage("swap");
-      setCurrentModalType("");
-    } 
     router.push(url);
   }
   //render link item 
-  const _renderLinkItem = (_name: string, _icon: string, _url: string) => (
-    <li onClick={() => handleNavigate(_url)} className={`border border-[#DCE4EF] flex items-center p-2 text-black dark:text-white gap-2 dark:border-black hover:border-[#F7F9FC] hover:bg-[#F7F9FC] my-1 dark:hover:bg-[#10152E] rounded-xl cursor-pointer text-sm ${ _url === pathname && 'dark:bg-[#10152E] border-none bg-[#F7F9FC]' }`}>
+  const _renderLinkItem = (_name: string, _icon: string, _url: string, _urls: string[]) => (
+    <li onClick={() => handleNavigate(_url)} className={`border border-[#DCE4EF] flex items-center p-2 text-black dark:text-white gap-2 dark:border-black hover:border-[#F7F9FC] hover:bg-[#F7F9FC] my-1 dark:hover:bg-[#10152E] rounded-xl cursor-pointer text-sm ${ [_url, ..._urls].includes(pathname) && 'dark:bg-[#10152E] border-none bg-[#F7F9FC]' }`}>
       <Image
         src={_icon}
         width={27}
@@ -57,9 +52,8 @@ const Sider = () => {
   )
   //to connect page
   const handleToConnectPage = () => {
-    setStage("wallet");
     setCurrentModalType("");
-    router.push("/");
+    router.push("/connect-wallet");
   }
   //disconnect wallet
   const handleDisconnect = async () => {
@@ -105,11 +99,11 @@ const Sider = () => {
         <p className="text-[14px] text-[#8D98AF]">$ { reduceAmount(Number(curBalance?.balance[0].amount) * Number(curBalance?.balance[0].value)) } USD</p>
 
         <ul className="text-white text-md mt-5">
-          { _renderLinkItem("Swap", "/images/swap.svg", "/") }
-          { _renderLinkItem("Add Liquidity", "/images/add-liquidity.svg", "/liquidity/add") }
-          { _renderLinkItem("Remove Liquidity", "/images/remove-liquidity.svg", "/liquidity/remove") }
-          { _renderLinkItem("My Wallet", "/images/my-wallet.svg", "/my-wallet") }
-          { _renderLinkItem("Savers", "/images/savers.svg", "/savers") }
+          { _renderLinkItem("Swap", "/images/swap.svg", "/", ["/connect-wallet"]) }
+          { _renderLinkItem("Add Liquidity", "/images/add-liquidity.svg", "/liquidity/add", []) }
+          { _renderLinkItem("Remove Liquidity", "/images/remove-liquidity.svg", "/liquidity/remove", []) }
+          { _renderLinkItem("My Wallet", "/images/my-wallet.svg", "/my-wallet", []) }
+          { _renderLinkItem("Savers", "/images/savers.svg", "/savers", []) }
         </ul>
 
         <div className="mt-6 border-[#DCE4EF] dark:border-[#1f2124] border w-full bg-[#F7F9FC] dark:bg-[#111214] rounded-3xl p-4 pt-5">

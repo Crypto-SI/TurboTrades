@@ -7,7 +7,7 @@ import { useAtom } from "jotai";
 import { Dropdown } from 'flowbite-react';
 //atom from store
 import {
-  stageAtom, currentModalTypeAtom, isConnectingAtom,
+  currentModalTypeAtom, isConnectingAtom,
   xBalancesAtom,
   walletAtom,
   curBalanceAtom
@@ -32,7 +32,6 @@ const Header = () => {
   //router
   const router = useRouter ();
   //atoms
-  const [, setStage] = useAtom(stageAtom);
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
   const [isConnecting] = useAtom(isConnectingAtom);
   const [xBalances] = useAtom(xBalancesAtom);
@@ -57,9 +56,8 @@ const Header = () => {
   }
   //to connect page
   const handleToConnectPage = () => {
-    setStage("wallet");
     setCurrentModalType("");
-    router.push("/");
+    router.push("/connect-wallet");
   }
   //disconnect wallet
   const handleDisconnect = async () => {

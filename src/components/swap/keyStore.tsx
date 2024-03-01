@@ -11,7 +11,6 @@ import { useRouter } from 'next/navigation';
 //atoms
 import {
   currentModalTypeAtom,
-  stageAtom,
   chainListAtom
 } from "@/store";
 //custom hooks
@@ -22,7 +21,6 @@ const KeyStore = () => {
   const router = useRouter();
   //modals
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
-  const [, setStage] = useAtom(stageAtom);
   const [chains] = useAtom(chainListAtom);
   //close current modal
   const handleClose = () => {

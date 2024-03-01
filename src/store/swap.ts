@@ -1,11 +1,8 @@
 import { IPool, IQuoteSwapResponse } from '@/types/maya';
 import { atom } from 'jotai';
 
-//stage setting
-export const stageAtom = atom<String>("swap");
 //current modal setting
 export const currentModalTypeAtom = atom<String>("");
-
 
 export const poolsAtom = atom<IPool[]>([]);
 export const mainPoolsAtom = atom<IPool[]>([]);

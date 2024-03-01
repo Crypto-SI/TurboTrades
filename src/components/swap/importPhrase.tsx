@@ -8,7 +8,6 @@ import { validatePhrase, encryptToKeyStore } from "@xchainjs/xchain-crypto";
 //atoms
 import {
   currentModalTypeAtom,
-  stageAtom
 } from '@/store';
 
 const ImportPhrase = () => {
@@ -21,7 +20,6 @@ const ImportPhrase = () => {
   const { showNotification } = useNotification();
 
   const handleClose = () => {
-    // setStage("swap");
     setCurrentModalType("");
   }
   /**

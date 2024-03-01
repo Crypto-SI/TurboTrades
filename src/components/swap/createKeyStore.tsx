@@ -6,7 +6,6 @@ import downloadjs from 'downloadjs';
 //atoms
 import {
   currentModalTypeAtom,
-  stageAtom
 } from "@/store";
 // @ts-ignore
 import { validatePhrase, encryptToKeyStore, generatePhrase } from "@xchainjs/xchain-crypto";

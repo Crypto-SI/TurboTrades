@@ -15,7 +15,6 @@ import {
   chainListAtom,
   xBalancesAtom,
   walletAtom,
-  stageAtom,
   currentModalTypeAtom,
   isWalletDetectedAtom
 } from '@/store';
@@ -33,7 +32,6 @@ const Home = () => {
   const [xBalances] = useAtom(xBalancesAtom);
   const [isConnecting, ] = useAtom(isConnectingAtom);
   const [wallet, ] = useAtom(walletAtom);
-  const [, setStage] = useAtom(stageAtom);
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
   const [chainList,] = useAtom(chainListAtom);//selected chains
   const [isWalletDetected, ] = useAtom(isWalletDetectedAtom);
@@ -69,9 +67,8 @@ const Home = () => {
   }
   //open wallet connect
   const handleConnectWallet = () => {
-    setStage("wallet");
     setCurrentModalType("");
-    router.push("/");
+    router.push("/connect-wallet");
   }
   //show QR code for address  
   const handleShowQRCode = (_address: string) => {
