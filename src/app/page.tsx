@@ -5,9 +5,10 @@ import dynamic from 'next/dynamic';
 import axios from "axios";
 import Image from "next/image";
 import { Icon } from '@iconify/react';
+import SwapConfirm from '@/components/swap/swapConfirm';
 //data
 import {
-  TOKEN_DATA
+  TOKEN_DATA, FEE_ESTIMATIONS
 } from "@/utils/data";
 //atoms
 import {
@@ -23,8 +24,6 @@ import {
 //types
 import { IPool } from "@/types/maya";
 import { IBalance } from "@/types/minis";
-//components
-const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
 //utils
 import { reduceAmount, Address } from "@/utils/methods";
 //hooks
@@ -35,6 +34,8 @@ import { useRouter } from 'next/navigation'
 //trxModal
 import TransactionModal from "@/components/swap/transactionModal";
 import useMetamask from "@/hooks/useMetamask";
+//components
+const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
 
 
 const Swap = () => {
@@ -66,6 +67,8 @@ const Swap = () => {
   const router = useRouter();
   //is swaping ..
   const [isSwaping, setIsSwaping] = React.useState<boolean>(false);
+  //confirm Moda show
+  const [showConfirmModal, setShowConfirmModal] = React.useState<boolean>(false);
 
   /**
    * get Pools from Mayachain and store pool information
@@ -280,12 +283,11 @@ const Swap = () => {
     }
   }
   /**
-   * handle Swap when click swap button 
+   * handle Swap when click swap button (open confirm Modal)
    * @returns 
    */
   const handleSwap = async () => {
     if (isSwaping) return;
-    setIsSwaping (true);
     try {
       if (Number(fromAmount) <= 0) throw "Please Input token amount to swap";
       if (error) throw "Can't swap as invaild setting.";
@@ -295,18 +297,37 @@ const Swap = () => {
       if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain} chain.`;
 
       const _balanceTemp = xBalances[String(fromToken?.chain)].balance.find((item: IBalance) => item.asset === fromToken?.asset);
-      const _balance: any = _balanceTemp ? _balanceTemp.amount : 0;
-      console.log("@estimate ------------->", { balance: _balance, amount: fromAmount });
-      if (_balance < fromAmount) {
-        throw "Insufficient balance..";
-      }
+      const _balance: number = _balanceTemp ? _balanceTemp.amount as number: 0;
+
       console.log(fromToken?.asset);
       if (fromToken?.asset === "DASH.DASH" || fromToken?.asset === "BTC.BTC") {
         if (Number(fromAmount) < 0.0001) throw "Amount to swap must be greater than the dust threshold value (0.0001). Don't set your transaction amount too low, as transactions that are too small may be refunded.";
       }
-      if (fromToken?.asset === "DASH.DASH" && Number(fromAmount) < 0.02) {
-        throw "Recommend that you swap a afordable amount, it can be refunded. (0.02)"
+      console.log("@estimate ------------->", { balance: _balance, amount: fromAmount });
+      if (_balance < Number(fromAmount)) {
+        throw "Insufficient Balance.";
       }
+      console.log("@estimation ---------------", {balance: _balance, require: Number(fromAmount) + FEE_ESTIMATIONS[String(fromToken?.chain)]});
+      if (_balance < Number(fromAmount) + FEE_ESTIMATIONS[String(fromToken?.chain)]) { // balance < amount + estimatedFee
+        throw `Insufficient fee for transaction.`;
+      }
+      // if (fromToken?.asset === "DASH.DASH" && Number(fromAmount) < 0.02) {
+      //   throw "Recommend that you swap a afordable amount, it can be refunded. (0.02)"
+      // }
+      setShowConfirmModal(true);
+    } catch (err) {
+      showNotification (err, "info");
+    } finally {
+      setIsSwaping (false);
+    }
+  }
+  /**
+   * do swap using several kits
+   */
+  const submitSwap = async () => {
+    try {
+      setShowConfirmModal(false);
+      setIsSwaping (true);
       console.log("@token pairs ------------------->", { fromToken, toToken });
       //do swap with several wallets
       if (wallet?.name === "Keystore") {
@@ -322,10 +343,19 @@ const Swap = () => {
       setIsSwaping (false);
     }
   }
-  
+
   return (
     <div className="flex-grow flex justify-center items-center sm:pl-0 md:pl-3">
       <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full lg:w-[460px]">
+        { showConfirmModal && 
+          <SwapConfirm 
+            fromToken={fromToken}
+            toToken={toToken}
+            amount={fromAmount}
+            onOK={submitSwap}
+            onCancel={() => setShowConfirmModal(false)}
+          /> 
+        }
         <TransactionModal />
         <div className="rounded-2xl p-4 bg-white dark:bg-[#0A0C0F] text-[#8A8D92] dark:text-white">
           <div className="flex text-sm flex-wrap justify-between">
