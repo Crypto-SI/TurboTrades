@@ -37,7 +37,14 @@ const Sider = () => {
   const handleNavigate = (url: string) => {
     router.push(url);
   }
-  //render link item 
+  /**
+   * render Link item
+   * @param _name text to display for link
+   * @param _icon icon for link
+   * @param _url url to navigate
+   * @param _urls url list for highlight
+   * @returns 
+   */
   const _renderLinkItem = (_name: string, _icon: string, _url: string, _urls: string[]) => (
     <li onClick={() => handleNavigate(_url)} className={`border border-[#DCE4EF] flex items-center p-2 text-black dark:text-white gap-2 dark:border-black hover:border-[#F7F9FC] hover:bg-[#F7F9FC] my-1 dark:hover:bg-[#10152E] rounded-xl cursor-pointer text-sm ${ [_url, ..._urls].includes(pathname) && 'dark:bg-[#10152E] border-none bg-[#F7F9FC]' }`}>
       <Image

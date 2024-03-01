@@ -33,16 +33,16 @@ const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: Re
       try {
         const _prices: Record<string, string> = {};
         const _cacao = await axios.get("https://midgard.mayachain.info/v2/stats");
-        const cacao: IPool = {
-          assetPriceUSD: _cacao.data.cacaoPriceUSD,
-          asset: "MAYA.CACAO",
-          token: "CACAO",
-          chain: "MAYA",
-          name: "MAYA chain",
-          ticker: "CACAO",
-          image: TOKEN_DATA["MAYA.CACAO"].image,
-          nativeDecimal: "10"
-        }
+        // const cacao: IPool = {
+        //   assetPriceUSD: _cacao.data.cacaoPriceUSD,
+        //   asset: "MAYA.CACAO",
+        //   token: "CACAO",
+        //   chain: "MAYA",
+        //   name: "MAYA chain",
+        //   ticker: "CACAO",
+        //   image: TOKEN_DATA["MAYA.CACAO"].image,
+        //   nativeDecimal: "10"
+        // }
         _prices["MAYA.CACAO"] =  _cacao.data.cacaoPriceUSD; //cacao token price with USD
 
         const { data } = await axios.get("https://midgard.mayachain.info/v2/pools");

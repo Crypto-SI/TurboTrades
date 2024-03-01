@@ -21,12 +21,10 @@ const CreateKeyStore = () => {
   const [isCopied, setIsCopied] = React.useState<boolean>(false);
   //hooks
   const { showNotification } = useNotification ();
-  
+  //close the current modal
   const handleClose = () => {
-    // setStage("swap");
     setCurrentModalType("");
   }
-
   //copy phrase string
   const copyPhrase = () => {
     if (!isCopied) {
