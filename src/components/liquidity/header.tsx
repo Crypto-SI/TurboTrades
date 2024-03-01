@@ -13,7 +13,6 @@ import {
 import { IPool } from '@/types/maya';
 //data
 import { TOKEN_DATA } from '@/utils/data';
-import { __next_app__ } from 'next/dist/build/templates/app-page';
 
 
 const Header = () => {
