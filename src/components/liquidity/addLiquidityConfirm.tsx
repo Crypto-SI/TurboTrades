@@ -60,15 +60,15 @@ console.log(tokenPrices)
             mode === "sym" && Number(amount) > 0 &&
             <div className='px-1 text-left flex justify-between mb-1 text-sm'>
               <span>CACAO Fee</span>
-              <span>(${ reduceAmount(0.5*Number(tokenPrices["MAYA.CACAO"])) }) 0.50 CACAO</span>
+              <div className='text-right'>(${ reduceAmount(0.5*Number(tokenPrices["MAYA.CACAO"])) }) 0.50 CACAO</div>
             </div>
           }
           <div className='px-1 text-left flex justify-between my-1 text-sm'>
             <span>Affiliate Fee (.75%)</span>
             { 
               Number(amount) > 0 && mode === "sym" && pool ? 
-              <span>(${ reduceAmount(Number(amount)*0.0075*2*Number(pool.assetPrice)*Number(tokenPrices["MAYA.CACAO"])) }) { reduceAmount(Number(amount)*0.0075*2*Number(pool.assetPrice)) } CACAO</span> :  
-              <span>(${ reduceAmount(Number(amount)*0.0075*Number(tokenPrices[String(pool.asset)])) }) { reduceAmount(Number(amount)*0.0075) } { pool?.ticker }</span>
+              <div className='text-right'>(${ reduceAmount(Number(amount)*0.0075*2*Number(pool.assetPrice)*Number(tokenPrices["MAYA.CACAO"])) }) { reduceAmount(Number(amount)*0.0075*2*Number(pool.assetPrice)) } CACAO</div> :  
+              <div className='text-right'>(${ reduceAmount(Number(amount)*0.0075*Number(tokenPrices[String(pool.asset)])) }) { reduceAmount(Number(amount)*0.0075) } { pool?.ticker }</div>
             }
           </div>
           <div className='text-left w-full mt-6 flex justify-between gap-1 flex-col xs:gap-3 xs:flex-row'>

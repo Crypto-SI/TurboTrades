@@ -130,7 +130,7 @@ const Header = () => {
                   priority={true}
                   className='rounded-full'
                 />
-                <span className='xxs:flex hidden'>{_pool.ticker}</span>
+                <span>{_pool.ticker}</span>
                 <span>/</span>
                 <Image
                   src="/images/tokens/cacao.png"
@@ -139,7 +139,7 @@ const Header = () => {
                   alt={"cacao"}      
                   priority={true}
                 />
-                <span className='xxs:flex hidden'>CACAO</span>
+                <span>CACAO</span>
               </Dropdown.Item>)
             }
           </Dropdown>
