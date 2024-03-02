@@ -8,7 +8,7 @@ import { Icon } from '@iconify/react';
 import SwapConfirm from '@/components/swap/swapConfirm';
 //data
 import {
-  TOKEN_DATA, FEE_ESTIMATIONS
+  TOKEN_DATA, FEE_ESTIMATIONS, NATIVE_TOKENS
 } from "@/utils/data";
 //atoms
 import {
@@ -283,6 +283,21 @@ const Swap = () => {
     }
   }
   /**
+   * validate if sufficient fee is available...
+   * @param _asset token asset to swap BTC.BTC, ETH.ETH....
+   * @param _chain chain MAYA, ETH, BTC... 
+   * @param _remain remaining token asset 0.001
+   */
+  const _isAvailableFee = (_asset: string, _chain: string, _remain: number) => {
+    if (NATIVE_TOKENS[_chain] === _asset) { // if current asset is native asset of chain.. ETH.ETH, DASH.DASH...
+      console.log("@fee estimation ----------", _asset, { balance: _remain, require: FEE_ESTIMATIONS[_chain], gap: _remain - FEE_ESTIMATIONS[_chain] });
+      return _remain > FEE_ESTIMATIONS[_chain];
+    } else {
+      console.log("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: FEE_ESTIMATIONS[_chain], gap: xBalances[_chain].balance[0].amount as number - FEE_ESTIMATIONS[_chain] })
+      return xBalances[_chain].balance[0].amount as number > FEE_ESTIMATIONS[_chain];
+    }
+  }
+  /**
    * handle Swap when click swap button (open confirm Modal)
    * @returns 
    */
@@ -296,19 +311,18 @@ const Swap = () => {
       if (!xBalances[toToken?.chain as string]) throw  `Please connect ${toToken?.chain} chain.`;
       if (!quoteSwapResponse?.memo) throw `Please connect ${toToken?.chain} chain.`;
 
-      const _balanceTemp = xBalances[String(fromToken?.chain)].balance.find((item: IBalance) => item.asset === fromToken?.asset);
+      const _balanceTemp = xBalances[String(fromToken?.chain)].balance.find((item: IBalance) => item.asset === String(fromToken?.asset).split("-")[0]);
       const _balance: number = _balanceTemp ? _balanceTemp.amount as number: 0;
 
       console.log(fromToken?.asset);
       if (fromToken?.asset === "DASH.DASH" || fromToken?.asset === "BTC.BTC") {
         if (Number(fromAmount) < 0.0001) throw "Amount to swap must be greater than the dust threshold value (0.0001). Don't set your transaction amount too low, as transactions that are too small may be refunded.";
       }
-      console.log("@estimate ------------->", { balance: _balance, amount: fromAmount });
-      if (_balance < Number(fromAmount)) {
+      console.log("@balance estimation ------------->", { balance: _balance, amount: fromAmount, gap: _balance - Number(fromAmount) });
+      if (_balance <= Number(fromAmount)) {
         throw "Insufficient Balance.";
       }
-      console.log("@estimation ---------------", {balance: _balance, require: Number(fromAmount) + FEE_ESTIMATIONS[String(fromToken?.chain)]});
-      if (_balance < Number(fromAmount) + FEE_ESTIMATIONS[String(fromToken?.chain)]) { // balance < amount + estimatedFee
+      if (!_isAvailableFee(fromToken?.asset as string, fromToken?.chain as string, _balance - Number(fromAmount))) { // remain balance < estimatedFee
         throw `Insufficient fee for transaction.`;
       }
       // if (fromToken?.asset === "DASH.DASH" && Number(fromAmount) < 0.02) {
