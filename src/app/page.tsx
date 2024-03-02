@@ -37,7 +37,6 @@ import useMetamask from "@/hooks/useMetamask";
 //components
 const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
 
-
 const Swap = () => {
   //stage and quoteSwapResponse
   const [pools, setPools] = useAtom(poolsAtom);

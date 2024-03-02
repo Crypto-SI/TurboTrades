@@ -5,14 +5,15 @@ import axios from 'axios';
 //atom
 import {
   mainPoolsAtom,
-  tokenPricesAtom
+  tokenPricesAtom,
+  xBalancesAtom
 } from '@/store';
 //data
 import {
   TOKEN_DATA
 } from "@/utils/data";
 //types
-import { IPool } from '@/types/maya';
+import { IPool, ILP } from '@/types/maya';
 //hooks
 import { useAtom } from 'jotai';
 
@@ -24,6 +25,7 @@ const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: Re
   //atoms
   const [, setMainPools] = useAtom(mainPoolsAtom);
   const [tokenPrices, setTokenPrices] = useAtom(tokenPricesAtom);
+  const [xBalances, ] = useAtom(xBalancesAtom);
 
   /**
    * get Pools from Mayachain and store pool information
@@ -33,6 +35,7 @@ const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: Re
       try {
         const _prices: Record<string, string> = {};
         const _cacao = await axios.get("https://midgard.mayachain.info/v2/stats");
+        const _address: string = xBalances["MAYA"]?.address;
         // const cacao: IPool = {
         //   assetPriceUSD: _cacao.data.cacaoPriceUSD,
         //   asset: "MAYA.CACAO",
@@ -44,23 +47,30 @@ const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: Re
         //   nativeDecimal: "10"
         // }
         _prices["MAYA.CACAO"] =  _cacao.data.cacaoPriceUSD; //cacao token price with USD
-
         const { data } = await axios.get("https://midgard.mayachain.info/v2/pools");
-        console.log("@fetched pools from maya ---------------------", data);
-        const _pools: IPool[] = data.map((item: any) => {
+        const _pools: IPool[] = await Promise.all(data.map(async(item: any) => {
           const { asset } = item;
           _prices[asset] =  item.assetPriceUSD; //token price with USD
-          return {
-            ...item,
-            token: TOKEN_DATA[asset].ticker,
-            chain: TOKEN_DATA[asset].chain,
-            image: TOKEN_DATA[asset].image,
-            ticker: TOKEN_DATA[asset].ticker,
-            name: TOKEN_DATA[asset].name,
-            asset: asset
+          try {
+            if (_address) {
+              const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/pool/${asset}/liquidity_provider/${_address}`).catch(err => { throw undefined });
+              throw data;
+            } 
+            throw undefined;
+          } catch (result: any) {
+            return { 
+              ...item,
+              token: TOKEN_DATA[asset].ticker,
+              chain: TOKEN_DATA[asset].chain,
+              image: TOKEN_DATA[asset].image,
+              ticker: TOKEN_DATA[asset].ticker,
+              name: TOKEN_DATA[asset].name,
+              asset: asset,
+              me: result
+            }
           }
-        });
-        console.log("@set main pools ---------------------", _pools);
+        }));
+        console.log("@fetch lps from maya chain----------------", _pools);
         setMainPools (_pools);
         setTokenPrices(_prices);
       } catch (err) {
@@ -69,7 +79,7 @@ const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: Re
     }
     init ();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [xBalances]);
 
   return (
     <div className="grow w-full md:pl-3">

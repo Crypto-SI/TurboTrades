@@ -1,3 +1,14 @@
+export interface ILP {
+  asset: string,
+  cacao_address: string,
+  units: string,
+  pending_cacao: string,
+  pending_asset: string,
+  cacao_deposit_value: string,
+  asset_deposit_value: string,
+  withdraw_counter: string,
+  bonded_nodes: string,
+}
 export interface IPool {
   annualPercentageRate?: string,
   asset?: string,
@@ -24,6 +35,7 @@ export interface IPool {
   image?: string,
   name?: string,
   synth?: boolean
+  me?: ILP
 }
 
 export interface IQuoteSwapResponse {

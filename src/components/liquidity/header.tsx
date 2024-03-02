@@ -85,8 +85,8 @@ const Header = () => {
           </div>
           <div className='text-xs text-[#6978A0] dark:text-[#8D98AF]'>{Number(selectedPool?.annualPercentageRate) > 0 && '+'}{selectedPool && Number(Number(selectedPool.annualPercentageRate)*100).toFixed(2)}%</div>
         </div>
-        <div className='text-md pt-1 dark:text-white text-[#8A8D92] text-wrap'>0.256567545 BTC</div>
-        <div className='text-sm dark:text-[#8D98AF] text-[#6978A0]'>3,700.96 USDT</div>
+        <div className='text-md pt-1 dark:text-white text-[#8A8D92] text-wrap'>{selectedPool?.me ? (Number(selectedPool.me.asset_deposit_value) / 10**8).toFixed(4) : 0} {selectedPool?.ticker}</div>
+        <div className='text-sm dark:text-[#8D98AF] text-[#6978A0]'>{selectedPool?.me ? (Number(selectedPool.me.asset_deposit_value) * Number(selectedPool.assetPriceUSD) / 10**8).toFixed(4) : 0} USDT</div>
       </div>
     </div>
   )
