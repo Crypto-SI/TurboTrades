@@ -319,7 +319,7 @@ const Swap = () => {
         if (Number(fromAmount) < 0.0001) throw "Amount to swap must be greater than the dust threshold value (0.0001). Don't set your transaction amount too low, as transactions that are too small may be refunded.";
       }
       console.log("@balance estimation ------------->", { balance: _balance, amount: fromAmount, gap: _balance - Number(fromAmount) });
-      if (_balance <= Number(fromAmount)) {
+      if (_balance < Number(fromAmount)) {
         throw "Insufficient Balance.";
       }
       if (!_isAvailableFee(fromToken?.asset as string, fromToken?.chain as string, _balance - Number(fromAmount))) { // remain balance < estimatedFee
