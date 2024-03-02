@@ -325,6 +325,7 @@ const Swap = () => {
       if (!_isAvailableFee(fromToken?.asset as string, fromToken?.chain as string, _balance - Number(fromAmount))) { // remain balance < estimatedFee
         throw `Insufficient fee for transaction.`;
       }
+      
       // if (fromToken?.asset === "DASH.DASH" && Number(fromAmount) < 0.02) {
       //   throw "Recommend that you swap a afordable amount, it can be refunded. (0.02)"
       // }

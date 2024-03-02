@@ -408,7 +408,7 @@ export const DUST_THRESHOLDS = {
 export const FEE_ESTIMATIONS: Record<string, number> = {
   "MAYA": 0.5,
   "BTC": 0.0001,
-  "ETH": 0.003,
+  "ETH": 0.005,//0.003
   "KUJI": 0.0005,
   "DASH": 0.0002,
   "THOR": 0.05, //0.02

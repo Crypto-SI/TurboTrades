@@ -102,7 +102,8 @@ export const _depositERC20Token = async (_amount: number, _from: string, _quoteS
     const { gasLimit, timestamp } = await _signer.provider.getBlock('latest');
     const expiration = timestamp + 60*60;
     const gasPrice = await _signer.provider.getGasPrice();
-    const amount = ethers.utils.parseUnits(String(_amount), ERC20_DECIMALS[_symbol]);
+    // const amount = ethers.utils.parseUnits(String(_amount), ERC20_DECIMALS[_symbol]);
+    const amount = Math.floor(_amount / 10 ** ERC20_DECIMALS[_symbol]);
     console.log(ERC_20_ADDRESSES[_symbol], _amount, _memo, expiration);
     
     const Contract_ERC20 = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20_ABI, _signer);
