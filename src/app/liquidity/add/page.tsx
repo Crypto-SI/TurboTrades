@@ -168,7 +168,7 @@ const AddLiquidity = () => {
   const handleAddLiquidityClick = async () => {
 
     if (isLoading) return;
-    setShowConfirmModal(true);
+    // setShowConfirmModal(true);
     try {
       if (Number(amount) <= 0) throw "Please Input token amount to swap";
       if (!xBalances[selectedPool?.chain as string]) throw  `Please connect ${selectedPool?.chain} chain.`;
