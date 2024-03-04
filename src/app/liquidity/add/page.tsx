@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Icon } from '@iconify/react';
 import { Dropdown } from 'flowbite-react';
 import { useAtom } from "jotai";
+import axios from 'axios';
 //atoms
 import {
   mainPoolsAtom,
@@ -14,11 +15,16 @@ import {
 import { IPool } from '@/types/maya';
 import { IBalance } from '@/types/minis';
 //data
-import { TOKEN_DATA } from '@/utils/data';
+import { TOKEN_DATA, NATIVE_TOKENS } from '@/utils/data';
 //methods
-import { reduceAmount } from '@/utils/methods';
+import { reduceAmount, _feeEstimation } from '@/utils/methods';
 //components
 import AddLiquidityConfirm from '@/components/liquidity/addLiquidityConfirm';
+//hooks
+import useNotification from "@/hooks/useNotification";
+import useXChain from "@/hooks/useXChain";
+import useXDefi from "@/hooks/useXDefiWallet";
+import useMetamask from "@/hooks/useMetamask";
 
 
 const AddLiquidity = () => {
@@ -31,6 +37,10 @@ const AddLiquidity = () => {
   const [amount, setAmount] = React.useState<string>("");
   const [selectedTokenPrice, setSelectedTokenPrice] = React.useState<string>("0");
   const [showConfirmModal, setShowConfirmModal] = React.useState<boolean>(false);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  //hooks
+  const { showNotification } = useNotification ();
+  const { transferToken } = useXChain();
   /**
    * After fetching pools, set SelectedPool as first pool
    */
@@ -115,14 +125,85 @@ const AddLiquidity = () => {
   /**
    * add liquidity
    */
-  const onAddLiquidity = () => {
+  const onAddLiquidity = async () => {
     setShowConfirmModal(false);
+    setIsLoading(true);
+    try {
+      const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/inbound_addresses`);
+      
+      const _inbountAddress = data.find((item: any) => item.chain === selectedPool?.chain);
+      if (!_inbountAddress) throw "None inbound address";
+
+      const nativeDecimal = Number(selectedPool?.nativeDecimal) === -1 ? 8 : Number(selectedPool?.nativeDecimal);
+      const { hash, url } = await transferToken (String(selectedPool?.asset), nativeDecimal, amount, "", _inbountAddress.address);
+      console.log({hash, url})
+    } catch (err) {
+      showNotification (String(err), "error");
+    } finally {
+      setIsLoading(false);
+    }
   }
+  /**
+   * validate if sufficient fee is available...
+   * @param _asset token asset to swap BTC.BTC, ETH.ETH....
+   * @param _chain chain MAYA, ETH, BTC... 
+   * @param _remain remaining token asset 0.001
+   */
+    const _isAvailableFee = async (_asset: string, _chain: string, _remain: number) => {
+      const _fee: number = await _feeEstimation (_chain);
+  
+      if (NATIVE_TOKENS[_chain] === _asset) { // if current asset is native asset of chain.. ETH.ETH, DASH.DASH...
+        console.log("@fee estimation ----------", _asset, { balance: _remain, require: _fee, gap: _remain - _fee });
+        // return _remain > FEE_ESTIMATIONS[_chain];
+        return _remain > _fee;
+      } else {
+        console.log("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: _fee, gap: xBalances[_chain].balance[0].amount as number - _fee })
+        return xBalances[_chain].balance[0].amount as number > _fee;
+        // return xBalances[_chain].balance[0].amount as number > FEE_ESTIMATIONS[_chain];
+      }
+    }
   /**
    * when click add liquidity button
    */
-  const handleAddLiquidityClick = () => {
+  const handleAddLiquidityClick = async () => {
+
+    if (isLoading) return;
     setShowConfirmModal(true);
+    try {
+      if (Number(amount) <= 0) throw "Please Input token amount to swap";
+      if (!xBalances[selectedPool?.chain as string]) throw  `Please connect ${selectedPool?.chain} chain.`;
+      if (!xBalances["MAYA"]) throw `Please connet MAYA chain.`;   
+      
+      const _balanceTemp = xBalances[String(selectedPool?.chain)].balance.find((item: IBalance) => item.asset === String(selectedPool?.asset).split("-")[0]);
+      const _balance: number = _balanceTemp ? _balanceTemp.amount as number: 0;
+
+      if (selectedPool?.asset === "DASH.DASH" || selectedPool?.asset === "BTC.BTC") {
+        if (Number(amount) < 0.0001) throw "Amount to swap must be greater than the dust threshold value (0.0001). Don't set your transaction amount too low, as transactions that are too small may be refunded.";
+      }
+      console.log("@balance estimation ------------->", { balance: _balance, amount: amount, gap: _balance - Number(amount) });
+      if (_balance < Number(amount)) {
+        throw "Insufficient Balance.";
+      }
+      if (!await _isAvailableFee(selectedPool?.asset as string, selectedPool?.chain as string, _balance - Number(amount))) { // remain balance < estimatedFee
+        throw `Insufficient fee for transaction.`;
+      }
+      if (mode === "sym") {
+        const _amount: number = Number(amount)*Number(selectedPool?.assetPrice);
+        const _balanceTemp = xBalances["MAYA"].balance[0].amount;
+        const _balance: number = _balanceTemp ? _balanceTemp as number: 0;
+
+        console.log("@cacao balance estimation ------------->", { balance: _balance, amount: _amount, gap: _balance - _amount });
+        if (_balance < _amount) {
+          throw "Insufficient CACAO Balance.";
+        }
+        if (!await _isAvailableFee("MAYA.CACAO", "MAYA", _balance - _amount)) { // remain balance < estimatedFee
+          throw `Insufficient CACAO fee for transaction.`;
+        }
+      }
+      setShowConfirmModal(true);
+    } catch (err) {
+      showNotification (err, "info");
+    }
   }
 
   return (
@@ -233,7 +314,15 @@ const AddLiquidity = () => {
                 <div className='px-2 w-full xs:w-auto'>{selectedTokenPrice}$</div>
                 <div onClick={handleSetMax} className='w-full xs:w-auto dark:bg-[#0a0f14] bg-[#E2E6EB] border border-[#DCE4EF] dark:border-[#3341558e] cursor-pointer hover:opacity-50 rounded-xl p-2 text-sm'>MAX</div>
               </div>
-              { mode === "asym" && <button onClick={handleAddLiquidityClick} className='text-white rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] p-3 w-full xs:w-[100px] cursor-pointer hover:opacity-50'>ADD</button> }
+              { 
+                mode === "asym" && 
+                <button onClick={handleAddLiquidityClick} className='text-white flex justify-center items-center rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] p-3 w-full xs:w-[100px] cursor-pointer hover:opacity-50'>
+                  {
+                    !isLoading ? "Add" :
+                    <Icon icon="icomoon-free:spinner9" width={25} className="spin"/>
+                  }
+                </button> 
+              }
             </div>
             <div className='py-1 px-2'>Balance: { reduceAmount(_balance()) } {selectedPool?.ticker}</div>
 
@@ -278,7 +367,12 @@ const AddLiquidity = () => {
                 <div className='px-2 w-full xs:w-auto'>{selectedTokenPrice}$</div>
               </div>
               <div className='py-1 px-2'>Balance: { reduceAmount(xBalances["MAYA"]?.balance[0]?.amount) } CACAO</div>
-              <button onClick={handleAddLiquidityClick} className='text-white mt-4 rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] p-3 w-full cursor-pointer hover:opacity-50'>Add Liquidity</button>
+              <button onClick={handleAddLiquidityClick} className='text-white mt-4 rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] p-3 w-full cursor-pointer hover:opacity-50'>
+                {
+                  !isLoading ? "Add Liquidity" :
+                  <div className="flex items-center gap-2 justify-center"><Icon icon="icomoon-free:spinner9" className="spin"/>Processing...</div>
+                }
+              </button>
             </div>
           </div>
         </>

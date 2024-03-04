@@ -3,6 +3,8 @@
 // const rskUtils = require("@rsksmart/rsk-utils");
 import { ChainType, WalletType } from "@/types/minis";
 import BigNumber from 'bignumber.js';
+import { FEE_ESTIMATIONS, FEE_URLS } from "./data";
+import axios from 'axios';
 
 /**
  * test if the suggested chain is supported chain of wallet
@@ -155,8 +157,19 @@ export const splitToAsset = (_asset: string) => {
   const [, token] = asset.split(".");
   return { asset, token };
 }
-
-export const Address = (address: string) => {
-  // return rskUtils.toChecksumAddress(address, 0x1);
-  return ""
+/**
+ * get transaction fee estimation
+ * @param _chain 
+ * @returns 
+ */
+export const _feeEstimation = async (_chain: string) => {
+  
+  try {
+    if (_chain === "MAYA" || _chain === "DASH") throw _chain;
+    const { data } = await axios.get(FEE_URLS[_chain].url);
+    const outbound: number = data.fees.outbound;
+    return outbound / 10**FEE_URLS[_chain].decimals;
+  } catch (err) {
+    return FEE_ESTIMATIONS[_chain];
+  }
 }

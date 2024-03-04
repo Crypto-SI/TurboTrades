@@ -413,3 +413,12 @@ export const FEE_ESTIMATIONS: Record<string, number> = {
   "DASH": 0.0002,
   "THOR": 0.05, //0.02
 }
+//fee estimations urls and decimals
+export const FEE_URLS: Record<string, { url: string, decimals: number }> = {
+  "ETH": { url: "https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=BTC.BTC&to_asset=ETH.ETH&amount=100000000", decimals: 8 },
+  "BTC": { url: "https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=ETH.ETH&to_asset=BTC.BTC&amount=100000000", decimals: 8 },
+  "MAYA": { url: "https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=ETH.ETH&to_asset=MAYA.CACAO&amount=100000000", decimals: 10 },
+  "THOR": { url: "https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=ETH.ETH&to_asset=THOR.RUNE&amount=100000000", decimals: 8 },
+  "KUJI": { url: "https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=ETH.ETH&to_asset=KUJI.KUJI&amount=100000000", decimals: 8 },
+  "DASH": { url: "https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=ETH.ETH&to_asset=DASH.DASH&amount=100000000", decimals: 8 }
+}

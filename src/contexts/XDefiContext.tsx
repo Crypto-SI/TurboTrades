@@ -819,6 +819,4 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
 export default XChainProvider;
 
-function _getEVMAccount(): any {
-  throw new Error("Function not implemented.");
-}
+

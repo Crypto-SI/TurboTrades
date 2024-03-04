@@ -24,6 +24,7 @@ import axios from "axios";
 // import { Client as LTCClient, defaultLtcParams } from '@xchainjs/xchain-litecoin';
 // import { Client as BSCClient, defaultBscParams } from '@xchainjs/xchain-bsc';
 // import { Client as AvaxClient, defaultAvaxParams } from "@xchainjs/xchain-avax";
+
 //atom from store
 import {
   xClientsAtom,
@@ -45,9 +46,34 @@ import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis
 import { NATIVE_TOKENS } from "@/utils/data";
 
 interface IXChainContext {
+  /**
+   * connect wallet using keystore
+   * @param phrase nemnonics
+   * @returns Promise<void>
+   */
   connectKeyStoreWallet: (phrase: string) => Promise<void>,
+  /**
+   * get token balances using xchainjs
+   * @returns Promise<void>
+   */
   getBalances: () => Promise<void>,
-  doMayaSwap: (amount: string | number, affiliateBps: number) => Promise<void>
+  /**
+   * do Maya swap using xchainjs
+   * @param amount amount to swap
+   * @param affiliateBps 0.75
+   * @returns Promise<void>
+   */
+  doMayaSwap: (amount: string | number, affiliateBps: number) => Promise<void>,
+  /**
+   * transfer token using xchainjs
+   * @param asset "ETH.ETH"
+   * @param decimals 18
+   * @param amount 0.1
+   * @param memo ADD:ETH.ETH:maya12351231
+   * @param recipient 0x01012050123123....
+   * @returns { hash, url } | undefined
+   */
+  transferToken: ( asset: string, decimals: number, amount: number | string, memo: string, recipient: string ) => Promise<any>
 }
 
 /**
@@ -427,8 +453,38 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     await doSwap(mayachainAmm, quoteSwapParams);
   }
 
+  /**
+   * send token with memo using xchainjs
+   * @param amount 
+   * @param memo 
+   */
+  const transferToken = async (asset: string, decimals: number, amount: number | string, memo: string, recipient: string) => {
+    console.log("@deposit token ------------->", {asset, decimals, amount, memo, recipient, _amount: assetAmount(amount, decimals), assetAmount: assetToBase(assetAmount(amount, decimals))})
+    try {
+      const _asset = assetFromStringEx(asset);
+      const _amount = assetAmount(amount, decimals);
+      console.log(wallet)
+      // const hash = await wallet?.transfer({
+      //   asset: _asset,
+      //   amount: assetToBase(_amount),
+      //   recipient,
+      //   memo,
+      // })
+      // return Promise.resolve({
+      //   hash,
+      //   url: await wallet?.getExplorerTxUrl(_asset.chain, String(hash)),
+      // });
+      return Promise.resolve({
+        hash: "asdfasdfasdfasdf",
+        url: "https://mint.bidify.cloud"
+      })
+    } catch (err) {
+      return Promise.reject(undefined);
+    }
+  }
+
   return (
-    <XChainContext.Provider value={{ connectKeyStoreWallet, getBalances, doMayaSwap }}>
+    <XChainContext.Provider value={{ connectKeyStoreWallet, getBalances, doMayaSwap, transferToken }}>
       {children}
     </XChainContext.Provider>
   )

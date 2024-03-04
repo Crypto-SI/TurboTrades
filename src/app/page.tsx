@@ -25,15 +25,15 @@ import {
 import { IPool } from "@/types/maya";
 import { IBalance } from "@/types/minis";
 //utils
-import { reduceAmount, Address } from "@/utils/methods";
+import { reduceAmount, _feeEstimation } from "@/utils/methods";
 //hooks
 import useNotification from "@/hooks/useNotification";
 import useXChain from "@/hooks/useXChain";
 import useXDefi from "@/hooks/useXDefiWallet";
+import useMetamask from "@/hooks/useMetamask";
 import { useRouter } from 'next/navigation'
 //trxModal
 import TransactionModal from "@/components/swap/transactionModal";
-import useMetamask from "@/hooks/useMetamask";
 //components
 const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
 
@@ -287,13 +287,17 @@ const Swap = () => {
    * @param _chain chain MAYA, ETH, BTC... 
    * @param _remain remaining token asset 0.001
    */
-  const _isAvailableFee = (_asset: string, _chain: string, _remain: number) => {
+  const _isAvailableFee = async (_asset: string, _chain: string, _remain: number) => {
+    const _fee: number = await _feeEstimation (_chain);
+
     if (NATIVE_TOKENS[_chain] === _asset) { // if current asset is native asset of chain.. ETH.ETH, DASH.DASH...
-      console.log("@fee estimation ----------", _asset, { balance: _remain, require: FEE_ESTIMATIONS[_chain], gap: _remain - FEE_ESTIMATIONS[_chain] });
-      return _remain > FEE_ESTIMATIONS[_chain];
+      console.log("@fee estimation ----------", _asset, { balance: _remain, require: _fee, gap: _remain - _fee });
+      // return _remain > FEE_ESTIMATIONS[_chain];
+      return _remain > _fee;
     } else {
-      console.log("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: FEE_ESTIMATIONS[_chain], gap: xBalances[_chain].balance[0].amount as number - FEE_ESTIMATIONS[_chain] })
-      return xBalances[_chain].balance[0].amount as number > FEE_ESTIMATIONS[_chain];
+      console.log("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: _fee, gap: xBalances[_chain].balance[0].amount as number - _fee })
+      return xBalances[_chain].balance[0].amount as number > _fee;
+      // return xBalances[_chain].balance[0].amount as number > FEE_ESTIMATIONS[_chain];
     }
   }
   /**
@@ -301,6 +305,7 @@ const Swap = () => {
    * @returns 
    */
   const handleSwap = async () => {
+
     if (isSwaping) return;
     try {
       if (Number(fromAmount) <= 0) throw "Please Input token amount to swap";
@@ -321,7 +326,7 @@ const Swap = () => {
       if (_balance < Number(fromAmount)) {
         throw "Insufficient Balance.";
       }
-      if (!_isAvailableFee(fromToken?.asset as string, fromToken?.chain as string, _balance - Number(fromAmount))) { // remain balance < estimatedFee
+      if (!await _isAvailableFee(fromToken?.asset as string, fromToken?.chain as string, _balance - Number(fromAmount))) { // remain balance < estimatedFee
         throw `Insufficient fee for transaction.`;
       }
       
@@ -331,8 +336,6 @@ const Swap = () => {
       setShowConfirmModal(true);
     } catch (err) {
       showNotification (err, "info");
-    } finally {
-      setIsSwaping (false);
     }
   }
   /**
