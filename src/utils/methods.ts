@@ -165,7 +165,7 @@ export const splitToAsset = (_asset: string) => {
 export const _feeEstimation = async (_chain: string) => {
   
   try {
-    if (_chain === "MAYA" || _chain === "DASH") throw _chain;
+    if (_chain === "MAYA" || _chain === "DASH" || _chain === "BTC") throw _chain;
     const { data } = await axios.get(FEE_URLS[_chain].url);
     const outbound: number = data.fees.outbound;
     return outbound / 10**FEE_URLS[_chain].decimals;
