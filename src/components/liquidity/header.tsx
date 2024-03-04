@@ -14,8 +14,12 @@ import { IPool } from '@/types/maya';
 //data
 import { TOKEN_DATA } from '@/utils/data';
 
+interface IProps {
+  fetchLPsInfo: () => Promise<void>,
+  isFetching: boolean
+}
 
-const Header = () => {
+const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
   //atoms
   const [pools, ] = useAtom(mainPoolsAtom);
   const [tokenPrices, ] = useAtom(tokenPricesAtom);
@@ -30,6 +34,12 @@ const Header = () => {
       setSelectedPool(pools[0]);
     }
   }, [pools]);
+  /**
+   * fetch Liquidity providers information and my Liqudity
+   */
+  const refresh = () => {
+    fetchLPsInfo ();
+  }
   
 
   const _renderDropdownCollapse = () => (
@@ -114,7 +124,7 @@ const Header = () => {
 
   return (
     <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full grow">
-      <div className="rounded-2xl px-5 py-6 bg-white dark:bg-[#0B0F16] dark:text-white flex flex-col lg:flex-row gap-3 lg:items-center">
+      <div className="rounded-2xl px-5 py-6 bg-white dark:bg-[#0B0F16] dark:text-white flex flex-col lg:flex-row gap-3 lg:items-center relative">
         <div>
           <Dropdown label=""  renderTrigger={_renderDropdownCollapse}>
             <Dropdown.Item>Liquidity Pools</Dropdown.Item>
@@ -153,6 +163,7 @@ const Header = () => {
         { _renderMyLiquidity() }
         { _render24hLiquidity() }
         </div>
+        <Icon onClick={refresh} icon="el:refresh" className={`mr-1 hover:opacity-50 cursor-pointer absolute right-2 top-3 ${isFetching && "spin"}`}/>
       </div>
     </div>
   )
