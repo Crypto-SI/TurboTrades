@@ -1,5 +1,14 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+88888888b.   8888  888888bb.     8888  88888888888  888     888                                                                  
+ 888    888   888   888    888    888   888          888   888                                                                  
+ 888    888   888   888     888   888   888           888 888                                                                                       
+ 888888b.     888   888     888   888   8888888         888                                           
+ 888   888    888   888     888   888   888             888                                                                                                                         
+ 888    888   888   888     888   888   888             888             							
+ 888    888   888   888    888    888   888             888                                                           
+88888888Y".   888   88888YY"      888   888   	        888        
+
 ## Getting Started
 
 First, run the development server:
