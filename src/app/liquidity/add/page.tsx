@@ -40,6 +40,7 @@ const AddLiquidity = () => {
   const [showConfirmModal, setShowConfirmModal] = React.useState<boolean>(false);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [showResultModal, setShowResultModal] = React.useState<boolean>(true);
+  const [tnxUrl, setTnxUrl] = React.useState<string>("https://vercel.app");
   //hooks
   const { showNotification } = useNotification ();
   const { transferToken } = useXChain();
@@ -151,19 +152,19 @@ const AddLiquidity = () => {
    * @param _chain chain MAYA, ETH, BTC... 
    * @param _remain remaining token asset 0.001
    */
-    const _isAvailableFee = async (_asset: string, _chain: string, _remain: number) => {
-      const _fee: number = await _feeEstimation (_chain);
-  
-      if (NATIVE_TOKENS[_chain] === _asset) { // if current asset is native asset of chain.. ETH.ETH, DASH.DASH...
-        console.log("@fee estimation ----------", _asset, { balance: _remain, require: _fee, gap: _remain - _fee });
-        // return _remain > FEE_ESTIMATIONS[_chain];
-        return _remain > _fee;
-      } else {
-        console.log("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: _fee, gap: xBalances[_chain].balance[0].amount as number - _fee })
-        return xBalances[_chain].balance[0].amount as number > _fee;
-        // return xBalances[_chain].balance[0].amount as number > FEE_ESTIMATIONS[_chain];
-      }
+  const _isAvailableFee = async (_asset: string, _chain: string, _remain: number) => {
+    const _fee: number = await _feeEstimation (_chain);
+
+    if (NATIVE_TOKENS[_chain] === _asset) { // if current asset is native asset of chain.. ETH.ETH, DASH.DASH...
+      console.log("@fee estimation ----------", _asset, { balance: _remain, require: _fee, gap: _remain - _fee });
+      // return _remain > FEE_ESTIMATIONS[_chain];
+      return _remain > _fee;
+    } else {
+      console.log("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: _fee, gap: xBalances[_chain].balance[0].amount as number - _fee })
+      return xBalances[_chain].balance[0].amount as number > _fee;
+      // return xBalances[_chain].balance[0].amount as number > FEE_ESTIMATIONS[_chain];
     }
+  }
   /**
    * when click add liquidity button
    */
@@ -210,24 +211,6 @@ const AddLiquidity = () => {
 
   return (
     <div className="flex grow justify-center items-center mt-20 flex-col">
-      { showConfirmModal && 
-        <AddLiquidityConfirm 
-          onOK={onAddLiquidity}
-          onCancel={() => setShowConfirmModal(false)}
-          pool={selectedPool as IPool}
-          amount={amount}  
-          mode={mode}
-        /> 
-      }
-      {
-        showResultModal &&
-        <AddLiquidityResult
-          onOK={() => setShowResultModal(false)}
-          pool={selectedPool as IPool}
-          amount={amount}  
-          mode={mode}
-        />
-      }
       <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full lg:w-[600px]">
         <div className="rounded-2xl p-3 pt-4 bg-white dark:bg-[#0A0C0F] dark:text-white">  
           <div className='flex lg:gap-0 gap-2 lg:space-x-2 lg:flex-row flex-col'>

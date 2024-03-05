@@ -23,7 +23,6 @@ export const InitialwalletList: WalletType[] = [
     name: "Metamask",
     image: "/images/wallets/metamask.svg",
     supportedChains: ["ETH"],
-    // supportedChains: ["ETH"],
     focused: false,
     selected: false
   },
@@ -36,18 +35,6 @@ export const InitialwalletList: WalletType[] = [
   },
   { name: "Create Keystore", image: "mdi:key-add" },
   { name: "Import Phrase", image: "clarity:import-solid-badged" },
-  // { 
-  //   name: "Coinbase", 
-  //   image: "/images/wallets/coinbase.svg",
-  //   supportedChains: ["BTC", "LTC", "BCH", "DOGE", "ETH", "AVAX", "BSC", "BNB", "GAIA", "THOR"]
-  // },
-  // { 
-  //   name: "WalletConnect", 
-  //   image: "/images/wallets/walletconnect.svg",
-  //   supportedChains: ["ETH", "AVAX", "BSC"],
-  //   focused: false,
-  //   selected: false
-  // },
 ]
 /**
  * chain data
@@ -310,57 +297,6 @@ export const InitialchainList: ChainType[] = [
     selected: false,
     focused: false
   },
-  // { 
-  //   label: "LTC", 
-  //   name: "Litecoin", 
-  //   image: "/images/chains/ltc.webp", 
-  //   selected: false,
-  //   focused: false 
-
-  // },
-  // { 
-  //   label: "BCH", 
-  //   name: "Bitcoin Cash", 
-  //   image: "/images/chains/bch.webp", selected: false,
-  //   focused: false 
-  // },
-  // { 
-  //   label: "DOGE", 
-  //   name: "Degecoin", 
-  //   image: "/images/chains/doge.webp", 
-  //   selected: false,
-  //   focused: false 
-  // }, 
-  // { 
-  //   label: "AVAX", 
-  //   name: "Avalanche", 
-  //   image: "/images/chains/avax.webp", 
-  //   selected: false,
-  //   focused: false 
-  //  },
-  // { 
-  //   label: "BSC", 
-  //   name: "BNB Smart Chain", 
-  //   image: "/images/chains/bsc.webp", 
-  //   selected: false,
-  //   focused: false 
-  //  },
-  // { 
-  //   label: "BNB", 
-  //   name: "BNB Beacon Chain", 
-  //   image: "/images/chains/bnb.webp", 
-  //   selected: false,
-  //   focused: false 
-  // },
-  // { 
-  //   label: "GAIA", 
-  //   name: "Cosmos chain", 
-  //   image: "/images/chains/cosmos.webp", 
-  //   selected: false,
-  //   focused: false 
-  //  },
-  // { 
-
 ]
 /**
  * get chain name by token
@@ -403,15 +339,6 @@ export const ERC20_DECIMALS: Record<string, number> ={
 export const DUST_THRESHOLDS = {
   "BTC": 0.0001,
   "DASH": 0.0001
-}
-//fee estimations
-export const FEE_ESTIMATIONS: Record<string, number> = {
-  "MAYA": 0.5,
-  "BTC": 0.0001,
-  "ETH": 0.005,//0.003
-  "KUJI": 0.0005,
-  "DASH": 0.0002,
-  "THOR": 0.05, //0.02
 }
 //fee estimations urls and decimals
 export const FEE_URLS: Record<string, { url: string, decimals: number }> = {

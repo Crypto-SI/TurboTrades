@@ -3,18 +3,31 @@ import { Icon } from '@iconify/react';
 import Image from "next/image";
 import { IPool } from '@/types/maya';
 import { useAtom } from 'jotai';
+//atoms
 import { fromTokenAtom, tokenPricesAtom } from '@/store';
-import { reduceAmount } from '@/utils/methods';
+//utils methods
+import { reduceAmount, _reduceHash } from '@/utils/methods';
 
 interface IProps {
   onOK: () => void,
   pool: IPool,
   mode: string,
-  amount: string
+  amount: string,
+  tnxUrl: string
 }
 
 // const Confirm = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
-const Confirm = ({ onOK, pool, mode, amount }: IProps) => {
+const Confirm = ({ onOK, pool, mode, amount, tnxUrl }: IProps) => {
+
+  /**
+   * open new window for observing transaction...
+   * @param url 
+   */
+  const _gotoHash = (url: string) => {
+    if (window) {
+      window.open(url, "_blank");
+    }
+  }
 
   const [tokenPrices, ] = useAtom(tokenPricesAtom);
   return (
@@ -45,37 +58,23 @@ const Confirm = ({ onOK, pool, mode, amount }: IProps) => {
               />
               <span>CACAO</span>
             </div>
+            <div className='text-sm'>( { mode === "sym" ? "symmetric": "asymmetric" } )</div>
           </div>
+
+          <div className='px-2 cursor-pointer text-sm underline'>
+            { _reduceHash(tnxUrl) }
           </div>
-          <div className='text-sm mr-2 mb-3 text-left'>( Please make sure you have sufficient swap fee )</div>
-          {/* { 
-            mode === "sym" && Number(amount) > 0 &&
-            <div className='px-1 text-left flex justify-between mb-1 text-sm'>
-              <span>CACAO Fee</span>
-              <div className='text-right'>(${ reduceAmount(0.5*Number(tokenPrices["MAYA.CACAO"])) }) 0.50 CACAO</div>
-            </div>
-          } */}
-          <div className='px-1 text-left flex justify-between my-1 text-sm'>
-            <span>Affiliate Fee (.75%)</span>
-            {/* { 
-              Number(amount) > 0 && mode === "sym" && pool ? 
-              <div className='text-right'>(${ reduceAmount(Number(amount)*0.0075*2*Number(pool.assetPrice)*Number(tokenPrices["MAYA.CACAO"])) }) { reduceAmount(Number(amount)*0.0075*2*Number(pool.assetPrice)) } CACAO</div> :  
-              <div className='text-right'>(${ reduceAmount(Number(amount)*0.0075*Number(tokenPrices[String(pool.asset)])) }) { reduceAmount(Number(amount)*0.0075) } { pool?.ticker }</div>
-            } */}
+          <div>Will take for a while.</div>
           </div>
           <div className='text-left w-full mt-6 flex justify-between gap-1 flex-col xs:gap-3 xs:flex-row'>
-            <button
-              onClick={onOK}
-              className="flex gap-1 justify-center items-center bg-[#3C829B] m-auto mt-1 text-white dark:text-[#6A84A0] hover:opacity-50 hover:dark:text-white dark:text-[#ffffff86]  text-sm rounded-2xl w-full px-4 py-2 cursor-pointer" 
-            >
-              <Icon icon="iconoir:coins-swap" width={20} className='text-[#70dd5a]' /> Add Liquidity
-            </button>
-            <button
-              onClick={onOK}
-              className="flex gap-1 justify-center items-center border dark:border-[#54575a] m-auto mt-1 text-[#6A84A0] hover:text-black hover:dark:text-white  text-sm rounded-2xl w-full px-4 py-2 bg-transparent cursor-pointer" 
-            >
-              <Icon icon="mage:cancel" width={20} /> Cancel
-            </button>
+            <div className='text-left w-full mt-6 flex justify-between gap-1 flex-col xs:gap-3 xs:flex-row'>
+              <button
+                className="flex gap-1 justify-center items-center border dark:border-[#54575a] m-auto mt-1 text-[#6A84A0] hover:text-black hover:dark:text-white  text-sm rounded-2xl w-full px-4 py-2 bg-transparent cursor-pointer" 
+                onClick={onOK}
+              >
+                Go to transaction <Icon icon="noto-v1:link" width={20}/>
+              </button>
+            </div>
           </div>
         </div>
         <div className='absolute -top-8 text-white flex w-full justify-between items-center px-2 pr-8'>

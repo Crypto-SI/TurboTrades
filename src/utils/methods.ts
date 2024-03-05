@@ -3,7 +3,7 @@
 // const rskUtils = require("@rsksmart/rsk-utils");
 import { ChainType, WalletType } from "@/types/minis";
 import BigNumber from 'bignumber.js';
-import { FEE_ESTIMATIONS, FEE_URLS } from "./data";
+import { FEE_URLS } from "./data";
 import axios from 'axios';
 
 /**
@@ -164,7 +164,6 @@ export const splitToAsset = (_asset: string) => {
  */
 export const _feeEstimation = async (_chain: string) => {
   try {
-    if (_chain === "MAYA" || _chain === "DASH" || _chain === "BTC") throw _chain;
     const { data } = await axios.get(FEE_URLS[_chain].url);
     const outbound: number = data.fees.outbound;
     return outbound / 10**FEE_URLS[_chain].decimals;
@@ -172,3 +171,11 @@ export const _feeEstimation = async (_chain: string) => {
     return FEE_ESTIMATIONS[_chain];
   }
 }
+  /**
+   * reduce hash for beautify...
+   * @param hash 
+   * @returns 
+   */
+  export const _reduceHash = (hash: string) => {
+    return hash.substr(0, 10) + "......" + hash.substring(hash.length-12, hash.length-1)
+  }

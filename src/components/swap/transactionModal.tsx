@@ -9,7 +9,8 @@ import {
   fromTokenAtom,
   toTokenAtom
 } from "@/store";
-// @ts-ignore
+//utils
+import { _reduceHash } from '@/utils/methods';
 
 const TransactionModal = () => {
   //atoms
@@ -23,14 +24,7 @@ const TransactionModal = () => {
   const handleClose = () => {
     setShowTrxModal(false);
   }
-  /**
-   * reduce hash for beautify...
-   * @param hash 
-   * @returns 
-   */
-  const _reduceHash = (hash: string) => {
-    return hash.substr(0, 10) + "......" + hash.substring(hash.length-12, hash.length-1)
-  }
+
   /**
    * open new window for observing transaction...
    * @param url 
