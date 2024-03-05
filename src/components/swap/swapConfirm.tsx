@@ -27,7 +27,6 @@ const SwapConfirm = (props: IProps) => {
                 width={35}
                 height={35}
                 alt={"sun"}      
-                priority={true}
                 className='rounded-full'
               />
               { props.fromToken?.ticker }
@@ -39,7 +38,6 @@ const SwapConfirm = (props: IProps) => {
                 width={35}
                 height={35}
                 alt={"sun"}      
-                priority={true}
                 className='rounded-full'
               />
               { props.toToken?.ticker }

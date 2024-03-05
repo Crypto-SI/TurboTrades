@@ -73,7 +73,6 @@ const Header = () => {
         width={33}
         height={33}
         alt={"refresh"}
-        priority={true}
       />
       <div>
         <div>
@@ -100,7 +99,6 @@ const Header = () => {
               width={22}
               height={22}
               alt={"refresh"}
-              priority={true}
             /> {CHAIN_DATA[xBalances[key].chain as string].name}
           </Dropdown.Item>
         ))
@@ -118,8 +116,6 @@ const Header = () => {
           width={100}
           height={20} 
           alt={"logo"}      
-          priority={true}
-          
         />
         <div className="flex xs:hidden items-center justify-center cursor-pointer" onClick={handleToggle}>
           <Icon icon="ph:list" className="dark:text-white text-black" height={30}/>

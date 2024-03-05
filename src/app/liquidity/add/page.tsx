@@ -20,6 +20,7 @@ import { TOKEN_DATA, NATIVE_TOKENS } from '@/utils/data';
 import { reduceAmount, _feeEstimation } from '@/utils/methods';
 //components
 import AddLiquidityConfirm from '@/components/liquidity/addLiquidityConfirm';
+import AddLiquidityResult from "@/components/liquidity/addLiquidityResult";
 //hooks
 import useNotification from "@/hooks/useNotification";
 import useXChain from "@/hooks/useXChain";
@@ -38,6 +39,7 @@ const AddLiquidity = () => {
   const [selectedTokenPrice, setSelectedTokenPrice] = React.useState<string>("0");
   const [showConfirmModal, setShowConfirmModal] = React.useState<boolean>(false);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [showResultModal, setShowResultModal] = React.useState<boolean>(true);
   //hooks
   const { showNotification } = useNotification ();
   const { transferToken } = useXChain();
@@ -217,6 +219,15 @@ const AddLiquidity = () => {
           mode={mode}
         /> 
       }
+      {
+        showResultModal &&
+        <AddLiquidityResult
+          onOK={() => setShowResultModal(false)}
+          pool={selectedPool as IPool}
+          amount={amount}  
+          mode={mode}
+        />
+      }
       <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full lg:w-[600px]">
         <div className="rounded-2xl p-3 pt-4 bg-white dark:bg-[#0A0C0F] dark:text-white">  
           <div className='flex lg:gap-0 gap-2 lg:space-x-2 lg:flex-row flex-col'>
@@ -227,7 +238,6 @@ const AddLiquidity = () => {
                   width={25}
                   height={20}
                   alt={"sun"}      
-                  priority={true}
                   className='rounded-full'
                 />
                 <span className='xxs:flex hidden'>{ selectedPool && selectedPool.ticker }</span>
@@ -237,7 +247,6 @@ const AddLiquidity = () => {
                   width={25}
                   height={20}
                   alt={"sun"}      
-                  priority={true}
                 />
                 <span className='xxs:flex hidden'>CACAO</span>
               </div>
@@ -252,7 +261,6 @@ const AddLiquidity = () => {
                       width={25}
                       height={20}
                       alt={"sun"}      
-                      priority={true}
                       className='rounded-full'
                     />
                     <span>{_pool.ticker}</span>
@@ -262,7 +270,6 @@ const AddLiquidity = () => {
                       width={25}
                       height={20}
                       alt={"cacao"}      
-                      priority={true}
                     />
                     <span>CACAO</span>
                   </Dropdown.Item>)
@@ -276,7 +283,6 @@ const AddLiquidity = () => {
                 width={25}
                 height={25}
                 alt={"sun"}      
-                priority={true}
               />
               <span className='text-[#2ABA3C]'>APR</span><span className='text-[#2ABA3C] font-bold'>{Number(selectedPool?.annualPercentageRate) > 0 && '+'}{ selectedPool && (Number(selectedPool.annualPercentageRate) * 100).toFixed(2) }%</span>
             </div>
@@ -290,7 +296,6 @@ const AddLiquidity = () => {
                   width={50}
                   height={50}
                   alt={"sun"}      
-                  priority={true}
                   className='rounded-full'
                 />
                 { selectedPool?.ticker }
@@ -351,7 +356,6 @@ const AddLiquidity = () => {
                   width={50}
                   height={50}
                   alt={"sun"}      
-                  priority={true}
                 />
                 CACAO
               </div>

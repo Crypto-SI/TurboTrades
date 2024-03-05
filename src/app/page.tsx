@@ -398,7 +398,6 @@ const Swap = () => {
                     width={50}
                     height={50}
                     alt={"sun"}      
-                    priority={true}
                     className='rounded-full'
                   />
                   { fromToken.ticker }
@@ -441,7 +440,6 @@ const Swap = () => {
                     width={50}
                     height={50}
                     alt={"sun"}      
-                    priority={true}
                     className='rounded-full'
                   />
                   { toToken.ticker }
@@ -477,7 +475,6 @@ const Swap = () => {
                   width={24}
                   height={24}
                   alt={"fromToken"}      
-                  priority={true}
                   className="rounded-full"
                 />
                 <span className="dark:text-[#6978A0]">{fromToken?.ticker}</span>
@@ -489,7 +486,6 @@ const Swap = () => {
                   width={24}
                   height={24}
                   alt={"toToken"}      
-                  priority={true}
                   className="rounded-full"
                 />
                 <span className="dark:text-[#6978A0]">{toToken?.ticker}</span>

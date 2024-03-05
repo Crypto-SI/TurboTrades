@@ -46,7 +46,6 @@ const TokenSelector = (props: PropsType) => {
               width={30}
               height={30}
               alt={pool.image + ""}
-              priority={true}
               className={`rounded-full ${pool.ticker?.charAt(0) === "s" && 'border-white border-2'}`}
             />
             { pool.ticker } ({pool.chain})

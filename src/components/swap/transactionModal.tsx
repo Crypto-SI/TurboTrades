@@ -59,7 +59,6 @@ const TransactionModal = () => {
                   width={30}
                   height={30}
                   alt={"sun"}      
-                  priority={true}
                   className='rounded-full'
                 />
                 <Icon icon="tdesign:swap" />
@@ -68,7 +67,6 @@ const TransactionModal = () => {
                   width={30}
                   height={30}
                   alt={"sun"}      
-                  priority={true}
                   className='rounded-full'
                 />
               </div>

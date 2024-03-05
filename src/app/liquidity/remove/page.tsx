@@ -33,7 +33,6 @@ const AddLiquidity = () => {
                     width={50}
                     height={50}
                     alt={"sun"}      
-                    priority={true}
                   />
                   BTC
                 </div>
@@ -63,7 +62,7 @@ const AddLiquidity = () => {
                       width={50}
                       height={50}
                       alt={"sun"}      
-                      priority={true}
+                      
                     />
                     BTC
                   </div>

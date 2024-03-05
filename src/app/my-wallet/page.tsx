@@ -89,7 +89,6 @@ const Home = () => {
               width={18}
               height={18}
               alt={"refresh"}
-              priority={true}
             />
           </Tooltip>
         }
@@ -100,7 +99,6 @@ const Home = () => {
             width={18}
             height={18}
             alt={"refresh"}
-            priority={true}
           />
         </Tooltip>
         
@@ -124,7 +122,6 @@ const Home = () => {
                 width={38}
                 height={38}
                 alt={"refresh"}
-                priority={true}
                 className={`rounded-full ${item?.asset?.includes("/") && 'border-[3px] border-white'}`}
               />
               <span>{TOKEN_DATA[String(item?.asset)] && TOKEN_DATA[String(item?.asset)].ticker}</span>
@@ -170,7 +167,6 @@ const Home = () => {
                 width={38}
                 height={38}
                 alt={"refresh"}
-                priority={true}
                 className={`cursor-pointer hover:opacity-50 ${(isRefreshing || isConnecting) && "spin"}`}
                 onClick={handleRefresh}
               />
@@ -179,7 +175,6 @@ const Home = () => {
                 width={38}
                 height={38}
                 alt={"refresh"}
-                priority={true}
                 className='cursor-pointer hover:opacity-50'
                 onClick={handleConnectWallet}
               />

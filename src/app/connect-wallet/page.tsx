@@ -58,6 +58,8 @@ const WalletConnect = () => {
       // }
       // setWalletList(walletList.map((_wallet: WalletType) => ({ ..._wallet, focused: false })));
     }
+  
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wallet]);
   /**
    * chainList is changed
@@ -83,6 +85,7 @@ const WalletConnect = () => {
         return { ..._wallet, focused: true }
       }))
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chainList]);
   /**
    * chain items are clicked...
@@ -185,7 +188,6 @@ const WalletConnect = () => {
             width={24}
             height={24}
             alt={"sun"}
-            priority={true}
           /> :
           <Icon icon={_wallet.image + ''} width={24} className="dark:text-white text-[#534428] opacity-80" />
       }
@@ -206,7 +208,6 @@ const WalletConnect = () => {
             width={24}
             height={24}
             alt={_chain.label + ''}
-            priority={true}
           />
         </Tooltip>
         {_chain.label}
@@ -255,7 +256,6 @@ const WalletConnect = () => {
                 width={32}
                 height={32}
                 alt={wallet.name + ''}
-                priority={true}
               />
             }
             {

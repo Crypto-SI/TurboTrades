@@ -137,7 +137,6 @@ const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
                   width={25}
                   height={20}
                   alt={"sun"}      
-                  priority={true}
                   className='rounded-full'
                 />
                 <span>{_pool.ticker}</span>
@@ -147,7 +146,6 @@ const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
                   width={25}
                   height={20}
                   alt={"cacao"}      
-                  priority={true}
                 />
                 <span>CACAO</span>
               </Dropdown.Item>)

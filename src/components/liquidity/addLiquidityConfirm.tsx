@@ -35,7 +35,6 @@ const Confirm = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
                 width={35}
                 height={35}
                 alt={"sun"}      
-                priority={true}
                 className='rounded-full'
               />
               <span>{ pool?.ticker }</span>
@@ -47,7 +46,6 @@ const Confirm = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
                 width={35}
                 height={35}
                 alt={"sun"}      
-                priority={true}
                 className='rounded-full'
               />
               <span>CACAO</span>

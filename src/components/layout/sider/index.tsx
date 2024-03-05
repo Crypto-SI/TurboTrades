@@ -52,7 +52,6 @@ const Sider = () => {
         width={27}
         height={27}
         alt={"logo"}      
-        priority={true}
       />
       { _name }
     </li>
@@ -91,7 +90,6 @@ const Sider = () => {
                       width={22}
                       height={22}
                       alt={"refresh"}
-                      priority={true}
                     /> {CHAIN_DATA[xBalances[key].chain as string].name}
                   </Dropdown.Item>
                 ))
@@ -122,7 +120,6 @@ const Sider = () => {
               width={19}
               height={19}
               alt={"logo"}      
-              priority={true}
             />
             Support
           </button>
@@ -133,7 +130,6 @@ const Sider = () => {
             width={19}
             height={19}
             alt={"logo"}      
-            priority={true}
           />
           Join The Dao
         </div>
@@ -148,7 +144,6 @@ const Sider = () => {
                 width={40}
                 height={40} 
                 alt={"logo"}      
-                priority={true}
               />
             )
           }
@@ -161,7 +156,6 @@ const Sider = () => {
               width={24}
               height={24}
               alt={"help"}      
-              priority={true}
             />
             Help & getting started
           </div>
@@ -177,7 +171,6 @@ const Sider = () => {
               width={24}
               height={24}
               alt={"sun"}      
-              priority={true}
             />
             Light
           </div>
@@ -187,7 +180,6 @@ const Sider = () => {
               width={24}
               height={24}
               alt={"sun"}      
-              priority={true}
             />
             Dark
           </div>
