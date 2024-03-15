@@ -30,8 +30,9 @@ import {
 } from "@/store";
 //types
 import { ChainType, XBalances, IBalance, IWallet } from "@/types/minis";
+import { IPool, IParamsWithdrawLiquidity } from "@/types/maya";
 //data
-import { ERC_20_ADDRESSES, EVM_ROUTER_ADDRESS, ERC20_DECIMALS, TOKEN_DATA } from "@/utils/data";
+import { ERC_20_ADDRESSES, EVM_ROUTER_ADDRESS, ERC20_DECIMALS, TOKEN_DATA, MINIMUM_AMOUNT } from "@/utils/data";
 //abis
 import USDT_ABI from '@/utils/ABIs/usdt.json';
 import EVM_ROUTER_ABI from '@/utils/ABIs/evmRouter.json';
@@ -40,11 +41,35 @@ import ERC20_ABI from "@/utils/ABIs/erc20.json";
 interface IXDefiContext {
   connectToXDefi: () => Promise<void>,
   getBalancesWithXDefi: () => Promise<void>,
-  doXDefiSwap: (amount: number | string) => Promise<void>
+  doXDefiSwap: (amount: number | string) => Promise<any>,
+  /**
+   * transfer token using xchainjs
+   * @param asset "ETH.ETH"
+   * @param decimals 18
+   * @param amount 0.1
+   * @param recipient 0x01012050123123....
+   * @param address current asset's address
+   * @param mayaAddress maya12351231
+   * @param mode "sym" | "asym"
+   * @returns { hash, url }[] | undefined
+   */
+  xDefiAddLiquidity: ({ asset, decimals, amount, recipient, address, mayaAddress, mode }: IParamsAddLiquidity) => Promise<any>,
+  /**
+   * transfer token using xchainjs
+   * @param asset string "ETH.ETH"
+   * @param decimals number 18
+   * @param bps string 10000
+   * @param recipient string 0x01012050123123....
+   * @param address string current asset's address
+   * @param mayaAddress string maya12351231
+   * @param mode string "sym" | "asym"
+   * @returns { hash, url }[] | undefined
+   */
+  xDefiWithdrawLiquidity: ({ asset, decimals, bps, recipient, address, mayaAddress, mode }: IParamsWithdrawLiquidity) => Promise<any>
 }
 //prices methods
 import { _getPrices } from "./XChainContext";
-import { IQuoteSwapResponse } from "@/types/maya";
+import { IQuoteSwapResponse, IParamsAddLiquidity } from "@/types/maya";
 //msg type
 import { types } from "@/types/proto/MsgCompiled";
 //minis
@@ -54,19 +79,20 @@ const bech32 = require("bech32-buffer");
 */
 export const XDefiContext = React.createContext<IXDefiContext | undefined>(undefined);
 /**
- * send ETH to another account
- * @param _amount amount to swap 
- * @param _from fromAddress
- * @param _quoteSwap QuoteSwap
- * @param signer Provider Signer
+ * 
+ * @param _amount amount to swap
+ * @param _from my address
+ * @param _memo memo for swap "=:MAYA.CACAO..."
+ * @param _recipient inbound address
+ * @param _signer provider signer
  * @returns 
  */
-export const _sendEther: any = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any) => {
+export const _sendEther: any = async (_amount: number, _from: string, _memo: string, _recipient: string, _signer: any) => {
   try {
-    console.log("@swap ETH ------------------------", { memo: _quoteSwap.memo, amount:_amount, recipient: _quoteSwap.inbound_address, from: _from });
+    console.log("@swap ETH ------------------------", { memo: _memo, amount:_amount, recipient: _recipient, from: _from });
     // const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
-    const recipient = _quoteSwap.inbound_address;
-    const memo = _quoteSwap.memo;
+    const recipient = _recipient;
+    const memo = _memo;
     const amount = ethers.utils.parseEther(String(_amount));
     const expiration = (await _signer.provider.getBlock("latest")).timestamp + 60*60;
 
@@ -86,32 +112,34 @@ export const _sendEther: any = async (_amount: number, _from: string, _quoteSwap
 }
 /**
  * transfer ERC20 token to another address with memo
- * @param _amount token amount to transfer
- * @param _from from address
- * @param _quoteSwap Swap params
- * @param _signer Web3 signer for provider
- * @param _symbol token symbol "USDT", "USDC", "WSTETH"
- * @returns Promise<>
+ * @param _amount token amount to swap
+ * @param _from my address
+ * @param _memo memo for swap
+ * @param _recipient inbound address
+ * @param _signer provider signer
+ * @param _symbol token symbol ETH.USDC, ETH.USDT, ETH.WETH
+ * @returns 
  */
-export const _depositERC20Token = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any, _symbol: string) => {
+// export const _depositERC20Token = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any, _symbol: string) => {
+export const _depositERC20Token = async (_amount: number, _from: string, _memo: string, _recipient: string, _signer: any, _symbol: string) => {
   try {
-    console.log("@ERC20 swap -----------------------", { _symbol, memo: _quoteSwap.memo, _amount, contract_address: ERC_20_ADDRESSES[_symbol] });
+    console.log("@ERC20 swap -----------------------", { symbol: _symbol, memo: _memo, _amount, recipient: _recipient, contract_address: ERC_20_ADDRESSES[_symbol] });
 
-    const recipient = _quoteSwap.inbound_address;
-    const _memo = _quoteSwap.memo;
+    const recipient = _recipient;
+    const memo = _memo;
     const { gasLimit, timestamp } = await _signer.provider.getBlock('latest');
     const expiration = timestamp + 60*60;
     const gasPrice = await _signer.provider.getGasPrice();
     // const amount = ethers.utils.parseUnits(String(_amount), ERC20_DECIMALS[_symbol]);
     const amount = Math.floor(_amount / 10 ** ERC20_DECIMALS[_symbol]);
-    console.log(ERC_20_ADDRESSES[_symbol], _amount, _memo, expiration);
+    console.log(ERC_20_ADDRESSES[_symbol], _amount, memo, expiration);
     
     const Contract_ERC20 = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20_ABI, _signer);
     const tx = await Contract_ERC20.approve(EVM_ROUTER_ADDRESS, amount, { gasLimit: 80000 });
     await tx.wait();
     //depositWithExpiry(address vault,address asset,uint256 amount,string memo,uint256 expiration)
     const Contract = new ethers.Contract(EVM_ROUTER_ADDRESS, EVM_ROUTER_ABI, _signer);
-    const data = await Contract.depositWithExpiry(recipient, ERC_20_ADDRESSES[_symbol], amount, _memo, expiration);
+    const data = await Contract.depositWithExpiry(recipient, ERC_20_ADDRESSES[_symbol], amount, memo, expiration);
 
     return Promise.resolve(data);
   } catch (err) {
@@ -506,33 +534,32 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   }
 /**
  * send token in maya chain * CACAO, and synth tokens including sETH, sBTC, ... *
- * @param _amount 
- * @param _from 
- * @param _quoteSwap 
- * @returns 
+ * @param _amount number
+ * @param _from string
+ * @param _recipient string
+ * @param _memo string
+ * @param _asset string MAYA.CACAO, ETH/USDC ...
+ * @returns tx hash
  */
-  const _transferMaya = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
-
-    console.log("---------------- Do cacao transfer -----------------------");
-    const _asset = fromToken?.asset === "MAYA.CACAO" ? "CACAO" : fromToken?.asset;
-    const _decimals = (_asset === "CACAO") ? 10 : 8; // CACAO: 10, SYNTH: 8
-    console.log("decimals -----------------------", _decimals);
+  const _transferMaya = (_amount: number, _from: string, _recipient: string, _memo: string, _asset: string) => new Promise(async (resolve, reject) => {
+    const _tokenAsset = (_asset === "MAYA.CACAO") ? "CACAO" : _asset;
+    const _decimals = (_tokenAsset === "CACAO") ? 10 : 8; // CACAO: 10, SYNTH: 8
     const { asset, from, recipient, amount, memo, gasLimit } = {
       asset: {
         chain: "MAYA",
-        symbol: _asset,
-        ticker: _asset,
+        symbol: _tokenAsset,
+        ticker: _tokenAsset,
       },
       from: _from,
-      recipient: _quoteSwap.inbound_address,
+      recipient: _recipient,
       amount: {
         amount: Math.floor(_amount * 10**_decimals),
         decimals: _decimals
       },
-      memo: _quoteSwap.memo,
+      memo: _memo,
       gasLimit: '10000000', // optional
     };
-    console.log({_from, recipient})
+    console.log("@Do cacao deposit -----------------------", { asset, from, recipient, decimals: _decimals, amount, memo, gasLimit });
     try {
       //@ts-ignore
       await window.xfi.mayachain.request(
@@ -557,8 +584,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
             reject(error);
           } else {
             //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
-            console.log("@xDefi thor transaction ----------------------------->", result);
-            _showTxModal (`https://www.mayascan.org/tx/${result}`);
+            console.log("@xDefi maya transaction ----------------------------->", result);
             resolve(result);
           }
         }
@@ -572,11 +598,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    * send token in thor chain
    * @param _amount 
    * @param _from 
-   * @param _quoteSwap 
-   * @returns 
+   * @param _recipient string
+   * @param _memo string
+   * @param _asset string THOR.RUNE ...
+   * @returns tx hash
    */
-  const _transferTHOR = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
-    console.log("---------------- Do Thor transfer -----------------------");
+  const _transferTHOR = (_amount: number, _from: string, _recipient: string, _memo: string, _asset: string) => new Promise(async (resolve, reject) => {
     const { asset, from, recipient, amount, memo, gasLimit } = {
       asset: {
         chain: "THOR",
@@ -584,16 +611,16 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         ticker: "RUNE",
       },
       from: _from,
-      recipient: _quoteSwap.inbound_address,
+      recipient: _recipient,
       amount: {
         amount: Math.floor(_amount * 10**8),
         decimals: 8
       },
-      memo: _quoteSwap.memo,
+      memo: _memo,
       gasLimit: '10000000', // optional
     };
+    console.log("@Do cacao deposit -----------------------", { asset, from, recipient, decimals: 8, amount, memo, gasLimit });
     try {
-      console.log(from, recipient)
       //@ts-ignore
       await window.xfi.thorchain.request(
         {
@@ -619,7 +646,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           } else {
             //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
             console.log("@xDefi thor transaction ----------------------------->", result);
-            _showTxModal (`https://viewblock.io/thorchain/tx/${result}`);
             resolve(result);
           }
         }
@@ -630,24 +656,26 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
   /**
-   * transfer bitcoin
+   * send token in thor chain
    * @param _amount 
    * @param _from 
-   * @param _quoteSwap 
-   * @returns 
+   * @param _recipient string
+   * @param _memo string
+   * @param _asset string THOR.RUNE ...
+   * @returns tx hash
    */
-  const _transferBTC = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
+  const _transferBTC = (_amount: number, _from: string, _recipient: string, _memo: string, _asset: string) => new Promise(async (resolve, reject) => {
 
-    console.log("---------------- Do btc transfer -----------------------");
     const { from, recipient, amount, memo } = {
       from: _from,
-      recipient: _quoteSwap.inbound_address,
+      recipient: _recipient,
       amount: {
         amount: Math.floor(_amount*10**8),
         decimals: 8
       },
-      memo: _quoteSwap.memo,
+      memo: _memo,
     };
+    console.log("@transfer BTC using xDefi -----------", { from, recipient, amount, memo });
     try {
       //@ts-ignore
       await window.xfi.bitcoin.request(
@@ -671,7 +699,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           } else {
             //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
             console.log("@xDefi btc transaction ----------------------------->", result);
-            _showTxModal (`https://mempool.space/tx/${result}`);
             resolve(result);
           }
         }
@@ -682,27 +709,27 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
   /**
-   * transfer token with KUJI chain
+   * send token in thor chain
    * @param _amount 
    * @param _from 
-   * @param _quoteSwap 
-   * @returns 
+   * @param _recipient string
+   * @param _memo string
+   * @param _asset string THOR.RUNE ...
+   * @returns tx hash
    */
-  const _transferKUJI = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
+  const _transferKUJI = (_amount: number, _from: string, _recipient: string, _memo: string, _asset: string) => new Promise(async (resolve, reject) => {
     try {
-      const TICKERS: Record<string, string> = { //this is for kuji asset
-        "USK": "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk",
-        "KUJI": "ukuji"
+      const DENOMS: Record<string, string> = { //this is for kuji asset
+        "KUJI.USK": "factory/kujira1qk00h5atutpsv900x202pxx42npjr9thg58dnqpa72f2p7m2luase444a7/uusk",
+        "KUJI.KUJI": "ukuji"
       }
       const { from, recipient, memo, denom } = {
         from: _from,
-        recipient: _quoteSwap.inbound_address,
-        memo: _quoteSwap.memo,
-        denom: TICKERS[String(fromToken?.ticker)]
+        recipient: _recipient,
+        memo: _memo,
+        denom: DENOMS[_asset]
       };
-      console.log("------------------ xDefi kuji swap ------------------");
-      console.log({ from, recipient, memo, denom });
-
+      console.log("@transfer KUJI|USK using xDefi -----------", { from, recipient, memo, denom });
       //@ts-ignore
       await keplr.enable("kaiyo-1");
       //@ts-ignore
@@ -730,9 +757,8 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         memo
       );
       //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
-      console.log("@xDefi KUJI transaction ----------------------------->", response);
-      _showTxModal (`https://atomscan.com/kujira/transactions/${response.transactionHash}`);
-      resolve(response);
+      console.log("@xDefi KUJI transaction ----------------------------->", response.transactionHash);
+      resolve(response.transactionHash);
     } catch (err) {
       console.error(`Error sending transaction: ${err}`);
       reject (err)
@@ -740,22 +766,24 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   })
   /**
    * transfer ERC20 token in ethereum mainnet
-   * @param _amount 
-   * @param _from 
-   * @param _quoteSwap 
+   * @param _amount amount to swap
+   * @param _from my address
+   * @param _memo memo for swap
+   * @param _recipient inbound address
    * @returns 
    */
-  const _transferEth = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
+  const _transferEth = (_amount: number, _from: string,  _memo: string, _recipient: string) => new Promise(async (resolve, reject) => {
+  // const _transferEth = (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse) => new Promise(async (resolve, reject) => {
     try {
       //@ts-ignore
       const provider = window.xfi && window.xfi.ethereum && new ethers.providers.Web3Provider(window.xfi.ethereum)
       if (!provider) throw "No ethers provider injected.";
       const signer = provider.getSigner();
       if (fromToken?.ticker === "ETH") {
-        const data = await _sendEther (_amount, _from, _quoteSwap, signer);
+        const data = await _sendEther (_amount, _from, _memo, _recipient, signer);
         resolve(data);
       } else if (fromToken?.ticker === "USDT" || fromToken?.ticker === "USDC" || fromToken?.ticker === "WSTETH") {
-        const data = await _depositERC20Token (_amount, _from, _quoteSwap, signer, fromToken?.ticker as string);
+        const data = await _depositERC20Token (_amount, _from, _memo, _recipient, signer, fromToken?.ticker as string);
         resolve(data);
       }
     } catch (err) {
@@ -782,36 +810,195 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         if (!_inbountAddress) throw "None inbound address";
         if (_inbountAddress.address !== quoteSwap?.inbound_address) throw "Invalid inbound address";
       }
-      console.log(amount, quoteSwap);
+      console.log("@deXdefiswap ---------------------", { amount, quoteSwap });
+      if (!quoteSwap || !fromToken) { 
+        throw "can't find quoteSwap!" 
+      }
+      let result: string = "";
       switch (fromToken?.chain) {
-        case "MAYA":
-          await _transferMaya(amount as number, xBalances["MAYA"].address, quoteSwap as IQuoteSwapResponse);
+        case "MAYA": {
+          result = await _transferMaya(amount as number, xBalances["MAYA"].address, quoteSwap.inbound_address, quoteSwap.memo, fromToken.asset) as string;
           break;
-        case "BTC":
-          await _transferBTC(amount as number, xBalances["BTC"].address, quoteSwap as IQuoteSwapResponse);
+        }
+        case "BTC": {
+          result = await _transferBTC(amount as number, xBalances["BTC"].address, quoteSwap.inbound_address, quoteSwap.memo, fromToken.asset) as string;
           break;
-        case "THOR":
-          await _transferTHOR(amount as number, xBalances["THOR"].address, quoteSwap as IQuoteSwapResponse);
+        }
+        case "THOR": {
+          result = await _transferTHOR(amount as number, xBalances["THOR"].address, quoteSwap.inbound_address, quoteSwap.memo, fromToken.asset) as string;
           break;
-        case "KUJI":
-          await _transferKUJI(amount as number, xBalances["KUJI"].address, quoteSwap as IQuoteSwapResponse);
+        }
+        case "KUJI": {
+          result = await await _transferKUJI(amount as number, xBalances["KUJI"].address, quoteSwap.inbound_address, quoteSwap.memo, fromToken.asset) as string;
           break;
-        case "ETH":
-          const data: any = await _transferEth(amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse);
+        }
+        case "ETH": {
+          const data: any = await _transferEth(amount as number, xBalances["ETH"].address, quoteSwap.memo, quoteSwap.inbound_address);
           console.log("@xDefi transaction ----------------------------->", data);
-          _showTxModal (`https://etherscan.io/tx/${data.hash}`);
-          //0x0d2cec01a1c0b0729ebd044c85c4c2863bd7e70bc39369aaeb272c0357739534
           break;
+        }
       }
       showNotification ("Transaction transfered successfully, It will take for a while", "info");
+      return Promise.resolve(result);
     } catch (err) {
       console.log(err)
       showNotification(String(err), "warning");
+      return Promise.resolve(err);
+    }
+  }
+
+    /**
+   * transfer token using xchainjs
+   * @param asset "ETH.ETH"
+   * @param decimals 18
+   * @param amount 0.1
+   * @param recipient 0x01012050123123....
+   * @param address current asset's address
+   * @param mayaAddress maya12351231
+   * @param mode "sym" | "asym"
+   * @returns { hash, err }[] | undefined
+   */
+  const xDefiAddLiquidity = async({ asset, decimals, amount, recipient, address, mayaAddress, mode }: IParamsAddLiquidity) => {
+  
+    let _data: { err?: string, hash?: string }[] = []; //data for returing...
+
+    let _memo = mode === "sym" ? `+:${asset}:${mayaAddress}` : `+:${asset}`;
+    let _amount = amount;
+    let _recipient = recipient;
+    let _asset = asset;
+
+    try {
+      let hash: string = "";
+      switch (TOKEN_DATA[asset].chain) {
+        case "BTC":
+          const result = await _transferBTC(_amount, xBalances["BTC"].address, _recipient, _memo, _asset);
+          hash = result as string;
+          break;
+        case "THOR": {
+          const result = await _transferTHOR(_amount, xBalances["THOR"].address, _recipient, _memo, _asset);
+          hash = result as string;
+          break;
+        }
+        case "KUJI": {
+          const result = await await _transferKUJI(_amount, xBalances["KUJI"].address, _recipient, _memo, _asset);
+          hash = result as string;
+          break;
+        }
+        case "ETH": {
+          const result: any = await _transferEth(_amount, xBalances["ETH"].address, _recipient, _memo);
+          console.log("@xDefi transaction ----------------------------->", result);
+          hash = result.hash as string;
+          break;
+        }
+      }
+      _data = [..._data, { hash: String(hash) }];
+      showNotification(`${asset} sent successfully.`, "success"); //show first message
+      if (mode === "asym") {
+        return Promise.resolve(_data);
+      };
+    } catch (err) {
+      console.log("@while xDefi addLiquidity ---------------", err);
+      return Promise.reject(err);
+    }
+    //////////////////////////////////// add cacao if symmetric add ////////////////////////////////////
+    const { data }: { data: IPool } = await axios.get(`https://midgard.mayachain.info/v2/pool/${asset}`);
+
+    _asset = "MAYA.CACAO";
+    _amount = Number(data.assetPrice)*Number(amount);
+    _memo = `+:${asset}:${address}`;
+    
+    try {
+      const result = await _transferMaya(_amount, xBalances["MAYA"].address, _recipient, _memo, _asset);
+      const secondHash = result as string;
+      // const secondHash = "asdfasdfasdfsdaf";
+      // const secondURL = await wallet?.getExplorerTxUrl(_asset.chain, String(secondHash)) as string;
+      _data = [..._data, { hash: String(secondHash) }];
+      showNotification(`${_asset} sent successfully.`, "success"); //show second message
+      return Promise.resolve(_data);
+    } catch (err) {
+      console.log("@while cacao deposit ---------------", err);
+      console.log("@add liquidity cacao deposit failed--------------", err);
+      showNotification("Cacao deposit failed, Please try again.", "error");
+      return Promise.resolve([..._data, { err: err }]);
+    }
+  };
+
+  /**
+   * transfer token using xchainjs
+   * @param asset "ETH.ETH"
+   * @param decimals 18
+   * @param amount 0.1
+   * @param recipient 0x01012050123123....
+   * @param address current asset's address
+   * @param mayaAddress maya12351231
+   * @param mode "sym" | "asym"
+   * @returns { hash, url }[] | undefined
+   */
+  const xDefiWithdrawLiquidity = async({ asset, decimals, bps, recipient, address, mayaAddress, mode }: IParamsWithdrawLiquidity) => {
+
+    const _memo = mode === "sym" ? `-:${asset}:${bps}` : `-:${asset}:${bps}:${asset}`;
+    // if (mode === "sym") {
+    let _amount = MINIMUM_AMOUNT['MAYA'];
+    let _recipient = recipient;
+    let _asset = "MAYA.CACAO";
+      
+    console.log("@asym Withdraw LP -------------", {
+      asset: _asset,
+      amount: _amount,
+      memo: _memo,
+      walletIndex: 0
+    });
+    // return Promise.resolve("699F52641E113B8204B1F55C18625854E3ECB48EF7B8B90D9E206DD11695A5DD");
+    if (mode === "sym") {
+      try {
+        const result = await _transferMaya(_amount, mayaAddress, _recipient, _memo, _asset);
+        const secondHash = result as string;
+        console.log("@asym withdraw tx ----------", secondHash);
+        showNotification(`${asset} sent successfully.`, "success"); //show second message
+        return Promise.resolve(result);
+      } catch (err) {
+        console.log("@while cacao deposit ---------------", err);
+        return Promise.reject(err);
+      }
+    } else if (mode === "asym") {
+      try {
+        let hash: string = "";
+        const _chain = TOKEN_DATA[asset].chain;
+        _amount = MINIMUM_AMOUNT[_chain];
+        switch (_chain) {
+          case "BTC":
+            const result = await _transferBTC(_amount, address, _recipient, _memo, asset);
+            hash = result as string;
+            break;
+          case "THOR": {
+            // throw "Too small trasaction will be failed."
+            const result = await _transferTHOR(_amount, address, _recipient, _memo, asset);
+            hash = result as string;
+            break;
+          }
+          case "KUJI": {
+            const result = await await _transferKUJI(_amount, address, _recipient, _memo, asset);
+            hash = result as string;
+            break;
+          }
+          case "ETH": {
+            const result: any = await _transferEth(_amount, address, _recipient, _memo);
+            console.log("@xDefi transaction ----------------------------->", result);
+            hash = result.hash as string;
+            break;
+          }
+        }
+        showNotification(`${asset} sent successfully.`, "success"); //show second message
+        return Promise.resolve(hash);
+      } catch (err) {
+        console.log("@while token withdraw ---------------", err);
+        return Promise.reject(err);
+      }
     }
   }
 
   return (
-    <XDefiContext.Provider value={{ connectToXDefi, getBalancesWithXDefi, doXDefiSwap }}>
+    <XDefiContext.Provider value={{ connectToXDefi, getBalancesWithXDefi, doXDefiSwap, xDefiAddLiquidity, xDefiWithdrawLiquidity }}>
       {children}
     </XDefiContext.Provider>
   )

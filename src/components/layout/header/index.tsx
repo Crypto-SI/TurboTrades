@@ -72,7 +72,8 @@ const Header = () => {
         src={CHAIN_DATA[curBalance?.chain as string] ? CHAIN_DATA[curBalance?.chain as string].image as string : ""}
         width={33}
         height={33}
-        alt={"refresh"}
+        alt={"refresh"} 
+        priority={true}
       />
       <div>
         <div>
@@ -98,7 +99,8 @@ const Header = () => {
               src={CHAIN_DATA[xBalances[key].chain as string].image}
               width={22}
               height={22}
-              alt={"refresh"}
+              alt={"refresh"} 
+              priority={true}
             /> {CHAIN_DATA[xBalances[key].chain as string].name}
           </Dropdown.Item>
         ))
@@ -115,7 +117,8 @@ const Header = () => {
           src={ theme === "dark" ?  '/images/logo-light.png' : "/images/logo-dark.svg" }
           width={100}
           height={20} 
-          alt={"logo"}      
+          alt={"logo"}  
+          priority={true}     
         />
         <div className="flex xs:hidden items-center justify-center cursor-pointer" onClick={handleToggle}>
           <Icon icon="ph:list" className="dark:text-white text-black" height={30}/>

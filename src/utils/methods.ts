@@ -3,7 +3,7 @@
 // const rskUtils = require("@rsksmart/rsk-utils");
 import { ChainType, WalletType } from "@/types/minis";
 import BigNumber from 'bignumber.js';
-import { FEE_URLS } from "./data";
+import { FEE_ESTIMATIONS, FEE_URLS } from "./data";
 import axios from 'axios';
 
 /**
@@ -87,7 +87,7 @@ export const copyToClipboard = async ( text: string ) => {
 }
 /**
  * check if XDefi wallet is installed
- * @returns Boolean
+ * @returns boolean
  */
 export const isXDefiInstalled = () => {
   //@ts-ignore
@@ -132,10 +132,11 @@ export const readDataFromFile = (file: File) => new Promise((resolve, reject) =>
 /**
  * reduce address to shorter
  * @param address "0x29f95970cd0dd72cd7d6163b78693fe845daf796"
+ * @param length length to cut from start and end
  * @returns "0x2...796"
  */
-export const reduceAddress = (address: String = "0x29f95970cd0dd72cd7d6163b78693fe845daf796") => {
-  return address.substring(0, 4) + "..." + address.substr(address.length - 4, 4);
+export const reduceAddress = (address: string = "0x29f95970cd0dd72cd7d6163b78693fe845daf796", length: number = 4) => {
+  return address.substring(0, length) + "..." + address.substr(address.length - length, length);
 }
 /**
  * delay for given time
@@ -164,6 +165,7 @@ export const splitToAsset = (_asset: string) => {
  */
 export const _feeEstimation = async (_chain: string) => {
   try {
+    if (_chain === "MAYA" || _chain === "DASH" || _chain === "BTC") throw _chain;
     const { data } = await axios.get(FEE_URLS[_chain].url);
     const outbound: number = data.fees.outbound;
     return outbound / 10**FEE_URLS[_chain].decimals;
@@ -171,11 +173,16 @@ export const _feeEstimation = async (_chain: string) => {
     return FEE_ESTIMATIONS[_chain];
   }
 }
-  /**
-   * reduce hash for beautify...
-   * @param hash 
-   * @returns 
-   */
-  export const _reduceHash = (hash: string) => {
-    return hash.substr(0, 10) + "......" + hash.substring(hash.length-12, hash.length-1)
+/**
+ * reduce hash for beautify...
+ * @param hash 
+ * @returns 
+ */
+export const _reduceHash = (hash: string = "") => {
+  if (hash === "") {
+    return hash;
+  } else {
+    return hash.substr(0, 30) + "......" + hash.substring(hash.length-12, hash.length-1)
   }
+}
+

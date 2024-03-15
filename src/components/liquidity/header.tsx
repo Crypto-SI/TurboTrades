@@ -10,9 +10,12 @@ import {
   tokenPricesAtom
 } from '@/store/swap';
 //types
-import { IPool } from '@/types/maya';
+import { IPool, IMemberPool } from '@/types/maya';
 //data
 import { TOKEN_DATA } from '@/utils/data';
+//router
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { reduceAddress, reduceAmount } from '@/utils/methods';
 
 interface IProps {
   fetchLPsInfo: () => Promise<void>,
@@ -20,28 +23,26 @@ interface IProps {
 }
 
 const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
+  //router
+  const router = useRouter ();
+  const pathname = usePathname ();
+  const searchParams = useSearchParams (); // liquidity/add/ETH.ETH
+  const asset = searchParams.get("asset");
   //atoms
   const [pools, ] = useAtom(mainPoolsAtom);
   const [tokenPrices, ] = useAtom(tokenPricesAtom);
   //state
   const [selectedPool, setSelectedPool] = React.useState<IPool | undefined>();
-
-  /**
-   * After fetching pools, set SelectedPool as first pool
-   */
-  React.useEffect(() => {
-    if (pools.length > 0) {
-      setSelectedPool(pools[0]);
-    }
-  }, [pools]);
   /**
    * fetch Liquidity providers information and my Liqudity
    */
   const refresh = () => {
     fetchLPsInfo ();
   }
-  
-
+  /**
+   * render DropDown Item
+   * @returns React.ReactNode
+   */
   const _renderDropdownCollapse = () => (
     <div className='flex gap-2 grow-0'>
       <div className='text-lg'>
@@ -52,6 +53,25 @@ const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
       </div>
     </div>
   )
+  /**
+   * when the url's asset is changed...
+   */
+  React.useEffect(() => {
+    if (pools.length > 0) {
+      if (asset) {
+        setSelectedPool(pools.find((_pool:IPool) => _pool.asset === asset));
+      } else {
+        setSelectedPool(pools[0]);
+      }
+    }
+  }, [asset, pools]);
+  /**
+   * when use change the pool
+   * @param _asset 
+   */
+  const handleChangePool = (_asset: string) => {
+    router.push(`${pathname}?asset=${_asset}`);
+  }
   /**
    * render Pool Liquidity item
    * @returns ReactNode
@@ -71,7 +91,10 @@ const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
             </div>
             <div className='text-xs text-[#6978A0] dark:text-[#8D98AF]'>{Number(selectedPool?.annualPercentageRate) > 0 && '+'}{selectedPool && Number(Number(selectedPool.annualPercentageRate)*100).toFixed(2)}%</div>
           </div>
-        <div className='text-md pt-1 dark:text-white text-[#8A8D92] text-wrap'>{selectedPool && (Number(selectedPool.assetDepth) / 10**8).toFixed(4)} {selectedPool?.ticker}</div>
+          <div className='text-md pt-1 dark:text-white text-[#8A8D92] text-wrap flex gap-1 items-center'>
+            <span className='text-[#22C55E] '>{selectedPool && (Number(selectedPool.assetDepth) / 10**8).toFixed(4)}</span> 
+            <span className='text-sm'>{selectedPool?.ticker}</span>
+          </div>
         <div className='text-sm dark:text-[#8D98AF] text-[#6978A0]'>{selectedPool && (Number(selectedPool.assetDepth) * Number(selectedPool.assetPriceUSD) / 10**8).toFixed(4)} USDT</div>
       </div>
     </div>
@@ -80,26 +103,37 @@ const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
    * render MyLiqudity Component
    * @returns ReactNode
    */
-  const _renderMyLiquidity = () => (
-    <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0023] via-[#6d78b22d] to-[#e02d6f31]">
-      <div className="rounded-2xl dark:bg-[#020202] bg-[#F3F7FC] dark:text-white h-full p-4">
-        <div className='flex justify-between'>
-          <div className='flex gap-1 items-center text-lg dark:text-[#BCBCBC] text-black'>
-            <div className='p-1 rounded-full bg-[#2771f027]'>
-              {
-                selectedPool && 
-                <Icon icon="uil:chart-down" width="1rem" height="1rem" className={Number(selectedPool.annualPercentageRate) > 0 ? 'text-[#22C55E]' : 'text-[#F15B5B]'} vFlip={Number(selectedPool.annualPercentageRate) > 0}/>
-              }
+  const _renderMyLiquidity = () => {
+
+    const _symPool = selectedPool?.member.find((_pool: IMemberPool) => Number(_pool.runeAdded) !== 0);
+    const _asymPool = selectedPool?.member.find((_pool: IMemberPool) => Number(_pool.runeAdded) === 0);
+
+    return (
+      <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0023] via-[#6d78b22d] to-[#e02d6f31]">
+        <div className="rounded-2xl dark:bg-[#020202] bg-[#F3F7FC] dark:text-white h-full p-4">
+          <div className='flex justify-between'>
+            <div className='flex gap-1 items-center text-lg dark:text-[#BCBCBC] text-black'>
+              <div className='p-1 rounded-full bg-[#2771f027]'>
+                {
+                  selectedPool && 
+                  <Icon icon="uil:chart-down" width="1rem" height="1rem" className={Number(selectedPool.annualPercentageRate) > 0 ? 'text-[#22C55E]' : 'text-[#F15B5B]'} vFlip={Number(selectedPool.annualPercentageRate) > 0}/>
+                }
+              </div>
+              My Liquidity
             </div>
-            My Liquidity
+            <div className='text-xs text-[#6978A0] dark:text-[#8D98AF]'>{Number(selectedPool?.annualPercentageRate) > 0 && '+'}{selectedPool && Number(Number(selectedPool.annualPercentageRate)*100).toFixed(2)}%</div>
           </div>
-          <div className='text-xs text-[#6978A0] dark:text-[#8D98AF]'>{Number(selectedPool?.annualPercentageRate) > 0 && '+'}{selectedPool && Number(Number(selectedPool.annualPercentageRate)*100).toFixed(2)}%</div>
+          <div className='text-md pt-1 dark:text-white text-[#8A8D92] text-wrap'>
+            { _symPool && <><span className='text-[#22C55E]'>{ reduceAmount((Number(_symPool.assetAdded) - Number(_symPool.assetWithdrawn))/10**8) }</span> <span className='text-sm'>{ selectedPool?.ticker }</span> / <span className='text-[#22C55E]'>{ reduceAmount((Number(_symPool.runeAdded) - Number(_symPool.runeWithdrawn))/10**10) }</span> <span className='text-sm'>CACAO</span></> }
+          </div>
+          <div className='text-md dark:text-white text-[#8A8D92] text-wrap'>
+            { _asymPool && <><span className='text-[#22C55E]'>{ reduceAmount((Number(_asymPool.assetAdded) - Number(_asymPool.assetWithdrawn))/10**8) }</span> <span className='text-sm'>{ selectedPool?.ticker }</span> / <span className='text-[#22C55E]'>0</span> <span className='text-sm'>CACAO</span></> }
+          </div>
+          {/* <div className='text-sm dark:text-[#8D98AF] text-[#6978A0]'>{selectedPool ? (assetDeposit * Number(selectedPool.assetPriceUSD) / 10**8).toFixed(4) : 0} USDT</div> */}
         </div>
-        <div className='text-md pt-1 dark:text-white text-[#8A8D92] text-wrap'>{selectedPool?.me ? (Number(selectedPool.me.asset_deposit_value) / 10**8).toFixed(4) : 0} {selectedPool?.ticker}</div>
-        <div className='text-sm dark:text-[#8D98AF] text-[#6978A0]'>{selectedPool?.me ? (Number(selectedPool.me.asset_deposit_value) * Number(selectedPool.assetPriceUSD) / 10**8).toFixed(4) : 0} USDT</div>
       </div>
-    </div>
-  )
+    )
+  }
   /**
    * render 24h Liquidity
    * @returns ReactNode
@@ -112,11 +146,14 @@ const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
             <div className='p-1 rounded-full bg-[#2771f027]'>
               <Icon icon="mage:chart-up-fill" width="1rem" height="1rem"  className='text-[#2772F0]'/>
             </div>
-            24h Liquidity
+            24h Volume
           </div>
           <div className='text-xs text-[#6978A0] dark:text-[#8D98AF]'>{Number(selectedPool?.annualPercentageRate) > 0 && '+'}{selectedPool && Number(Number(selectedPool.annualPercentageRate)*100).toFixed(2)}%</div>
         </div>
-        <div className='text-md pt-1 dark:text-white text-[#8A8D92] text-wrap'>{selectedPool && (Number(selectedPool.volume24h) / Number(selectedPool.assetPrice) / 10**10).toFixed(4)} {selectedPool?.ticker}</div>
+        <div className='text-md pt-1 dark:text-white text-[#8A8D92] text-wrap flex gap-1 items-center'>
+          <span className='text-[#22C55E] '>{selectedPool && (Number(selectedPool.volume24h) / Number(selectedPool.assetPrice) / 10**10).toFixed(4)}</span> 
+          <span className='text-sm'>{selectedPool?.ticker}</span>
+        </div>
         <div className='text-sm dark:text-[#8D98AF] text-[#6978A0]'>{selectedPool && (Number(selectedPool.assetPriceUSD) * Number(selectedPool.volume24h) / Number(selectedPool.assetPrice) / 10**10).toFixed(4)} USDT</div>
       </div>
     </div>
@@ -124,20 +161,21 @@ const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
 
   return (
     <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full grow">
-      <div className="rounded-2xl px-5 py-6 bg-white dark:bg-[#0B0F16] dark:text-white flex flex-col lg:flex-row gap-3 lg:items-center relative">
+      <div className="rounded-2xl px-5 py-3 bg-white dark:bg-[#0B0F16] dark:text-white flex flex-col lg:flex-row gap-3 lg:items-center relative">
         <div>
           <Dropdown label=""  renderTrigger={_renderDropdownCollapse}>
             <Dropdown.Item>Liquidity Pools</Dropdown.Item>
             <Dropdown.Divider />
             {
               pools.map((_pool: IPool) => 
-              <Dropdown.Item key={_pool.asset} onClick={() => setSelectedPool(_pool)} className='flex gap-2'>
+              <Dropdown.Item key={_pool.asset} onClick={() => handleChangePool(_pool.asset as string)} className='flex gap-2'>
                 <Image
                   src={ _pool.image as string }
                   width={25}
                   height={20}
                   alt={"sun"}      
-                  className='rounded-full'
+                  className='rounded-full' 
+                  priority={true}
                 />
                 <span>{_pool.ticker}</span>
                 <span>/</span>
@@ -145,16 +183,17 @@ const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
                   src="/images/tokens/cacao.png"
                   width={25}
                   height={20}
-                  alt={"cacao"}      
+                  alt={"cacao"}
+                  priority={true}      
                 />
                 <span>CACAO</span>
               </Dropdown.Item>)
             }
           </Dropdown>
           <div className='text-md text-[#22C55E]'>
-            0.000010394
+            { reduceAmount (Number(selectedPool?.assetDepth)/10**8) }
           </div>
-          <div className='text-sm'>$0.479249</div>
+          <div className='text-sm'>$ { reduceAmount (Number(selectedPool?.assetDepth)*Number(selectedPool?.assetPriceUSD)/10**8) }</div>
         </div>
         <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-3 grow">
         { _renderPoolLiquidity() }

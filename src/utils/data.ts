@@ -23,6 +23,7 @@ export const InitialwalletList: WalletType[] = [
     name: "Metamask",
     image: "/images/wallets/metamask.svg",
     supportedChains: ["ETH"],
+    // supportedChains: ["ETH"],
     focused: false,
     selected: false
   },
@@ -35,6 +36,18 @@ export const InitialwalletList: WalletType[] = [
   },
   { name: "Create Keystore", image: "mdi:key-add" },
   { name: "Import Phrase", image: "clarity:import-solid-badged" },
+  // { 
+  //   name: "Coinbase", 
+  //   image: "/images/wallets/coinbase.svg",
+  //   supportedChains: ["BTC", "LTC", "BCH", "DOGE", "ETH", "AVAX", "BSC", "BNB", "GAIA", "THOR"]
+  // },
+  // { 
+  //   name: "WalletConnect", 
+  //   image: "/images/wallets/walletconnect.svg",
+  //   supportedChains: ["ETH", "AVAX", "BSC"],
+  //   focused: false,
+  //   selected: false
+  // },
 ]
 /**
  * chain data
@@ -45,49 +58,56 @@ export const TOKEN_DATA: Record<string, any> = {
     chain: "MAYA",
     name: "Maya chain",
     decimals: 10,
-    image: "/images/tokens/cacao.png"
+    image: "/images/tokens/cacao.png",
+    explorer: "https://www.mayascan.org"
   },
   "BTC.BTC": {
     ticker: "BTC",
     chain: "BTC",
     name: "Bitcoin",
     decimals: 8,
-    image: "/images/tokens/btc.webp"
+    image: "/images/tokens/btc.webp",
+    explorer: "https://btcscan.org"
   },
   "ETH.ETH": {
     ticker: "ETH",
     chain: "ETH",
     name: "Ethereum",
     decimals: 18,
-    image: "/images/tokens/eth.png"
+    image: "/images/tokens/eth.png",
+    explorer: "https://etherscan.io"
   },
   "KUJI.KUJI": {
     ticker: "KUJI",
     chain: "KUJI",
     name: "Kuji chain",
     decimals: 6,
-    image: "/images/tokens/kuji.png"
+    image: "/images/tokens/kuji.png",
+    explorer: "https://finder.kujira.network/kaiyo-1"
   },
   "DASH.DASH": {
     ticker: "DASH",
     chain: "DASH",
     name: "Dash chain",
     decimals: 8,
-    image: "/images/tokens/dash.png"
+    image: "/images/tokens/dash.png",
+    explorer: "https://explorer.dash.org/insight/"
   },
   "THOR.RUNE": {
     ticker: "RUNE",
     chain: "THOR",
     name: "Thorchain",
     decimals: 8,
-    image: "/images/tokens/rune.png"
+    image: "/images/tokens/rune.png",
+    explorer: "https://viewblock.io/thorchain"
   },
   "ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7": {
     ticker: "USDT",
     chain: "ETH",
     decimals: 6,
     name: "Ethereum",
-    image: "/images/tokens/usdt.png"
+    image: "/images/tokens/usdt.png",
+    explorer: "https://etherscan.io"
   },
   "ETH.USDT": {
     ticker: "USDT",
@@ -101,119 +121,136 @@ export const TOKEN_DATA: Record<string, any> = {
     chain: "ETH",
     name: "Ethereum",
     decimals: 6,
-    image: "/images/tokens/usdc.png"
+    image: "/images/tokens/usdc.png",
+    explorer: "https://etherscan.io"
   },
   "ETH.USDC": {
     ticker: "USDC",
     chain: "ETH",
     name: "Ethereum",
     decimals: 6,
-    image: "/images/tokens/usdc.png"
+    image: "/images/tokens/usdc.png",
+    explorer: "https://etherscan.io"
   },
   "ETH.WSTETH-0X7F39C581F595B53C5CB19BD0B3F8DA6C935E2CA0": {
     ticker: "WSTETH",
     chain: "ETH",
     name: "Ethereum",
     decimals: 18,
-    image: "/images/tokens/wsteth.png"
+    image: "/images/tokens/wsteth.png",
+    explorer: "https://etherscan.io"
   },
   "ETH.WSTETH": {
     ticker: "WSTETH",
     chain: "ETH",
     name: "Ethereum",
     decimals: 18,
-    image: "/images/tokens/wsteth.png"
+    image: "/images/tokens/wsteth.png",
+    explorer: "https://etherscan.io"
   },
   "KUJI.USK": {
     ticker: "USK",
     chain: "KUJI",
     name: "KUJI chain",
     decimals: 6,
-    image: "/images/tokens/usk.png"
+    image: "/images/tokens/usk.png",
+    explorer: "https://finder.kujira.network/kaiyo-1"
   },
   "BTC/BTC": {
     ticker: "sBTC",
     chain: "MAYA",
     name: "Bitcoin",
     decimals: 8,
-    image: "/images/tokens/btc.webp"
+    image: "/images/tokens/btc.webp",
+    explorer: "https://www.mayascan.org"
   },
   "ETH/ETH": {
     ticker: "sETH",
     chain: "MAYA",
     decimals: 18,
     name: "Ethereum",
-    image: "/images/tokens/eth.png"
+    image: "/images/tokens/eth.png",
+    explorer: "https://www.mayascan.org"
   },
   "KUJI/KUJI": {
     ticker: "sKUJI",
     chain: "MAYA",
     decimals: 8,
     name: "Kuji chain",
-    image: "/images/tokens/kuji.png"
+    image: "/images/tokens/kuji.png",
+    explorer: "https://www.mayascan.org"
   },
   "DASH/DASH": {
     ticker: "sDASH",
     chain: "MAYA",
     name: "Dash chain",
     decimals: 8,
-    image: "/images/tokens/dash.png"
+    image: "/images/tokens/dash.png",
+    explorer: "https://www.mayascan.org"
   },
   "THOR/RUNE": {
     ticker: "sRUNE",
     chain: "MAYA",
     name: "Thorchain",
     decimals: 8,
-    image: "/images/tokens/rune.png"
+    image: "/images/tokens/rune.png",
+    explorer: "https://www.mayascan.org"
   },
   "ETH/USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7": {
     ticker: "sUSDT",
     chain: "MAYA",
     name: "Ethereum",
     decimals: 6,
-    image: "/images/tokens/usdt.png"
+    image: "/images/tokens/usdt.png",
+    explorer: "https://www.mayascan.org"
   },
   "ETH/USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48": {
     ticker: "sUSDC",
     chain: "MAYA",
     decimals: 6,
     name: "Ethereum",
-    image: "/images/tokens/usdc.png"
+    image: "/images/tokens/usdc.png",
+    explorer: "https://www.mayascan.org"
   },
   "ETH/WSTETH-0X7F39C581F595B53C5CB19BD0B3F8DA6C935E2CA0": {
     ticker: "sWSTETH",
     chain: "MAYA",
     decimals: 18,
     name: "Ethereum",
-    image: "/images/tokens/wsteth.png"
+    image: "/images/tokens/wsteth.png",
+    explorer: "https://www.mayascan.org"
   },
   "KUJI/USK": {
     ticker: "sUSK",
     chain: "MAYA",
     name: "KUJI chain",
     decimals: 8,
-    image: "/images/tokens/usk.png"
+    image: "/images/tokens/usk.png",
+    explorer: "https://www.mayascan.org"
   },
   "ETH/USDT": {
     ticker: "sUSDT",
     chain: "MAYA",
     name: "Ethereum",
     decimals: 18,
-    image: "/images/tokens/usdt.png"
+    image: "/images/tokens/usdt.png",
+    explorer: "https://www.mayascan.org"
   },
   "ETH/USDC": {
     ticker: "sUSDC",
     chain: "MAYA",
     name: "Ethereum",
     decimals: 6,
-    image: "/images/tokens/usdc.png"
+    image: "/images/tokens/usdc.png",
+    explorer: "https://www.mayascan.org"
   },
   "ETH/WSTETH": {
     ticker: "sWSTETH",
     chain: "MAYA",
     name: "Ethereum",
     decimals: 18,
-    image: "/images/tokens/wsteth.png"
+    image: "/images/tokens/wsteth.png",
+    explorer: "https://www.mayascan.org"
   },
 }
 /**
@@ -297,6 +334,57 @@ export const InitialchainList: ChainType[] = [
     selected: false,
     focused: false
   },
+  // { 
+  //   label: "LTC", 
+  //   name: "Litecoin", 
+  //   image: "/images/chains/ltc.webp", 
+  //   selected: false,
+  //   focused: false 
+
+  // },
+  // { 
+  //   label: "BCH", 
+  //   name: "Bitcoin Cash", 
+  //   image: "/images/chains/bch.webp", selected: false,
+  //   focused: false 
+  // },
+  // { 
+  //   label: "DOGE", 
+  //   name: "Degecoin", 
+  //   image: "/images/chains/doge.webp", 
+  //   selected: false,
+  //   focused: false 
+  // }, 
+  // { 
+  //   label: "AVAX", 
+  //   name: "Avalanche", 
+  //   image: "/images/chains/avax.webp", 
+  //   selected: false,
+  //   focused: false 
+  //  },
+  // { 
+  //   label: "BSC", 
+  //   name: "BNB Smart Chain", 
+  //   image: "/images/chains/bsc.webp", 
+  //   selected: false,
+  //   focused: false 
+  //  },
+  // { 
+  //   label: "BNB", 
+  //   name: "BNB Beacon Chain", 
+  //   image: "/images/chains/bnb.webp", 
+  //   selected: false,
+  //   focused: false 
+  // },
+  // { 
+  //   label: "GAIA", 
+  //   name: "Cosmos chain", 
+  //   image: "/images/chains/cosmos.webp", 
+  //   selected: false,
+  //   focused: false 
+  //  },
+  // { 
+
 ]
 /**
  * get chain name by token
@@ -340,6 +428,15 @@ export const DUST_THRESHOLDS = {
   "BTC": 0.0001,
   "DASH": 0.0001
 }
+//fee estimations
+export const FEE_ESTIMATIONS: Record<string, number> = {
+  "MAYA": 0.5,
+  "BTC": 0.0001,
+  "ETH": 0.005,//0.003
+  "KUJI": 0.0005,
+  "DASH": 0.0002,
+  "THOR": 0.05, //0.02
+}
 //fee estimations urls and decimals
 export const FEE_URLS: Record<string, { url: string, decimals: number }> = {
   "ETH": { url: "https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=BTC.BTC&to_asset=ETH.ETH&amount=100000000", decimals: 8 },
@@ -348,4 +445,40 @@ export const FEE_URLS: Record<string, { url: string, decimals: number }> = {
   "THOR": { url: "https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=ETH.ETH&to_asset=THOR.RUNE&amount=100000000", decimals: 8 },
   "KUJI": { url: "https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=ETH.ETH&to_asset=KUJI.KUJI&amount=100000000", decimals: 8 },
   "DASH": { url: "https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=ETH.ETH&to_asset=DASH.DASH&amount=100000000", decimals: 8 }
+}
+
+//liquidity sort conditions
+export const LIQUIDITY_SORT_CONDS: { label: string, condition: string }[] = [
+  { label: "Highest Liquidity", condition: "" },
+  { label: "Lowest Liquidity", condition: "" },
+  { label: "Alphabetical", condition: "" },
+  { label: "Highest Price", condition: "" },
+  { label: "Lowest Price", condition: "" },
+  { label: "Highest APR", condition: "" },
+  { label: "Lowest APR", condition: "" },
+  // { label: "Highest Trade Volume", condition: "" },
+  // { label: "Lowest Trade Volume", condition: "" },
+]
+//sub liquidity links
+export const SUB_LINKS = [
+  {label: 'Liquidity Details', url: '/liquidity/trade'},
+  {label: 'Add Liquidity', url: '/liquidity/add'},
+  {label: 'Remove Liquidity', url: '/liquidity/remove'}
+]
+//token chart conditions
+export const TOKEN_CHART_CONDS = [
+  {label: '1 hour', url: ''},
+  {label: '24 hours', url: ''},
+  {label: '1 week', url: ''},
+  {label: '1 month', url: ''},
+  {label: '1 year', url: ''}
+]
+//minium amount
+export const MINIMUM_AMOUNT: Record<string, number> = {
+  "MAYA": 0.0000000001,
+  "BTC": 0.00010001,
+  "ETH": 0.00000001,
+  "THOR": 0.00000001,
+  "DASH": 0.00010001,
+  "KUJI": 0.000001,
 }

@@ -30,10 +30,10 @@ body {
   width: 8px;
 }
 .dark ::-webkit-scrollbar-track {
-  background-color: #00000000;
+  background-color: #e9e0e0;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background-color: #0000005e;
+  background-color: #473a3a75;
   border-radius: 4px;
 }
 
@@ -88,5 +88,9 @@ body {
   }
 }
 .spin {
-  animation: spin 0.7s linear infinite;
+  animation: spin 1s linear infinite;
+}
+.apexcharts-gridline {
+  /* stroke-dasharray: 10!important; */
+  opacity: 0.05;
 }

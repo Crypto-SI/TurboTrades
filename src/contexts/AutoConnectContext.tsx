@@ -43,7 +43,9 @@ const AutoConnectProvider = ({children}: {children: React.ReactNode}) => {
   const [, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
   const [, setIsConnecting] = useAtom(isConnectingAtom);
   const [, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
-
+  /**
+   * disconnect current wallet when user click disconnect button
+   */
   const disconnectWallet = () => {
     deactivate();
     setXBalances({});

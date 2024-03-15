@@ -35,6 +35,7 @@ import { useRouter } from 'next/navigation'
 //trxModal
 import TransactionModal from "@/components/swap/transactionModal";
 //components
+import ProgressModal from '@/components/swap/progressModal/index';
 const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
 
 const Swap = () => {
@@ -66,9 +67,12 @@ const Swap = () => {
   const router = useRouter();
   //is swaping ..
   const [isSwaping, setIsSwaping] = React.useState<boolean>(false);
-  //confirm Moda show
+  //confirm Modal show
   const [showConfirmModal, setShowConfirmModal] = React.useState<boolean>(false);
-
+  //progress Modal show
+  const [showProgressModal, setShowProgressModal] = React.useState<boolean>(false);
+  //hash
+   const [hash, setHash] = React.useState<string>("https://sepolia.etherscan.io/tx/0xc1b6a7ef202cd6d8ac59968df9b930b4b2fc8acd7bfc837a25f68181ff01fb7a");
   /**
    * get Pools from Mayachain and store pool information
    */
@@ -78,14 +82,32 @@ const Swap = () => {
         const _prices: Record<string, string> = {};
         const _cacao = await axios.get("https://midgard.mayachain.info/v2/stats");
         const cacao: IPool = {
-          assetPriceUSD: _cacao.data.cacaoPriceUSD,
+          annualPercentageRate: "",
           asset: "MAYA.CACAO",
+          assetDepth: "",
+          assetPrice: "",
+          assetPriceUSD: _cacao.data.cacaoPriceUSD,
+          liquidityUnits: "",
+          nativeDecimal: "10",
+          poolAPY: "",
+          runeDepth: "",
+          saversAPR: "",
+          saversDepth: "",
+          saversUnits: "",
+          status: "",
+          synthSupply: "",
+          synthUnits: "",
+          totalCollateral: "",
+          totalDebtTor: "",
+          units: "",
+          volume24h: "",
+
           token: "CACAO",
           chain: "MAYA",
           name: "MAYA chain",
           ticker: "CACAO",
           image: TOKEN_DATA["MAYA.CACAO"].image,
-          nativeDecimal: "10"
+          member: []
         }
         _prices["MAYA.CACAO"] =  _cacao.data.cacaoPriceUSD; //cacao token price with USD
 
@@ -101,7 +123,8 @@ const Swap = () => {
             image: TOKEN_DATA[asset].image,
             ticker: TOKEN_DATA[asset].ticker,
             name: TOKEN_DATA[asset].name,
-            asset: asset
+            asset: asset,
+            member: []
           }
         });
         const _synPools: IPool[] = data.map((item: any) => {
@@ -115,7 +138,8 @@ const Swap = () => {
             ticker: "s" + TOKEN_DATA[asset].ticker,
             name: TOKEN_DATA[asset].name,
             asset: asset.replace(".", "/"),
-            synth: true
+            synth: true,
+            member: []
           }
         });
         setTokenPrices(_prices);
@@ -255,12 +279,12 @@ const Swap = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromAmount, fromToken, toToken]);
   /**
-   * when cross button is clicked
+   * when cross button is clicked, exchange the target and destination...
    */
   const handleExchange = () => {
-    const temp: IPool = { ...fromToken };
-    setFromToken ({ ...toToken });
-    setToToken ({ ...temp });
+    const temp: IPool | undefined = fromToken;
+    setFromToken (toToken);
+    setToToken (temp);
     setFromAmount(toAmount);
   }
   /**
@@ -373,7 +397,19 @@ const Swap = () => {
             onCancel={() => setShowConfirmModal(false)}
           /> 
         }
+        {
+          showProgressModal && fromToken && toToken &&
+          <ProgressModal
+            setVisible={setShowProgressModal}
+            fromToken={fromToken}
+            toToken={toToken}
+            fromAmount={fromAmount}
+            toAmount={toAmount}
+            hash={hash}
+          />
+        }
         <TransactionModal />
+        <button onClick={() => setShowProgressModal(true)} >asdf</button>
         <div className="rounded-2xl p-4 bg-white dark:bg-[#0A0C0F] text-[#8A8D92] dark:text-white">
           <div className="flex text-sm flex-wrap justify-between">
             {
@@ -397,7 +433,8 @@ const Swap = () => {
                     src={fromToken.image + ""}
                     width={50}
                     height={50}
-                    alt={"sun"}      
+                    alt={"sun"}
+                    priority={true}      
                     className='rounded-full'
                   />
                   { fromToken.ticker }
@@ -439,7 +476,8 @@ const Swap = () => {
                     src={ toToken.image + "" }
                     width={50}
                     height={50}
-                    alt={"sun"}      
+                    alt={"sun"}   
+                    priority={true}      
                     className='rounded-full'
                   />
                   { toToken.ticker }
@@ -474,7 +512,8 @@ const Swap = () => {
                   src={fromToken ? String(fromToken.image) : "/images/tokens/btc.webp"}
                   width={24}
                   height={24}
-                  alt={"fromToken"}      
+                  alt={"fromToken"}
+                  priority={true}         
                   className="rounded-full"
                 />
                 <span className="dark:text-[#6978A0]">{fromToken?.ticker}</span>
@@ -485,6 +524,7 @@ const Swap = () => {
                   src={toToken ? String(toToken.image) : "/images/tokens/btc.webp"}
                   width={24}
                   height={24}
+                  priority={true}   
                   alt={"toToken"}      
                   className="rounded-full"
                 />

@@ -18,7 +18,13 @@ const config: Config = {
       screens: {
         "xs": "450px",
         "xxs": "400px",
-        "mmd": "920px"
+        "mmd": "920px",
+        //card responsive
+        "mw1200": "1200px",
+        "card-xl": "1370px",
+        "card-lg": "1125px",
+        "card-md": "868px",      
+        "card-sm": "500px"
       }
     },
   },

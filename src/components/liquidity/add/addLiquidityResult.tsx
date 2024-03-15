@@ -8,16 +8,22 @@ import { fromTokenAtom, tokenPricesAtom } from '@/store';
 //utils methods
 import { reduceAmount, _reduceHash } from '@/utils/methods';
 
+type tx = { 
+  hash?:string, 
+  url?:string, 
+  err?: string 
+}
+
 interface IProps {
   onOK: () => void,
   pool: IPool,
   mode: string,
   amount: string,
-  tnxUrl: string
+  txResult: tx[]
 }
 
-// const Confirm = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
-const Confirm = ({ onOK, pool, mode, amount, tnxUrl }: IProps) => {
+// const Result = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
+const Result = ({ onOK, pool, mode, amount, txResult }: IProps) => {
 
   /**
    * open new window for observing transaction...
@@ -43,8 +49,8 @@ const Confirm = ({ onOK, pool, mode, amount, tnxUrl }: IProps) => {
                 width={35}
                 height={35}
                 alt={"sun"}      
-                priority={true}
                 className='rounded-full'
+                priority={true}   
               />
               <span>{ pool?.ticker }</span>
             </div>
@@ -54,21 +60,24 @@ const Confirm = ({ onOK, pool, mode, amount, tnxUrl }: IProps) => {
                 src={"/images/tokens/cacao.png"}
                 width={35}
                 height={35}
-                alt={"sun"}    
-                priority={true}  
+                alt={"sun"}      
                 className='rounded-full'
+                priority={true}   
               />
               <span>CACAO</span>
             </div>
             <div className='text-sm'>( { mode === "sym" ? "symmetric": "asymmetric" } )</div>
           </div>
 
-          <div className='px-2 cursor-pointer text-sm underline'>
-            { _reduceHash(tnxUrl) }
+          <div onClick={() => _gotoHash (txResult[0]?.url as string)}  className='px-2 cursor-pointer text-sm underline mt-3'>
+            { _reduceHash(txResult[0]?.url as string) }
           </div>
-          <div>Will take for a while.</div>
+          <div onClick={() => _gotoHash (txResult[1]?.url as string)}   className='px-2 cursor-pointer text-sm underline mt-3'>
+            { txResult.length > 1 && _reduceHash(txResult[1]?.url as string) }
           </div>
-          <div className='text-left w-full mt-6 flex justify-between gap-1 flex-col xs:gap-3 xs:flex-row'>
+          <div className='px-2 mt-3'>Will take for a while.</div>
+          </div>
+          <div className='text-left w-full flex justify-between gap-1 flex-col xs:gap-3 xs:flex-row'>
             <div className='text-left w-full mt-6 flex justify-between gap-1 flex-col xs:gap-3 xs:flex-row'>
               <button
                 className="flex gap-1 justify-center items-center border dark:border-[#54575a] m-auto mt-1 text-[#6A84A0] hover:text-black hover:dark:text-white  text-sm rounded-2xl w-full px-4 py-2 bg-transparent cursor-pointer" 
@@ -91,4 +100,4 @@ const Confirm = ({ onOK, pool, mode, amount, tnxUrl }: IProps) => {
   )
 }
 
-export default Confirm;
+export default Result;

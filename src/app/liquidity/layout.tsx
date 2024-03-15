@@ -13,7 +13,7 @@ import {
   TOKEN_DATA
 } from "@/utils/data";
 //types
-import { IPool, ILP } from '@/types/maya';
+import { IPool, ILP, IMemberPool, IDepthPriceHistory } from '@/types/maya';
 //hooks
 import { useAtom } from 'jotai';
 
@@ -36,40 +36,40 @@ const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: Re
       setIsFetching (true);
       const _prices: Record<string, string> = {};
       const _cacao = await axios.get("https://midgard.mayachain.info/v2/stats");
-      const _address: string = xBalances["MAYA"]?.address;
-      // const cacao: IPool = {
-      //   assetPriceUSD: _cacao.data.cacaoPriceUSD,
-      //   asset: "MAYA.CACAO",
-      //   token: "CACAO",
-      //   chain: "MAYA",
-      //   name: "MAYA chain",
-      //   ticker: "CACAO",
-      //   image: TOKEN_DATA["MAYA.CACAO"].image,
-      //   nativeDecimal: "10"
-      // }
+      const _mayaAddress: string = xBalances["MAYA"]?.address;
       _prices["MAYA.CACAO"] =  _cacao.data.cacaoPriceUSD; //cacao token price with USD
       const { data } = await axios.get("https://midgard.mayachain.info/v2/pools");
       const _pools: IPool[] = await Promise.all(data.map(async(item: any) => {
+        
         const { asset } = item;
         _prices[asset] =  item.assetPriceUSD; //token price with USD
-        try {
-          if (_address) {
-            const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/pool/${asset}/liquidity_provider/${_address}`).catch(err => { throw undefined });
-            throw data;
-          } 
-          throw undefined;
-        } catch (result: any) {
-          return { 
-            ...item,
-            token: TOKEN_DATA[asset].ticker,
-            chain: TOKEN_DATA[asset].chain,
-            image: TOKEN_DATA[asset].image,
-            ticker: TOKEN_DATA[asset].ticker,
-            name: TOKEN_DATA[asset].name,
-            asset: asset,
-            me: result
-          }
+        const _address = xBalances[TOKEN_DATA[asset].chain]?.address;
+        const _result: IPool =  { 
+          ...item,
+          token: TOKEN_DATA[asset].ticker,
+          chain: TOKEN_DATA[asset].chain,
+          image: TOKEN_DATA[asset].image,
+          ticker: TOKEN_DATA[asset].ticker,
+          name: TOKEN_DATA[asset].name,
+          asset: asset,
         }
+
+        try {
+          const _timestamp = Math.floor(new Date().getTime() / 1000);
+          const { data } = await axios.get(`https://midgard.mayachain.info/v2/history/depths/${asset}?interval=day&count=30&to=${_timestamp}`);
+          _result["depthHistory"] = data.intervals;
+        } catch (err) { console.log("@err while fetching depth history -----------", err) }
+
+        try {
+          if (!_address) throw []; 
+          // const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/pool/${asset}/liquidity_provider/${_address}`).catch(err => { throw undefined });
+          const { data } = await axios.get(`https://midgard.mayachain.info/v2/member/${_address}`).catch(err => { throw [] });
+          // throw data.pools;
+          throw data.pools.filter((_pool: IMemberPool) => _pool.pool === asset);
+        } catch (result: any) { 
+          _result["member"] = result;
+        }
+        return _result;
       }));
       console.log("@fetch lps from maya chain----------------", _pools);
       setMainPools (_pools);

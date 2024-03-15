@@ -188,6 +188,7 @@ const WalletConnect = () => {
             width={24}
             height={24}
             alt={"sun"}
+            priority={true}   
           /> :
           <Icon icon={_wallet.image + ''} width={24} className="dark:text-white text-[#534428] opacity-80" />
       }
@@ -207,6 +208,7 @@ const WalletConnect = () => {
             src={_chain.image + ''}
             width={24}
             height={24}
+            priority={true}   
             alt={_chain.label + ''}
           />
         </Tooltip>
@@ -255,6 +257,7 @@ const WalletConnect = () => {
                 src={wallet.image + ''}
                 width={32}
                 height={32}
+                priority={true}   
                 alt={wallet.name + ''}
               />
             }

@@ -167,6 +167,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    */
   const doMetamaskSwap = async (amount: number | string) => {
     try {
+      if (!quoteSwap) {
+        throw "Can't find quoteSwap"
+      }
       const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/inbound_addresses`);
       const _inbountAddress = data.find((item: any) => item.chain === "ETH");
       if (!_inbountAddress) throw "Inbound address is none.";
@@ -179,7 +182,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         console.log("@ETH metamask transaction ----------------------------->", data);
         _showTxModal (`https://etherscan.io/tx/${data.hash}`);
       } else {
-        const data = await _depositERC20Token (amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse, signer, String(fromToken?.ticker));
+        const data = await _depositERC20Token (amount as number, xBalances["ETH"].address, quoteSwap.memo, quoteSwap.inbound_address, signer, String(fromToken?.ticker));
         console.log("@ETH metamask transaction ----------------------------->", data);
         _showTxModal (`https://etherscan.io/tx/${data.hash}`);
       }

@@ -5,7 +5,7 @@ import { Icon } from '@iconify/react';
 import { Tooltip } from 'flowbite-react';
 import { useAtom } from 'jotai';
 import { IBalance } from '@/types/minis';
-import QRCode from 'react-qr-code';
+import QRcode from "react-qr-code";
 import { useRouter } from "next/navigation";
 //utils
 import { reduceAddress, reduceAmount, copyToClipboard } from '@/utils/methods';
@@ -26,6 +26,8 @@ import useXDefi from "@/hooks/useXDefiWallet";
 import useMetamask from '@/hooks/useMetamask';
 //data
 import { TOKEN_DATA } from '@/utils/data';
+//components
+import ClipboardCopier from '@/components/share/copyToClipboard';
 
 const Home = () => {
   //atoms  
@@ -89,6 +91,7 @@ const Home = () => {
               width={18}
               height={18}
               alt={"refresh"}
+              priority={true}
             />
           </Tooltip>
         }
@@ -99,6 +102,7 @@ const Home = () => {
             width={18}
             height={18}
             alt={"refresh"}
+            priority={true}
           />
         </Tooltip>
         
@@ -107,7 +111,9 @@ const Home = () => {
           !xBalances[_chain.label] ? <div className="h-6 bg-gray-300 dark:bg-[#000000] grow mr-[40%] rounded-full animate-pulse"></div> : 
           <>
             <span>{ xBalances[_chain.label] && reduceAddress(xBalances[_chain.label].address) }</span>
-            <Tooltip content="Copy address" style="dark"><Icon onClick={() => copyToClipboard(xBalances[_chain.label].address)} icon="solar:copy-line-duotone" className='cursor-pointer hover:opacity-50' width={20} /></Tooltip>
+            <Tooltip content="Copy address" style="dark">
+              <ClipboardCopier text={xBalances[_chain.label].address}/>
+            </Tooltip>
             <Tooltip content="Show QR code" style="dark"><Icon onClick={() => handleShowQRCode(xBalances[_chain.label] ? xBalances[_chain.label].address : "0x00000000000000")} icon="grommet-icons:qr" className='cursor-pointer hover:opacity-50' width={20} /></Tooltip>
           </>
         }
@@ -122,6 +128,7 @@ const Home = () => {
                 width={38}
                 height={38}
                 alt={"refresh"}
+                priority={true}
                 className={`rounded-full ${item?.asset?.includes("/") && 'border-[3px] border-white'}`}
               />
               <span>{TOKEN_DATA[String(item?.asset)] && TOKEN_DATA[String(item?.asset)].ticker}</span>
@@ -141,22 +148,24 @@ const Home = () => {
     <div className={`${ !showQRCode && "hidden" }`}>
       <div onClick={() => { setShowQRCode(false) }} className="fixed top-0 left-0 right-0 bottom-0 bg-[#0000003d] z-10 backdrop-filter backdrop-blur-[10px]"></div>
       <div className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-5 rounded-xl z-20'>
-        <QRCode
-          value={qrAddress}
-          bgColor={"#000000"}
-          fgColor={"#FFFFFF"}
-          size={250}
-        />
-        <span className='absolute t-full left-1/2 -translate-x-1/2 mt-7 dark:text-white text-sm'>{qrAddress}</span>
+          <QRcode
+            value={qrAddress}
+          />
+          <span className='absolute t-full left-1/2 -translate-x-1/2 mt-7 dark:text-white text-sm'>{qrAddress}</span>
+          <Image
+            src={'/favicon.svg'}
+            width={45}
+            height={45} 
+            alt={"logo"}
+            className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'  
+          />
       </div>
     </div>
   )
 
   return (
     <div className="flex-grow flex justify-center items-center">
-      {
-        _renderQRCode()
-      }
+      {  _renderQRCode() }
       <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full md:w-[calc(100vw-360px)] lg:w-[680px]">
         <div className="rounded-2xl px-5 py-6 bg-white dark:bg-[#0A0C0F] dark:text-white">
           <div className='flex justify-between items-center'>
@@ -167,6 +176,7 @@ const Home = () => {
                 width={38}
                 height={38}
                 alt={"refresh"}
+                priority={true}
                 className={`cursor-pointer hover:opacity-50 ${(isRefreshing || isConnecting) && "spin"}`}
                 onClick={handleRefresh}
               />
@@ -177,6 +187,7 @@ const Home = () => {
                 alt={"refresh"}
                 className='cursor-pointer hover:opacity-50'
                 onClick={handleConnectWallet}
+                priority={true}
               />
             </div>
           </div>

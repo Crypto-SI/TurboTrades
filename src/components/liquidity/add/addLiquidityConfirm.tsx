@@ -34,9 +34,9 @@ const Confirm = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
                 src={pool ? String(pool.image) : "/images/tokens/cacao.png"}
                 width={35}
                 height={35}
-                alt={"sun"}   
-                priority={true}   
+                alt={"sun"}      
                 className='rounded-full'
+                priority={true}   
               />
               <span>{ pool?.ticker }</span>
             </div>
@@ -46,8 +46,8 @@ const Confirm = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
                 src={"/images/tokens/cacao.png"}
                 width={35}
                 height={35}
-                alt={"sun"}   
-                priority={true}   
+                alt={"sun"}     
+                priority={true}    
                 className='rounded-full'
               />
               <span>CACAO</span>
