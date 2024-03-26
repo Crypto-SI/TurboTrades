@@ -5,7 +5,7 @@ import { copyToClipboard } from '@/utils/methods';
 import { setConfig } from 'next/config';
 import { Tooltip } from 'flowbite-react';
 
-const ClipboardCopier = ({text, size=22}: {text: string, size?: number}) => {
+const ClipboardCopier = ({text, size}: {text: string, size?: number}) => {
   /**
    * 500ms after copying, reDisplay copy icon
    */
@@ -24,8 +24,8 @@ const ClipboardCopier = ({text, size=22}: {text: string, size?: number}) => {
 
  return (
     isCopied ?  
-    <Icon icon="entypo:check" className={`text-[${size}px] cursor-pointer hover:opacity-75`}/> : 
-    <Icon onClick={handleCopy} icon="akar-icons:copy" className={`text-[${size}px] cursor-pointer hover:opacity-75`}/>
+    <Icon icon="entypo:check" width={size} className={`cursor-pointer hover:opacity-75`}/> : 
+    <Icon onClick={handleCopy} icon="akar-icons:copy" width={size} className={`cursor-pointer hover:opacity-75`}/>
   )
 }
 

@@ -108,6 +108,14 @@ const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
     const _symPool = selectedPool?.member.find((_pool: IMemberPool) => Number(_pool.runeAdded) !== 0);
     const _asymPool = selectedPool?.member.find((_pool: IMemberPool) => Number(_pool.runeAdded) === 0);
 
+    const _poolUnits = selectedPool?.units??0;
+    const _assetDepth = selectedPool?.assetDepth??0; 
+    const _symUnits = _symPool?.liquidityUnits??0;
+    const _asymUnits = _asymPool?.liquidityUnits??0;
+
+    const _symAsset = Number(_symUnits * Number(_assetDepth) / Number(_poolUnits)) / 1e8;
+    const _asymAsset = Number(2 * _asymUnits * Number(_assetDepth) / Number(_poolUnits)) / 1e8;
+
     return (
       <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0023] via-[#6d78b22d] to-[#e02d6f31]">
         <div className="rounded-2xl dark:bg-[#020202] bg-[#F3F7FC] dark:text-white h-full p-4">
@@ -124,10 +132,10 @@ const Header = ({ fetchLPsInfo, isFetching }: IProps) => {
             <div className='text-xs text-[#6978A0] dark:text-[#8D98AF]'>{Number(selectedPool?.annualPercentageRate) > 0 && '+'}{selectedPool && Number(Number(selectedPool.annualPercentageRate)*100).toFixed(2)}%</div>
           </div>
           <div className='text-md pt-1 dark:text-white text-[#8A8D92] text-wrap'>
-            { _symPool && <><span className='text-[#22C55E]'>{ reduceAmount((Number(_symPool.assetAdded) - Number(_symPool.assetWithdrawn))/10**8) }</span> <span className='text-sm'>{ selectedPool?.ticker }</span> / <span className='text-[#22C55E]'>{ reduceAmount((Number(_symPool.runeAdded) - Number(_symPool.runeWithdrawn))/10**10) }</span> <span className='text-sm'>CACAO</span></> }
+            { _symPool && <><span className='text-[#22C55E]'>{ reduceAmount(_symAsset, 3) }</span> <span className='text-sm'>{ selectedPool?.ticker }</span> / <span className='text-[#22C55E]'>{ reduceAmount(Number(_symAsset) * Number(selectedPool?.assetPrice), 3) }</span> <span className='text-sm'>CACAO</span></> }
           </div>
           <div className='text-md dark:text-white text-[#8A8D92] text-wrap'>
-            { _asymPool && <><span className='text-[#22C55E]'>{ reduceAmount((Number(_asymPool.assetAdded) - Number(_asymPool.assetWithdrawn))/10**8) }</span> <span className='text-sm'>{ selectedPool?.ticker }</span> / <span className='text-[#22C55E]'>0</span> <span className='text-sm'>CACAO</span></> }
+            { _asymPool && <><span className='text-[#22C55E]'>{ reduceAmount(_asymAsset, 3) }</span> <span className='text-sm'>{ selectedPool?.ticker }</span> / <span className='text-[#22C55E]'>0</span> <span className='text-sm'>CACAO</span></> }
           </div>
           {/* <div className='text-sm dark:text-[#8D98AF] text-[#6978A0]'>{selectedPool ? (assetDeposit * Number(selectedPool.assetPriceUSD) / 10**8).toFixed(4) : 0} USDT</div> */}
         </div>

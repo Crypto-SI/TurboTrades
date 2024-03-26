@@ -71,11 +71,11 @@ export interface IPool {
   units: string,
   volume24h: string,
 
-  chain?: string,
-  token?: string,
-  ticker?: string,
-  image?: string,
-  name?: string,
+  chain: string,
+  token: string,
+  ticker: string,
+  image: string,
+  name: string,
   synth?: boolean
   me?: ILP,
   member: IMemberPool[],
@@ -129,6 +129,20 @@ export interface IParamsAddLiquidity {
   mayaAddress: string, 
   mode: string
 }
+export interface IParamsAddLPAsset {
+  asset: string, 
+  decimals: number,
+  amount: number,
+  recipient: string, 
+  mayaAddress: string, 
+  mode: string
+}
+export interface IParamsAddLPCACAO {
+  asset: string,
+  amount: number,
+  address: string, 
+  mayaAddress: string
+}
 /**
  * interface of xchain withdraw liqudity props
  */
@@ -140,4 +154,11 @@ export interface IParamsWithdrawLiquidity {
   address: string, 
   mayaAddress: string, 
   mode: string
+}
+/**
+ * { ASSET, CACAO }
+ */
+export interface IInboundResults { 
+  ASSET: string, 
+  CACAO: string 
 }

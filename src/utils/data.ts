@@ -1,4 +1,4 @@
-import { ChainType, WalletType } from "@/types/minis";
+import { ChainType, WalletType, ITokenData, IChainListItem } from "@/types";
 
 export const NATIVE_TOKENS: Record<string, string> = {
   THOR: "THOR.RUNE",
@@ -52,7 +52,7 @@ export const InitialwalletList: WalletType[] = [
 /**
  * chain data
  */
-export const TOKEN_DATA: Record<string, any> = {
+export const TOKEN_DATA: Record<string, ITokenData> = {
   "MAYA.CACAO": {
     ticker: "CACAO",
     chain: "MAYA",
@@ -91,7 +91,7 @@ export const TOKEN_DATA: Record<string, any> = {
     name: "Dash chain",
     decimals: 8,
     image: "/images/tokens/dash.png",
-    explorer: "https://explorer.dash.org/insight/"
+    explorer: "https://explorer.dash.org/insight"
   },
   "THOR.RUNE": {
     ticker: "RUNE",
@@ -99,7 +99,7 @@ export const TOKEN_DATA: Record<string, any> = {
     name: "Thorchain",
     decimals: 8,
     image: "/images/tokens/rune.png",
-    explorer: "https://viewblock.io/thorchain"
+    explorer: "https://runescan.io"
   },
   "ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7": {
     ticker: "USDT",
@@ -114,7 +114,8 @@ export const TOKEN_DATA: Record<string, any> = {
     chain: "ETH",
     name: "Ethereum",
     decimals: 6,
-    image: "/images/tokens/usdt.png"
+    image: "/images/tokens/usdt.png",
+    explorer: "https://etherscan.io"
   },
   "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48": {
     ticker: "USDC",
@@ -256,36 +257,42 @@ export const TOKEN_DATA: Record<string, any> = {
 /**
  * chain data
  */
-export const CHAIN_DATA: Record<string, any> = {
+export const CHAIN_DATA: Record<string, IChainListItem> = {
   "MAYA": {
     label: "MAYA",
     name: "Maya chain",
-    image: "/images/chains/maya.png"
+    image: "/images/chains/maya.png",
+    explorer: "https://www.mayascan.org"
   },
   "BTC": {
     label: "BTC",
     name: "Bitcoin",
-    image: "/images/chains/btc.webp"
+    image: "/images/chains/btc.webp",
+    explorer: "https://btcscan.org"
   },
   "ETH": {
     label: "ETH",
     name: "Ethereum",
-    image: "/images/chains/eth.webp"
+    image: "/images/chains/eth.webp",
+    explorer: "https://etherscan.io"
   },
   "KUJI": {
     label: "KUJI",
     name: "Kuji chain",
-    image: "/images/chains/kuji.png"
+    image: "/images/chains/kuji.png",
+    explorer: "https://finder.kujira.network/kaiyo-1"
   },
   "DASH": {
     label: "DASH",
     name: "Dash chain",
-    image: "/images/chains/dash.png"
+    image: "/images/chains/dash.png",
+    explorer: "https://explorer.dash.org/insight"
   },
   "THOR": {
     label: "THOR",
     name: "Thorchain",
-    image: "/images/chains/thor.webp"
+    image: "/images/chains/thor.webp",
+    explorer: "https://runescan.io"
   },
 }
 /**
@@ -318,7 +325,7 @@ export const InitialchainList: ChainType[] = [
     name: "Kuji chain",
     image: "/images/chains/kuji.png",
     selected: false,
-    focused: false
+    focused: false,
   },
   {
     label: "DASH",
@@ -482,3 +489,4 @@ export const MINIMUM_AMOUNT: Record<string, number> = {
   "DASH": 0.00010001,
   "KUJI": 0.000001,
 }
+

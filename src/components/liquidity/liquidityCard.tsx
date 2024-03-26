@@ -126,7 +126,7 @@ const LiquidityChart = ({ pool }: IProps) => {
         <div className="w-full text-center">
           <div className='text-center'>
             <h5 className="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">
-              $ { reduceAmount(pool.assetPriceUSD)}
+              $ { Number(pool.assetPriceUSD).toFixed(2) }
             </h5>
             <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
               1 {pool?.ticker}

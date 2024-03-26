@@ -1,11 +1,18 @@
 import React from 'react';
 import { Icon } from '@iconify/react';
 import { Button, Timeline } from 'flowbite-react';
+import { useTheme } from "next-themes";
 import Image from "next/image";
-// import { HiArrowNarrowRight, HiCalendar } from 'react-icons/hi';
-import StepperItem from './stepperItem';
+import InboundStepper from './inboundStepper';
+import OutboundStepper from './mayaStepper';
+import MayaStepper from './mayaStepper';
 import { IPool } from '@/types/maya';
 import { reduceAmount } from '@/utils/methods';
+import { xBalancesAtom } from '@/store';
+import { useAtom } from 'jotai';
+//data
+import { TOKEN_DATA } from "@/utils/data";
+import { STATUS, LIQUIDITY } from '@/utils/constants';
 
 interface IProps {
   setVisible: React.Dispatch<React.SetStateAction<boolean>>,
@@ -13,26 +20,35 @@ interface IProps {
   toToken: IPool,
   fromAmount: string,
   toAmount: string,
-  hash: string,
+  hash: string
 }
 
-const ProgressModal = (props: IProps) => {
-  const [step, setStep] = React.useState<number>(1);
-  const handleNext = () => {  
-    setStep(step + 1);
-  }
-  const handlePrevious = () => {  
-    setStep(step - 1);
-  }
+const ProgressModal = ({ fromToken, toToken, fromAmount, toAmount, hash, setVisible }: IProps) => {
+  const [stepper, setStepper] = React.useState<string>("inbound");//inbound -> maya -> outbound
+  const [title, setTitle] = React.useState<string>("Swap Transfer in Progress");
 
   return (
     <div>
-      <div onClick={() => props.setVisible(false)} className="fixed top-0 left-0 right-0 bottom-0 bg-[#0000003d] z-10 backdrop-filter backdrop-blur-[10px]"></div>
+      <div className="fixed top-0 left-0 right-0 bottom-0 bg-[#0000003d] z-10 backdrop-filter backdrop-blur-[10px]"></div>
       <div className="rounded-2xl z-50 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full lg:w-[600px]">
-        <div className="rounded-2xl text-center p-4 bg-white dark:bg-[#0A0C0F] dark:text-white text-black pb-10">
-          <div className='flex items-center flex-col gap-1 my-3 mb-5'>
-            <Icon icon="icomoon-free:spinner9" className='text-2xl spin' />
-            <div className='text-center'>Swap Transfer in Progress</div>
+        <div className="rounded-2xl relative text-center p-4 bg-white dark:bg-[#0A0C0F] dark:text-white text-black pb-10">
+          <div className='flex items-center justify-center flex-col gap-1 my-3 mb-5'>
+            { (stepper !== STATUS.SUCCESS && stepper !== STATUS.FAILED) ? 
+              <div className='w-[40px] h-[40px] flex items-center justify-center'><Icon icon="icomoon-free:spinner9" className='text-2xl spin'/></div> :
+              <Image
+                src="/favicon.svg"
+                width={45}
+                height={45} 
+                alt={"logo"}  
+                priority={true}
+                className='translate-x-1'     
+              /> 
+            }
+            <div className='text-center'>
+              { stepper !== STATUS.SUCCESS && stepper !== STATUS.FAILED && "Swap Transfer in Progress" }
+              { stepper === STATUS.SUCCESS && "Swap Success" }
+              { stepper === STATUS.FAILED && "Swap Failed" }
+            </div>
           </div>
 
           <div className="flex p-3 mb-4 text-sm text-gray-800 border-l-2 border-blue-300 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-gray-300">
@@ -43,15 +59,14 @@ const ProgressModal = (props: IProps) => {
             </div>
             <div className='text-justify'>
               Swap transfers seem to be taking longer than expected. Do not worry. Transfer times may vary depending on network conditions and MAYA Chain activity.
-              If more than 3 hours have passed, please contact TurboTrades Support.
+              {/* If more than an hour have passed, please contact TurboTrades Support. */}
             </div>
           </div>
-
 
           <div className='flex w-full gap-2 items-center rounded-lg justify-center dark:bg-[#111b20fd] p-3 mt-2 mb-7'>
             <div className='flex gap-2 items-center'>
               <Image
-                src={props.fromToken.image || "/images/tokens/btc.webp"}
+                src={fromToken.image || "/images/tokens/btc.webp"}
                 width={30}
                 height={30}
                 alt={"sun"}
@@ -59,14 +74,14 @@ const ProgressModal = (props: IProps) => {
                 priority={true}
               />
               <div className='flex flex-col items-center text-sm'>
-                <span>-{props.fromAmount}</span>
-                <span className='text-[11px]'>${reduceAmount(Number(props.fromAmount) * Number(props.fromToken?.assetPriceUSD))}</span>
+                <span>-{fromAmount}</span>
+                <span className='text-[11px]'>${reduceAmount(Number(fromAmount) * Number(fromToken?.assetPriceUSD))}</span>
               </div>
             </div>
             <Icon icon="tdesign:swap" />
             <div className='flex gap-2 items-center'>
               <Image
-                src={props.toToken.image || "/images/tokens/btc.webp"}
+                src={toToken.image || "/images/tokens/btc.webp"}
                 width={30}
                 height={30}
                 alt={"sun"}
@@ -74,45 +89,28 @@ const ProgressModal = (props: IProps) => {
                 priority={true}
               />
               <div className='flex flex-col items-center text-sm'>
-                <span>+{props.toAmount}</span>
-                <span className='text-[11px]'>${reduceAmount(Number(props.toAmount) * Number(props.toToken?.assetPriceUSD))}</span>
+                <span>+{toAmount}</span>
+                <span className='text-[11px]'>${reduceAmount(Number(toAmount) * Number(toToken?.assetPriceUSD))}</span>
               </div>
             </div>
           </div>
 
-          <StepperItem 
-            status={ step === 1 ? 'ready' : step === 2 ? 'pending' : 'success' }
-            title={{
-              pending: "Sending from BTC",
-              ready: "Send from BTC",
-              success: "Sent from BTC successfully"
-            }}
-            details={{
-              ready: "Send BTC to MAYA vault for swap",
-              pending: "Sending BTC to MAYA vault, it will take a while",
-              success: "Sent BTC to MAYA vault successfully"
-            }}
-            hash={props.hash}
+          <InboundStepper 
+            token={fromToken}
+            hash={hash}
+            setStepper={setStepper}
+            stepper={stepper}
           />
-          <StepperItem 
-            status={ step === 1 ? 'ready' : step === 2 ? 'pending' : 'success' }
-            title={{
-              pending: "Sending from BTC",
-              ready: "Send from BTC",
-              success: "Sent from BTC successfully"
-            }}
-            details={{
-              ready: "Send BTC to MAYA vault for swap",
-              pending: "Sending BTC to MAYA vault, it will take a while",
-              success: "Sent BTC to MAYA vault successfully"
-            }}
-            divider={false}
-            hash={props.hash}
+          <MayaStepper 
+            fromToken={fromToken}
+            toToken={toToken}
+            hash={hash}
+            setStepper={setStepper}
+            stepper={stepper}
           />
-
-          <button onClick={handlePrevious}>prev</button>
-          <button onClick={handleNext}>Next</button>
-
+          <div className='absolute top-4 right-4 text-white flex justify-between items-center'>
+            <div><Icon onClick={() => setVisible(false)} icon="ic:sharp-close" className='cursor-pointer hover:opacity-50' width={30}/></div>
+          </div>
         </div>
       </div>
     </div>

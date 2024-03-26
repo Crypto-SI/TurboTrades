@@ -7,6 +7,7 @@ import { useAtom } from 'jotai';
 import { fromTokenAtom, tokenPricesAtom } from '@/store';
 //utils methods
 import { reduceAmount, _reduceHash } from '@/utils/methods';
+import { LIQUIDITY } from '@/utils/constants';
 
 interface IProps {
   onOK: () => void,
@@ -60,7 +61,7 @@ const Confirm = ({ onOK, pool, mode, amount, tnxUrl }: IProps) => {
               />
               <span>CACAO</span>
             </div>
-            <div className='text-sm'>( { mode === "sym" ? "symmetric": "asymmetric" } )</div>
+            <div className='text-sm'>( { mode === LIQUIDITY.SYM ? "symmetric": "asymmetric" } )</div>
           </div>
 
           <div className='px-2 cursor-pointer text-sm underline'>
@@ -82,7 +83,7 @@ const Confirm = ({ onOK, pool, mode, amount, tnxUrl }: IProps) => {
         <div className='absolute -top-8 text-white flex w-full justify-between items-center px-2 pr-8'>
           <div className='flex items-center gap-2 cursor-pointer hover:opacity-50'>
           <Icon icon="flat-color-icons:info" width="1.7rem" height="1.7rem"  className='text-[#70dd5a]'></Icon> <span className='text-lg font-bold'>Transaction sent successfully</span>
-            {/* <Icon icon="mage:message-question-mark-round-fill" width="1.7rem" height="1.7rem"  className='text-[#70dd5a]'></Icon> <span className='text-lg font-bold'>Add Liquidity ({ mode === "sym" ? "symmetric": "asymmetric" })</span> */}
+            {/* <Icon icon="mage:message-question-mark-round-fill" width="1.7rem" height="1.7rem"  className='text-[#70dd5a]'></Icon> <span className='text-lg font-bold'>Add Liquidity ({ mode === LIQUIDITY.SYM ? "symmetric": "asymmetric" })</span> */}
           </div>
           <div><Icon onClick={onOK} icon="ic:sharp-close" className='cursor-pointer hover:opacity-50' width={30}/></div>
         </div>

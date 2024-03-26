@@ -25,7 +25,7 @@ import useXChain from '@/hooks/useXChain';
 import useXDefi from "@/hooks/useXDefiWallet";
 import useMetamask from '@/hooks/useMetamask';
 //data
-import { TOKEN_DATA } from '@/utils/data';
+import { CHAIN_DATA, TOKEN_DATA } from '@/utils/data';
 //components
 import ClipboardCopier from '@/components/share/copyToClipboard';
 
@@ -112,9 +112,14 @@ const Home = () => {
           <>
             <span>{ xBalances[_chain.label] && reduceAddress(xBalances[_chain.label].address) }</span>
             <Tooltip content="Copy address" style="dark">
-              <ClipboardCopier text={xBalances[_chain.label].address}/>
+              <ClipboardCopier size={22} text={xBalances[_chain.label].address}/>
             </Tooltip>
-            <Tooltip content="Show QR code" style="dark"><Icon onClick={() => handleShowQRCode(xBalances[_chain.label] ? xBalances[_chain.label].address : "0x00000000000000")} icon="grommet-icons:qr" className='cursor-pointer hover:opacity-50' width={20} /></Tooltip>
+            <Tooltip content="Show QR code" style="dark">
+              <Icon onClick={() => handleShowQRCode(xBalances[_chain.label] ? xBalances[_chain.label].address : "0x00000000000000")} icon="grommet-icons:qr" className='cursor-pointer hover:opacity-50' width={20} />
+            </Tooltip>
+            <Tooltip content="Go to chain" style="dark">
+              <Icon className='cursor-pointer' icon="fluent:open-16-filled" onClick={() => window.open(`${CHAIN_DATA[_chain.label].explorer}/address/${xBalances[_chain.label].address}`)} width={22} />
+            </Tooltip>
           </>
         }
       </div>
@@ -137,7 +142,8 @@ const Home = () => {
                 &nbsp;&nbsp;( { reduceAmount(Number(item.amount) * Number(item.value)) }$ )
               </span>
             </div>
-            <Tooltip content="Send"><button className='bg-[#1f242e11] dark:bg-[#1f242ea1] rounded-xl p-3 hover:opacity-50'><Icon icon="fa:send" width={16} /></button></Tooltip>
+            {/* <Tooltip content="Send"><button className='bg-[#1f242e11] dark:bg-[#1f242ea1] rounded-xl p-3 hover:opacity-50'><Icon icon="fa:send" width={16} /></button></Tooltip> */}
+            <button className='bg-[#1f242e11] dark:bg-[#1f242ea1] rounded-xl p-3 hover:opacity-50'><Icon icon="fa:send" width={16} /></button>
           </div>
         ))
       }
@@ -198,8 +204,6 @@ const Home = () => {
       </div>
     </div>
   )
-
-
 }
 
 export default Home;

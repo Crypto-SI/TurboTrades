@@ -5,6 +5,7 @@ import { IPool } from '@/types/maya';
 import { useAtom } from 'jotai';
 import { fromTokenAtom, tokenPricesAtom } from '@/store';
 import { reduceAmount } from '@/utils/methods';
+import { LIQUIDITY } from '@/utils/constants';
 
 interface IProps {
   onOK: () => void,
@@ -26,7 +27,7 @@ const Confirm = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
           <div className='text-left w-full mt-2 text-sm'>
             {/* <Icon icon="mdi:map-marker-question-outline" className='inline' width={25}/>  */}
             Do you agree to add Liquidity with <span className='font-bold text-[1rem] text-amber-200'>{reduceAmount(amount)}</span>{pool.ticker} 
-            { mode === "sym" && <> & <span className='font-bold text-[1rem] text-amber-200'>{reduceAmount(Number(amount)*Number(pool?.assetPrice))}</span>CACAO</> } ?
+            { mode === LIQUIDITY.SYM && <> & <span className='font-bold text-[1rem] text-amber-200'>{reduceAmount(Number(amount)*Number(pool?.assetPrice))}</span>CACAO</> } ?
           </div>
           <div className='flex gap-2 items-center py-2 mt-2'>
             <div className='flex gap-1 items-center'>
@@ -56,7 +57,7 @@ const Confirm = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
           </div>
           <div className='text-sm mr-2 mb-3 text-left'>( Please make sure you have sufficient swap fee )</div>
           { 
-            mode === "sym" && Number(amount) > 0 &&
+            mode === LIQUIDITY.SYM && Number(amount) > 0 &&
             <div className='px-1 text-left flex justify-between mb-1 text-sm'>
               <span>CACAO Fee</span>
               <div className='text-right'>(${ reduceAmount(0.5*Number(tokenPrices["MAYA.CACAO"])) }) 0.50 CACAO</div>
@@ -65,7 +66,7 @@ const Confirm = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
           <div className='px-1 text-left flex justify-between my-1 text-sm'>
             <span>Affiliate Fee (.75%)</span>
             { 
-              Number(amount) > 0 && mode === "sym" && pool ? 
+              Number(amount) > 0 && mode === LIQUIDITY.SYM && pool ? 
               <div className='text-right'>(${ reduceAmount(Number(amount)*0.0075*2*Number(pool.assetPrice)*Number(tokenPrices["MAYA.CACAO"])) }) { reduceAmount(Number(amount)*0.0075*2*Number(pool.assetPrice)) } CACAO</div> :  
               <div className='text-right'>(${ reduceAmount(Number(amount)*0.0075*Number(tokenPrices[String(pool.asset)])) }) { reduceAmount(Number(amount)*0.0075) } { pool?.ticker }</div>
             }
@@ -87,7 +88,7 @@ const Confirm = ({ onOK, onCancel, pool, mode, amount }: IProps) => {
         </div>
         <div className='absolute -top-8 text-white flex w-full justify-between items-center px-2 pr-8'>
           <div className='flex items-center gap-2 cursor-pointer hover:opacity-50'>
-            <Icon icon="mage:message-question-mark-round-fill" width="1.7rem" height="1.7rem"  className='text-[#70dd5a]'></Icon> <span className='text-lg font-bold'>Add Liquidity ({ mode === "sym" ? "symmetric": "asymmetric" })</span>
+            <Icon icon="mage:message-question-mark-round-fill" width="1.7rem" height="1.7rem"  className='text-[#70dd5a]'></Icon> <span className='text-lg font-bold'>Add Liquidity ({ mode === LIQUIDITY.SYM ? "symmetric": "asymmetric" })</span>
           </div>
           <div><Icon onClick={onCancel} icon="ic:sharp-close" className='cursor-pointer hover:opacity-50' width={30}/></div>
         </div>

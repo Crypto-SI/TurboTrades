@@ -14,6 +14,7 @@ import {
 } from '@/store';
 //data
 import { SUB_LINKS,TOKEN_DATA } from '@/utils/data';
+import { STATUS, LIQUIDITY } from '@/utils/constants';
 //router
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 //types
@@ -25,19 +26,23 @@ import useXChain from "@/hooks/useXChain";
 import useXDefi from "@/hooks/useXDefiWallet";
 import useMetamask from "@/hooks/useMetamask";
 import useNotification from '@/hooks/useNotification';
+//components
+import ProgressModal from '@/components/liquidity/remove/progressModal';
 
-const AddLiquidity = () => {
+const WithdrawLiquidity = () => {
   //router
   const router = useRouter();
   const searchParams = useSearchParams();
   const asset = searchParams.get("asset"); //liquidity/add/ETH.ETH
   const pathname = usePathname ();
   //set mode between single and double
-  const [mode, setMode] = React.useState<string>("asym");
+  const [mode, setMode] = React.useState<string>(LIQUIDITY.ASYM);
   const [selectedPool, setSelectedPool] = React.useState<IPool | undefined>();
   const [amount, setAmount] = React.useState<string>("");
   const [selectedTokenPrice, setSelectedTokenPrice] = React.useState<string>("0");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [showProgressModal, setShowProgressModal] = React.useState<boolean>(false);
+  const [hash, setHash] = React.useState<string>("");
   //atoms
   const [pools, ] = useAtom(mainPoolsAtom);
   const [xBalances, ] = useAtom(xBalancesAtom);
@@ -59,24 +64,29 @@ const AddLiquidity = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [asset, pools]);
   /**
-   * available CACAO for asym
-   */
-  const runeAvailable = React.useMemo(() => {
-    return myPool.sym ? Number(myPool.sym.runeAdded) - Number(myPool.sym.runeWithdrawn) : 0
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myPool, mode]);
-  /**
    * available ASSET for asym
    */
   const assetAvailable: number = React.useMemo(() => {
-    if (mode === "asym") {
+
+    const _symPool = selectedPool?.member.find((_pool: IMemberPool) => Number(_pool.runeAdded) !== 0);
+    const _asymPool = selectedPool?.member.find((_pool: IMemberPool) => Number(_pool.runeAdded) === 0);
+
+    const _poolUnits = selectedPool?.units??0;
+    const _assetDepth = selectedPool?.assetDepth??0; 
+    const _symUnits = _symPool?.liquidityUnits??0;
+    const _asymUnits = _asymPool?.liquidityUnits??0;
+
+    const _symAsset = Number(_symUnits * Number(_assetDepth) / Number(_poolUnits)) / 1e8;
+    const _asymAsset = Number(2 * _asymUnits * Number(_assetDepth) / Number(_poolUnits)) / 1e8;
+    
+    if (mode === LIQUIDITY.ASYM) {
       if ( myPool.asym ) {
-        return myPool.asym.assetAdded - myPool.asym.assetWithdrawn;
+        return _asymAsset;
       } else if (myPool.sym) {
-        return ( myPool.sym.assetAdded - myPool.sym.assetWithdrawn ) + (myPool.sym.runeAdded - myPool.sym.runeWithdrawn)/100/Number(selectedPool?.assetPrice);
+        return _symAsset*2;
       }
     } else if (myPool.sym) {
-      return myPool.sym.assetAdded - myPool.sym.assetWithdrawn;
+      return _symAsset;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myPool, mode]) as number;
@@ -124,7 +134,7 @@ const AddLiquidity = () => {
    */
   const setPercentOfAll = (percent: number) => {
     const _amount = (isNaN(assetAvailable) ? 0 : assetAvailable) * percent;
-    setAmount (String(_amount/10**8));
+    setAmount (String(_amount));
   }
   /**
    * when asset or balances are changed, call fetchPools method
@@ -172,6 +182,7 @@ const AddLiquidity = () => {
    * @param bps 
    */
   const onWithdraw = async (bps: number) => {
+    setShowProgressModal (true);
     try {
       setIsLoading (true);
       const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/inbound_addresses`);
@@ -186,7 +197,7 @@ const AddLiquidity = () => {
       const nativeDecimal = TOKEN_DATA[selectedPool?.asset as string].decimals;
 
       if (wallet?.name === "Keystore") {
-        const hash = await xChainWithdrawLiquidity ({
+        const _hash = await xChainWithdrawLiquidity ({
           asset: String(selectedPool?.asset),
           decimals: nativeDecimal,
           bps: String(bps),
@@ -194,12 +205,10 @@ const AddLiquidity = () => {
           address: address,
           mayaAddress: mayaAddress,
           mode: mode
-        });
-        const target = (mode === "sym") ? `/progress/liquidity/remove?hash=${hash}&from=${mayaAddress}&in=${selectedPool?.asset}&out=MAYA.CACAO&ina=${amount}&outa=${ mode === "sym" ? Number(amount)*Number(selectedPool?.assetPrice) : '0' }&start=1709893536993`
-                                      : `/progress/liquidity/remove?hash=${hash}&from=${address}&in=${selectedPool?.asset}&out=MAYA.CACAO&ina=${amount}&outa=${ mode === "sym" ? Number(amount)*Number(selectedPool?.assetPrice) : '0' }&start=1709893536993`;
-        router.push(target);
+        }) as string;
+        setHash (_hash);
       } else if (wallet?.name === "XDEFI") {
-        const hash = await xDefiWithdrawLiquidity ({
+        const _hash = await xDefiWithdrawLiquidity ({
           asset: String(selectedPool?.asset),
           decimals: nativeDecimal,
           bps: String(bps),
@@ -207,10 +216,9 @@ const AddLiquidity = () => {
           address: address,
           mayaAddress: mayaAddress,
           mode: mode
-        });
-        const target = (mode === "sym") ? `/progress/liquidity/remove?hash=${hash}&from=${mayaAddress}&in=${selectedPool?.asset}&out=MAYA.CACAO&ina=${amount}&outa=${ mode === "sym" ? Number(amount)*Number(selectedPool?.assetPrice) : '0' }&start=1709893536993`
-                                      : `/progress/liquidity/remove?hash=${hash}&from=${address}&in=${selectedPool?.asset}&out=MAYA.CACAO&ina=${amount}&outa=${ mode === "sym" ? Number(amount)*Number(selectedPool?.assetPrice) : '0' }&start=1709893536993`;
-        router.push(target);
+        }) as string;
+        // const url = (mode === LIQUIDITY.SYM ? TOKEN_DATA["MAYA.CACAO"].explorer : TOKEN_DATA[String(selectedPool?.asset)].explorer) + "/tx/" + _hash;
+        setHash (_hash);
       } else if (wallet?.name === "Metamask") {
         // await doMetamaskSwap (fromAmount);
       }
@@ -221,6 +229,7 @@ const AddLiquidity = () => {
       } else {
         showNotification(String(err), "warning");
       }
+      setHash(STATUS.FAILED);
     } finally {
       setIsLoading (false);
     }
@@ -241,18 +250,18 @@ const AddLiquidity = () => {
     if (isLoading) return;
 
     try {
-      
+      setHash ("");
       console.log({amount: amount, availalbe: assetAvailable/10**8});
-      if (Number(amount) > assetAvailable/10**8) throw "Insufficient withdraw amount.";
+      if (Number(amount) > assetAvailable) throw "Insufficient withdraw amount.";
       if (Number(amount) < LIMIT[String(selectedPool?.chain)]) throw `Too small transaction detected.(>${LIMIT[String(selectedPool?.chain)]})`;
       
-      console.log({amount: Number(amount)*Number(selectedPool?.assetPrice), cacao: runeAvailable/10**10});
-      if (mode === "sym" && Number(amount)*Number(selectedPool?.assetPrice) > runeAvailable/10**10) throw "Insufficient CACAO amount.";
+      // console.log({amount: Number(amount)*Number(selectedPool?.assetPrice), cacao: runeAvailable/10**10});
+      // if (mode === LIQUIDITY.SYM && Number(amount)*Number(selectedPool?.assetPrice) > runeAvailable/10**10) throw "Insufficient CACAO amount.";
       
-      console.log({amount: runeAvailable/10**10 - Number(amount)*Number(selectedPool?.assetPrice), cacao: 0.5});
-      if (mode === "sym" && runeAvailable/10**10 - Number(amount)*Number(selectedPool?.assetPrice) < 0.5 ) throw "Insufficient CACAO fee (0.5CACAO).";
+      // console.log({amount: runeAvailable/10**10 - Number(amount)*Number(selectedPool?.assetPrice), cacao: 0.5});
+      // if (mode === LIQUIDITY.SYM && runeAvailable/10**10 - Number(amount)*Number(selectedPool?.assetPrice) < 0.5 ) throw "Insufficient CACAO fee (0.5CACAO).";
 
-      const bps = Math.floor( 10000 * Number(amount) * 10**8 / assetAvailable );
+      const bps = Math.floor( 10000 * Number(amount) / assetAvailable );
       console.log(bps);
 
       onWithdraw (bps);
@@ -267,12 +276,22 @@ const AddLiquidity = () => {
       <div className='flex gap-1'>
         {SUB_LINKS.map(({ label, url }: { label: string, url: string }) => _renderSubLink(label, url))}
       </div>
+      {
+        showProgressModal && selectedPool &&
+        <ProgressModal
+          setVisible={setShowProgressModal}
+          pool={selectedPool}
+          amount={amount}
+          mode={mode}
+          hash={hash}
+        />
+      }
       <div className='flex flex-col w-full justify-center items-center  mt-2 lg:mt-20'>
         <div className="rounded-2xl p-[1px] bg-gradient-to-tr from-[#ff6a0096] via-[#6d78b280] to-[#e02d6f86] mt-10 md:mt-0 w-full lg:w-[750px]">
           <div className="rounded-2xl p-3 pt-4 bg-white dark:bg-[#0A0C0F] dark:text-white">
             <div className='flex lg:gap-0 text-md gap-2 lg:space-x-2 lg:flex-row flex-col dark:bg-black bg-[#F7FAFD] dark:border-none border-[#DCE4EF] border p-2 rounded-2xl'>
-              <button onClick={() => setMode("asym")} className={`bg-[#0A0F14] text-sm p-3 w-full lg:w-1/2 hover:opacity-80 rounded-xl text-white ${mode === "asym" && 'bg-gradient-to-r from-[#FF6802] to-[#EE0E72]'}`}>SINGLE SIDE</button>
-              <button onClick={() => setMode("sym")} className={`bg-[#0A0F14] text-sm p-3 w-full lg:w-1/2 hover:opacity-80 rounded-xl text-white ${mode === "sym" && 'bg-gradient-to-r from-[#FF6802] to-[#EE0E72]'}`}>DOUBLE SIDE</button>
+              <button onClick={() => setMode(LIQUIDITY.ASYM)} className={`bg-[#0A0F14] text-sm p-3 w-full lg:w-1/2 hover:opacity-80 rounded-xl text-white ${mode === LIQUIDITY.ASYM && 'bg-gradient-to-r from-[#FF6802] to-[#EE0E72]'}`}>SINGLE SIDE</button>
+              <button onClick={() => setMode(LIQUIDITY.SYM)} className={`bg-[#0A0F14] text-sm p-3 w-full lg:w-1/2 hover:opacity-80 rounded-xl text-white ${mode === LIQUIDITY.SYM && 'bg-gradient-to-r from-[#FF6802] to-[#EE0E72]'}`}>DOUBLE SIDE</button>
             </div>
 
             <div className={`flex space-x-2 flex-col lg:flex-row`}>
@@ -323,13 +342,13 @@ const AddLiquidity = () => {
                 <div className='text-sm text-[#6978A0] mt-2 px-2'>
                   <span>Available: </span>
                   <span className='dark:text-white text-black'>
-                    { reduceAmount(assetAvailable/10**8) } { selectedPool?.ticker }
+                    { reduceAmount(assetAvailable, 3) } { selectedPool?.ticker }
                   </span>
                 </div>
               </div>
 
               {
-                mode === "sym" &&
+                mode === LIQUIDITY.SYM &&
                 <div className="w-full p-4 dark:text-[#ffffffa1] dark:bg-[#030506] bg-[#F3F7FC] rounded-2xl mt-3 border border-[#DCE4EF] dark:border-none">
                   <div className='flex justify-between items-center'>
                     <div className='flex gap-3 text-lg items-center'>
@@ -358,7 +377,7 @@ const AddLiquidity = () => {
                   <div className='text-sm text-[#6978A0] mt-2 px-2'>
                     <span>Available: </span>
                     <span className='dark:text-white text-black'>
-                      { reduceAmount(runeAvailable/10**10) } CACAO
+                      { reduceAmount(assetAvailable*Number(selectedPool?.assetPrice), 3) } CACAO
                     </span>
                   </div>
                 </div>
@@ -384,4 +403,4 @@ const AddLiquidity = () => {
   )
 }
 
-export default AddLiquidity;
+export default WithdrawLiquidity;

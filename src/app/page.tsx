@@ -10,6 +10,7 @@ import SwapConfirm from '@/components/swap/swapConfirm';
 import {
   TOKEN_DATA, FEE_ESTIMATIONS, NATIVE_TOKENS
 } from "@/utils/data";
+import { STATUS, LIQUIDITY } from '@/utils/constants';
 //atoms
 import {
   poolsAtom,
@@ -31,12 +32,14 @@ import useNotification from "@/hooks/useNotification";
 import useXChain from "@/hooks/useXChain";
 import useXDefi from "@/hooks/useXDefiWallet";
 import useMetamask from "@/hooks/useMetamask";
-import { useRouter } from 'next/navigation'
 //trxModal
 import TransactionModal from "@/components/swap/transactionModal";
 //components
 import ProgressModal from '@/components/swap/progressModal/index';
 const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
+//router
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+
 
 const Swap = () => {
   //stage and quoteSwapResponse
@@ -64,7 +67,12 @@ const Swap = () => {
   const { doMayaSwap } = useXChain ();
   const { doXDefiSwap } = useXDefi ();
   const { doMetamaskSwap } = useMetamask ();
+  //router & params
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from"); //ETH.ETH
+  const to = searchParams.get("to"); //ETH.ETH
+  const pathname = usePathname ();
   //is swaping ..
   const [isSwaping, setIsSwaping] = React.useState<boolean>(false);
   //confirm Modal show
@@ -72,7 +80,7 @@ const Swap = () => {
   //progress Modal show
   const [showProgressModal, setShowProgressModal] = React.useState<boolean>(false);
   //hash
-   const [hash, setHash] = React.useState<string>("https://sepolia.etherscan.io/tx/0xc1b6a7ef202cd6d8ac59968df9b930b4b2fc8acd7bfc837a25f68181ff01fb7a");
+   const [hash, setHash] = React.useState<string>("");
   /**
    * get Pools from Mayachain and store pool information
    */
@@ -143,9 +151,11 @@ const Swap = () => {
           }
         });
         setTokenPrices(_prices);
-        setFromToken(cacao);
-        setToToken(_pools[0]);
-        setPools ([cacao, ..._pools, ..._synPools]);
+        setPools([cacao, ..._pools, ..._synPools]);
+        
+        if (!from || !to) {
+          router.push('?from=BTC.BTC&to=MAYA.CACAO');
+        }
       } catch (err) {
         console.log("@error fetching pools ------------------------", err);
       }
@@ -153,7 +163,20 @@ const Swap = () => {
     init ();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+  /**
+   * when from or to or pools are changed...
+   */
+  React.useEffect(() => {
+    if (from && to && pools.length > 0) {
+      const _from = pools.find((_pool: IPool) => _pool.asset === from);
+      const _to = pools.find((_pool: IPool) => _pool.asset === to);
+      setToToken (_to);
+      setFromToken (_from);
+    } else if (!from || !to) {
+      router.push('?from=BTC.BTC&to=MAYA.CACAO');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pools, from, to])
   /**
    * set from amount as percent of balance with quick 25%, 50%, 75%, 100%
    * @param percent 
@@ -165,7 +188,7 @@ const Swap = () => {
       for (const key in xBalances) {
         xBalances[key].balance.forEach((balance: IBalance) => {
           if (fromToken.ticker === TOKEN_DATA[String(balance.asset)].ticker) throw balance.amount; //alternative
-        })
+        });
       }
       throw 0;
     } catch (value) {
@@ -251,7 +274,7 @@ const Swap = () => {
     const decimals = _decimals(fromToken as IPool);
     let amount: any = Math.floor(Number(fromAmount)*decimals);
     amount = amount.toLocaleString('fullwide', {useGrouping:false});
-    const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&affiliate_bps=75&affiliate=maya&amount=${amount}${_des}`);
+    const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&affiliate_bps=75&affiliate=ttt&amount=${amount}${_des}`);
     if (data.error) {
       setError(data.error);
       setQuoteSwapResponse(undefined);
@@ -279,30 +302,60 @@ const Swap = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromAmount, fromToken, toToken]);
   /**
-   * when cross button is clicked, exchange the target and destination...
-   */
-  const handleExchange = () => {
-    const temp: IPool | undefined = fromToken;
-    setFromToken (toToken);
-    setToToken (temp);
-    setFromAmount(toAmount);
-  }
-  /**
    * when fromToken is selected
    * @param token 
    */
-  const handleSelectFromToken = (token: IPool) => {
-    if (token.asset !== toToken?.asset) {
-      setFromToken(token);
+  const handleSelectFromToken = (_pool: IPool) => {
+    if (_pool.asset !== to) {
+      router.push(`?from=${_pool.asset}&to=${to}`);
     }
   } 
   /**
    * when destination is selected
    * @param token 
    */
-  const handleSelectToToken = (token: IPool) => {
-    if (token.asset !== fromToken?.asset) {
-      setToToken(token);
+  const handleSelectToToken = (_pool: IPool) => {
+    if (_pool.asset !== from) {
+      router.push(`?from=${from}&to=${_pool.asset}`);
+    }
+  }
+  /**
+   * when cross button is clicked, exchange the target and destination...
+   */
+  const handleExchange = () => {
+
+    // {
+    //   setHash("")
+    //   setShowConfirmModal(false);
+    //   setShowProgressModal (true);
+    //   setIsSwaping (true);
+    //   // console.log("@token pairs ------------------->", { fromToken, toToken });
+    //   // // do swap with several wallets
+    //   // let hash: string = "";
+    //   // if (wallet?.name === "Keystore") {
+    //   //   hash = await doMayaSwap (fromAmount, 75);
+    //   // } else if (wallet?.name === "XDEFI") {
+    //   //   hash = await doXDefiSwap (fromAmount);
+    //   // } else if (wallet?.name === "Metamask") {
+    //   //   hash = await doMetamaskSwap (fromAmount);
+    //   // }
+    //   // setHash (hash);
+    //   const hashes: Record<string, string> = {
+    //     "MAYA": "2CCDE1E990CB6EC436D8DFD4F6DBC9DA5F32AA6BD1600417F7056CAC35469443",
+    //     "ETH": "EE097FB0BC6C74624087E960D649A16586D5BB5486F8AB621A2D43A06118E62A",
+    //     "BTC": "CC2CB95D301F1647A720771BB10508678FA40004AAB29DE2B0BAB5A4351AC521",
+    //     "THOR": "A1E0D806EC76AFEE031AE9B0CAB31130A8637A0182F1F1C8513DD2894020CFD3",
+    //     "DASH": "680f108988b8e299493c17681a097b09d589fa9de2b365afe2831a089e43baa0",
+    //     "KUJI": "F252558911D2123F029E3044D618FE861C25DCFC5D7F9EB56FEDE8824270D3CE",
+    //   }
+    //   setTimeout(() => {
+    //     setHash(hashes[String(fromToken?.chain)]);
+    //     // setHash("failed");
+    //   }, 5000);
+    // }
+
+    if (from && to) {
+      router.push(`?from=${to}&to=${from}`);
     }
   }
   /**
@@ -329,7 +382,7 @@ const Swap = () => {
    * @returns 
    */
   const handleSwap = async () => {
-
+    setHash("");
     if (isSwaping) return;
     try {
       if (Number(fromAmount) <= 0) throw "Please Input token amount to swap";
@@ -368,18 +421,22 @@ const Swap = () => {
   const submitSwap = async () => {
     try {
       setShowConfirmModal(false);
+      setShowProgressModal (true);
       setIsSwaping (true);
       console.log("@token pairs ------------------->", { fromToken, toToken });
-      //do swap with several wallets
+      // do swap with several wallets
+      let hash: string = "";
       if (wallet?.name === "Keystore") {
-        await doMayaSwap (fromAmount, 75);
+        hash = await doMayaSwap (fromAmount, 75);
       } else if (wallet?.name === "XDEFI") {
-        await doXDefiSwap (fromAmount);
+        hash = await doXDefiSwap (fromAmount);
       } else if (wallet?.name === "Metamask") {
-        await doMetamaskSwap (fromAmount);
+        hash = await doMetamaskSwap (fromAmount);
       }
+      setHash (hash);
     } catch (err) {
-      showNotification (err, "info");
+      setHash(STATUS.FAILED);
+      // setShowProgressModal (false);
     } finally {
       setIsSwaping (false);
     }
@@ -409,7 +466,6 @@ const Swap = () => {
           />
         }
         <TransactionModal />
-        <button onClick={() => setShowProgressModal(true)} >asdf</button>
         <div className="rounded-2xl p-4 bg-white dark:bg-[#0A0C0F] text-[#8A8D92] dark:text-white">
           <div className="flex text-sm flex-wrap justify-between">
             {

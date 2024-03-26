@@ -6,6 +6,7 @@ import { ethers } from 'ethers';
 import axios from 'axios';
 import { useRouter } from "next/navigation";
 import useNotification from "@/hooks/useNotification";
+import { LIQUIDITY } from '@/utils/constants';
 //for cosmos
 import {
   defaultRegistryTypes as defaultStargateTypes,
@@ -30,7 +31,7 @@ import {
 } from "@/store";
 //types
 import { ChainType, XBalances, IBalance, IWallet } from "@/types/minis";
-import { IPool, IParamsWithdrawLiquidity } from "@/types/maya";
+import { IPool, IParamsWithdrawLiquidity, IParamsAddLPAsset, IParamsAddLPCACAO } from "@/types/maya";
 //data
 import { ERC_20_ADDRESSES, EVM_ROUTER_ADDRESS, ERC20_DECIMALS, TOKEN_DATA, MINIMUM_AMOUNT } from "@/utils/data";
 //abis
@@ -42,18 +43,14 @@ interface IXDefiContext {
   connectToXDefi: () => Promise<void>,
   getBalancesWithXDefi: () => Promise<void>,
   doXDefiSwap: (amount: number | string) => Promise<any>,
+
+  xDefiAddLPAsset: ({ asset, decimals, amount, recipient, mayaAddress, mode }: IParamsAddLPAsset) => Promise<string>,
   /**
-   * transfer token using xchainjs
-   * @param asset "ETH.ETH"
-   * @param decimals 18
-   * @param amount 0.1
-   * @param recipient 0x01012050123123....
-   * @param address current asset's address
-   * @param mayaAddress maya12351231
-   * @param mode "sym" | "asym"
-   * @returns { hash, url }[] | undefined
+   * tranfer asset for adding liquidty
+   * @param param0 IParamsAddLPCacao
+   * @returns tx hash
    */
-  xDefiAddLiquidity: ({ asset, decimals, amount, recipient, address, mayaAddress, mode }: IParamsAddLiquidity) => Promise<any>,
+  xDefiAddLPCACAO: ({ amount, address }: IParamsAddLPCACAO) => Promise<string>,
   /**
    * transfer token using xchainjs
    * @param asset string "ETH.ETH"
@@ -62,7 +59,7 @@ interface IXDefiContext {
    * @param recipient string 0x01012050123123....
    * @param address string current asset's address
    * @param mayaAddress string maya12351231
-   * @param mode string "sym" | "asym"
+   * @param mode string LIQUIDITY.SYM | LIQUIDITY.ASYM
    * @returns { hash, url }[] | undefined
    */
   xDefiWithdrawLiquidity: ({ asset, decimals, bps, recipient, address, mayaAddress, mode }: IParamsWithdrawLiquidity) => Promise<any>
@@ -536,22 +533,21 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
  * send token in maya chain * CACAO, and synth tokens including sETH, sBTC, ... *
  * @param _amount number
  * @param _from string
- * @param _recipient string
  * @param _memo string
  * @param _asset string MAYA.CACAO, ETH/USDC ...
  * @returns tx hash
  */
-  const _transferMaya = (_amount: number, _from: string, _recipient: string, _memo: string, _asset: string) => new Promise(async (resolve, reject) => {
+  const _depositMaya = (_amount: number, _from: string, _memo: string, _asset: string) => new Promise(async (resolve, reject) => {
     const _tokenAsset = (_asset === "MAYA.CACAO") ? "CACAO" : _asset;
     const _decimals = (_tokenAsset === "CACAO") ? 10 : 8; // CACAO: 10, SYNTH: 8
-    const { asset, from, recipient, amount, memo, gasLimit } = {
+    const { asset, from, amount, memo, gasLimit } = {
       asset: {
         chain: "MAYA",
         symbol: _tokenAsset,
         ticker: _tokenAsset,
       },
       from: _from,
-      recipient: _recipient,
+      // recipient: _recipient,
       amount: {
         amount: Math.floor(_amount * 10**_decimals),
         decimals: _decimals
@@ -559,7 +555,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       memo: _memo,
       gasLimit: '10000000', // optional
     };
-    console.log("@Do cacao deposit -----------------------", { asset, from, recipient, decimals: _decimals, amount, memo, gasLimit });
+    console.log("@Do cacao deposit -----------------------", { asset, from, decimals: _decimals, amount, memo, gasLimit });
     try {
       //@ts-ignore
       await window.xfi.mayachain.request(
@@ -817,7 +813,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       let result: string = "";
       switch (fromToken?.chain) {
         case "MAYA": {
-          result = await _transferMaya(amount as number, xBalances["MAYA"].address, quoteSwap.inbound_address, quoteSwap.memo, fromToken.asset) as string;
+          result = await _depositMaya(amount as number, xBalances["MAYA"].address, quoteSwap.memo, fromToken.asset) as string;
           break;
         }
         case "BTC": {
@@ -843,11 +839,10 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (err) {
       console.log(err)
       showNotification(String(err), "warning");
-      return Promise.resolve(err);
+      return Promise.reject("failed");
     }
   }
-
-    /**
+  /**
    * transfer token using xchainjs
    * @param asset "ETH.ETH"
    * @param decimals 18
@@ -855,14 +850,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    * @param recipient 0x01012050123123....
    * @param address current asset's address
    * @param mayaAddress maya12351231
-   * @param mode "sym" | "asym"
+   * @param mode LIQUIDITY.SYM | LIQUIDITY.ASYM
    * @returns { hash, err }[] | undefined
    */
-  const xDefiAddLiquidity = async({ asset, decimals, amount, recipient, address, mayaAddress, mode }: IParamsAddLiquidity) => {
-  
-    let _data: { err?: string, hash?: string }[] = []; //data for returing...
-
-    let _memo = mode === "sym" ? `+:${asset}:${mayaAddress}` : `+:${asset}`;
+  const xDefiAddLPAsset = async({ asset, decimals, amount, recipient, mayaAddress, mode }: IParamsAddLPAsset) => {
+    
+    let _memo = mode === LIQUIDITY.SYM ? `+:${asset}:${mayaAddress}` : `+:${asset}::tt:75`;
     let _amount = amount;
     let _recipient = recipient;
     let _asset = asset;
@@ -891,38 +884,38 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           break;
         }
       }
-      _data = [..._data, { hash: String(hash) }];
       showNotification(`${asset} sent successfully.`, "success"); //show first message
-      if (mode === "asym") {
-        return Promise.resolve(_data);
-      };
+      return Promise.resolve(hash);
     } catch (err) {
-      console.log("@while xDefi addLiquidity ---------------", err);
-      return Promise.reject(err);
-    }
-    //////////////////////////////////// add cacao if symmetric add ////////////////////////////////////
-    const { data }: { data: IPool } = await axios.get(`https://midgard.mayachain.info/v2/pool/${asset}`);
-
-    _asset = "MAYA.CACAO";
-    _amount = Number(data.assetPrice)*Number(amount);
-    _memo = `+:${asset}:${address}`;
-    
-    try {
-      const result = await _transferMaya(_amount, xBalances["MAYA"].address, _recipient, _memo, _asset);
-      const secondHash = result as string;
-      // const secondHash = "asdfasdfasdfsdaf";
-      // const secondURL = await wallet?.getExplorerTxUrl(_asset.chain, String(secondHash)) as string;
-      _data = [..._data, { hash: String(secondHash) }];
-      showNotification(`${_asset} sent successfully.`, "success"); //show second message
-      return Promise.resolve(_data);
-    } catch (err) {
-      console.log("@while cacao deposit ---------------", err);
-      console.log("@add liquidity cacao deposit failed--------------", err);
-      showNotification("Cacao deposit failed, Please try again.", "error");
-      return Promise.resolve([..._data, { err: err }]);
+      console.log("@while adding cacao liquidity ---------------", err);
+      return Promise.reject(String(err));
     }
   };
+  /**
+   * transfer assset for add liquidity using xchainjs
+   * @param amount 0.1
+   * @param address current asset's address
+   * @mayaAddress current maya address
+   * @returns hash 
+   */
+  const xDefiAddLPCACAO = async({ asset, amount, address, mayaAddress }: IParamsAddLPCACAO) => {
 
+    const { data }: { data: IPool } = await axios.get(`https://midgard.mayachain.info/v2/pool/${asset}`);
+    const _asset = "MAYA.CACAO";
+    const _amount = Number(data.assetPrice)*Number(amount);
+    const _memo = `+:${asset}:${address}::tt:75`;
+    const _address = mayaAddress;
+    
+    try {
+      const hash = await _depositMaya(_amount, _address, _memo, _asset) as string;
+      showNotification(`${_asset} sent successfully.`, "success"); //show second message
+      return Promise.resolve(hash);
+    } catch (err) {
+      console.log("@while add cacao liquidity--------------", err);
+      showNotification("Cacao deposit failed, Please try again.", "error");
+      return Promise.reject(String(err));
+    }
+  };
   /**
    * transfer token using xchainjs
    * @param asset "ETH.ETH"
@@ -931,13 +924,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    * @param recipient 0x01012050123123....
    * @param address current asset's address
    * @param mayaAddress maya12351231
-   * @param mode "sym" | "asym"
+   * @param mode LIQUIDITY.SYM | LIQUIDITY.ASYM
    * @returns { hash, url }[] | undefined
    */
   const xDefiWithdrawLiquidity = async({ asset, decimals, bps, recipient, address, mayaAddress, mode }: IParamsWithdrawLiquidity) => {
 
-    const _memo = mode === "sym" ? `-:${asset}:${bps}` : `-:${asset}:${bps}:${asset}`;
-    // if (mode === "sym") {
+    const _memo = mode === LIQUIDITY.SYM ? `-:${asset}:${bps}` : `-:${asset}:${bps}:${asset}`;
+    // if (mode === LIQUIDITY.SYM) {
     let _amount = MINIMUM_AMOUNT['MAYA'];
     let _recipient = recipient;
     let _asset = "MAYA.CACAO";
@@ -949,18 +942,16 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       walletIndex: 0
     });
     // return Promise.resolve("699F52641E113B8204B1F55C18625854E3ECB48EF7B8B90D9E206DD11695A5DD");
-    if (mode === "sym") {
+    if (mode === LIQUIDITY.SYM) {
       try {
-        const result = await _transferMaya(_amount, mayaAddress, _recipient, _memo, _asset);
-        const secondHash = result as string;
-        console.log("@asym withdraw tx ----------", secondHash);
+        const hash = await _depositMaya(_amount, mayaAddress, _memo, _asset) as string;
         showNotification(`${asset} sent successfully.`, "success"); //show second message
-        return Promise.resolve(result);
+        return Promise.resolve(hash);
       } catch (err) {
         console.log("@while cacao deposit ---------------", err);
-        return Promise.reject(err);
+        return Promise.reject(String(err));
       }
-    } else if (mode === "asym") {
+    } else if (mode === LIQUIDITY.ASYM) {
       try {
         let hash: string = "";
         const _chain = TOKEN_DATA[asset].chain;
@@ -992,13 +983,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         return Promise.resolve(hash);
       } catch (err) {
         console.log("@while token withdraw ---------------", err);
-        return Promise.reject(err);
+        return Promise.reject(String(err));
       }
     }
   }
 
   return (
-    <XDefiContext.Provider value={{ connectToXDefi, getBalancesWithXDefi, doXDefiSwap, xDefiAddLiquidity, xDefiWithdrawLiquidity }}>
+    <XDefiContext.Provider value={{ connectToXDefi, getBalancesWithXDefi, doXDefiSwap, xDefiWithdrawLiquidity, xDefiAddLPAsset, xDefiAddLPCACAO}}>
       {children}
     </XDefiContext.Provider>
   )

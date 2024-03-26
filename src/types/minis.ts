@@ -37,6 +37,6 @@ export interface IWallet {
   chain?: string
 };
 
-export type XClients = Record<string, XChainClient>;
+export type XClients = Record<string, any>;
 
 export type XBalances = Record<string, IWallet>

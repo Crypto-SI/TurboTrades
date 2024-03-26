@@ -1,7 +1,7 @@
 "use client"
 //@ts-ignore
 // const rskUtils = require("@rsksmart/rsk-utils");
-import { ChainType, WalletType } from "@/types/minis";
+import { ChainType, WalletType, TxResult, IChainData } from "@/types";
 import BigNumber from 'bignumber.js';
 import { FEE_ESTIMATIONS, FEE_URLS } from "./data";
 import axios from 'axios';
@@ -34,7 +34,7 @@ export const isSupportedChain = (_wallet: WalletType | null, _chain: ChainType) 
  * @returns string
  * 
  */
-export const reduceAmount = (number: number | BigNumber | string | unknown) => {
+export const reduceAmount = (number: number | BigNumber | string | unknown, len = 2) => {
   try {
     if (isNaN(number as number)) throw "0"; 
     const num = Math.floor(number as number);
@@ -49,7 +49,9 @@ export const reduceAmount = (number: number | BigNumber | string | unknown) => {
         break;
       }
     }
-    throw num + decimal.substr(1, count + 3);
+    // count = 0;
+    const _deciaml = Number(decimal).toFixed(count + len);
+    throw num + _deciaml.substring(1, _deciaml.length);
   } catch (value: any) {
     return value as string;
   }
@@ -146,7 +148,7 @@ export const reduceAddress = (address: string = "0x29f95970cd0dd72cd7d6163b78693
 export const sleep = (ms: number) => new Promise<void>((resolve, reject) => {
   setTimeout(() => {
     resolve();
-  }, ms*1000)
+  }, ms);
 });
 /**
  * splite asset
@@ -185,4 +187,231 @@ export const _reduceHash = (hash: string = "") => {
     return hash.substr(0, 30) + "......" + hash.substring(hash.length-12, hash.length-1)
   }
 }
+export const _renderLocaleDateTimeString = (timestamp: Date | string | number | undefined) => {
+  timestamp = timestamp??0;
+  const date = new Date(timestamp);
+  const DATE = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const _day = date.getDay();
+  const _date = date.toLocaleDateString();
+  let _hour = date.getHours ();
+  const _ampm = _hour < 12 ? "AM" : "PM";
+  _hour = _hour > 12 ? _hour - 12 : _hour;
+  let _min: string | number = date.getMinutes ();
+  _min = _min < 10 ? "0" + _min : _min;
+  return `${DATE[_day]} ${_date} ${_hour}:${_min} ${_ampm}`;
+}
 
+export const CHAINS: Record<string, IChainData> = {
+  "MAYA": {
+    label: "MAYA",
+    name: "Maya chain",
+    image: "/images/chains/maya.png",
+    explorer: "https://www.mayascan.org",
+    txExplorer: "https://mayanode.mayachain.info/cosmos/tx/v1beta1/txs/",
+    getTransaction: async (hash: string) => {
+      try {
+        const { data } = await axios.get(`https://mayanode.mayachain.info/cosmos/tx/v1beta1/txs/${hash}`);
+        if (!data.tx_response || !data.tx) throw "";
+        const _data: TxResult = {
+          hash: hash,
+          url: 'https://www.mayascan.org/tx/' + hash,
+          blockHeight: data.tx_response.height, 
+          confirmed: true,
+          blocktime: data.tx_response.timestamp,
+          gas: data.tx_response.gas_used/1e10,
+          fee: data.tx.auth_info.fee.amount[0] ? data.tx.auth_info.fee.amount[0].amount / 1e10 : 0.5
+        }
+        return Promise.resolve(_data)
+      } catch (err) {
+        return Promise.reject(undefined)
+      }
+    }
+  },
+  "BTC": {
+    label: "BTC",
+    name: "Bitcoin",
+    image: "/images/chains/btc.webp",
+    explorer: "https://btcscan.org",
+    txExplorer: "https://btcscan.org/api/tx/",
+    getTransaction: async (hash: string) => {
+      try {
+        const { data } = await axios.get(`https://btcscan.org/api/tx/${hash}`);
+        const _data: TxResult = {
+          hash: hash,
+          url: 'https://btcscan.org/tx/' + hash,
+          blockHeight: data.status.block_height, 
+          confirmed: data.status.confirmed,
+          confirmations: data.status.confirmed ? 1 : undefined,
+          blocktime: Number(data.status.block_time)*1000,
+          gas: data.fee/1e8,
+          fee: data.fee/1e8
+        }
+        return Promise.resolve(_data)
+      } catch (err) {
+        return Promise.reject(undefined)
+      }
+    }
+  },
+  "ETH": {
+    label: "ETH",
+    name: "Ethereum",
+    image: "/images/chains/eth.webp",
+    explorer: "https://etherscan.io",
+    txExplorer: "https://",
+    getTransaction: async (hash: string) => {
+      try {
+        const API_KEY = "QJ4UTD1RDZ64DP9G5NMVTCU88H8VYYQQJX";
+        const { data: { result: tx } } = await axios.get(`https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=${hash}&apikey=${API_KEY}`)
+        if (typeof tx !== 'object' || Object.keys(tx).length == 0) throw "";
+        const { data: { result: block } } = await axios.get(`https://api.etherscan.io/api?module=block&action=getblockreward&blockno=${Number(tx.blockNumber)}&apikey=${API_KEY}`)
+        if (typeof block !== 'object' || Object.keys(block).length == 0) throw "";
+        const _data: TxResult = {
+          hash: hash,
+          url: 'https://etherscan.io/tx/' + hash,
+          blockHeight: Number(tx.blockNumber), 
+          confirmed: true,
+          blocktime: Number(block.timeStamp)*1000,
+          gas: 0,
+          fee: Number(tx.gas)*Number(tx.gasPrice)/1e18
+        }
+        return Promise.resolve(_data);
+      } catch (err) {
+        return Promise.reject("");
+      }
+    }
+  },
+  "KUJI": {
+    label: "KUJI",
+    name: "Kuji chain",
+    image: "/images/chains/kuji.png",
+    explorer: "https://finder.kujira.network/kaiyo-1",
+    txExplorer: "https://as-proxy.gateway.atomscan.com/kujira-lcd/cosmos/tx/v1beta1/txs/",
+    getTransaction: async (hash: string) => {
+      try {
+        const params0 = {
+          "jsonrpc": "2.0",
+          "id": 393561932178,
+          "method": "tx_search",
+          "params": {
+            "query": `tx.hash='${hash}'`,
+            "page": "1"
+          }
+        }
+        const { data: { result: { txs } } } = await axios.post(`https://rpc.cosmos.directory/kujira/`, params0);
+        const [tx] = txs;
+        if (!tx) throw "no transaction";
+        const gasFee = tx.tx_result.events.find((item: any) => (item.type === "tx" && item.attributes[0].key ==="fee" ));
+        const fee = gasFee.attributes[0].value;
+  
+        const params1 = {"jsonrpc":"2.0","id":671126425115,"method":"block","params":{"height": tx.height}}
+        const { data: { result } } = await axios.post(`https://rpc.cosmos.directory/kujira/`, params1);
+  
+        const txResult: TxResult = {
+          hash: hash,
+          url: 'https://finder.kujira.network/kaiyo-1/tx/' + hash,
+          blockHeight: tx.height, 
+          confirmed: true,
+          blocktime: result.block.header.time,
+          gas: tx.tx_result.gas_used,
+          fee: Number(fee.substring(0, fee.length - 5)/1e6) //3000ukuji -> 3000kuji
+        }
+        return Promise.resolve(txResult);
+      } catch (err) {
+        console.log(err)
+        return Promise.reject(undefined);
+      }
+    }
+  },
+  "DASH": {
+    label: "DASH",
+    name: "Dash chain",
+    image: "/images/chains/dash.png",
+    explorer: "https://explorer.dash.org/insight",
+    txExplorer: "https://insight.dash.org/insight-api/tx/",
+    getTransaction: async (hash: string) => {
+      try {
+        const { data } = await axios.get(`https://insight.dash.org/insight-api/tx/${hash}`);
+        const _data: TxResult = {
+          hash: hash,
+          url: 'https://explorer.dash.org/insight/tx/' + hash,
+          blockHeight: data.blockheight, 
+          confirmed: data.confirmations > 0 ? true : false,
+          confirmations: data.confirmations,
+          blocktime: Number(data.time)*1000,
+          gas: data.fees,
+          fee: data.fees
+        }
+        return Promise.resolve(_data)
+      } catch (err) {
+        return Promise.reject(undefined)
+      }
+    }
+  },
+  "THOR": {
+    label: "THOR",
+    name: "Thorchain",
+    image: "/images/chains/thor.webp",
+    explorer: "https://runescan.io",
+    txExplorer: "https://thorchain-thornode-lb-1.thorwallet.org/cosmos/tx/v1beta1/txs/",
+    getTransaction: async (hash: string) => {
+      try {
+        const { data } = await axios.get(`https://thorchain-thornode-lb-1.thorwallet.org/cosmos/tx/v1beta1/txs/${hash}`);
+        if (!data.tx_response || !data.tx) throw "";
+        const _data: TxResult = {
+          hash: hash,
+          url: 'https://runescan.io/tx/' + hash,
+          blockHeight: data.tx_response.height, 
+          confirmed: true,
+          blocktime: data.tx_response.timestamp,
+          gas: data.tx_response.gas_used/1e8,
+          fee: data.tx.auth_info.fee.amount[0] ? data.tx.auth_info.fee.amount[0].amount / 1e8 : 0.02
+        }
+        return Promise.resolve(_data)
+      } catch (err) {
+        return Promise.reject(undefined)
+      }
+    }
+  },
+}
+/**
+ * estimate inbound transaction time
+ */
+export const inboundConfirmTimeEstimation = (chain: string) => {
+  const TIME_ESTIMATION: Record<string, number> = {
+    "MAYA": 30,
+    "ETH": 2*60,
+    "THOR": 60,
+    "KUJI": 30,
+    "BTC": 30*60,
+    "DASH": 10*60,
+  }
+  return TIME_ESTIMATION[chain];
+}
+/**
+ * estimate outbound transaction time
+ */
+export const outboundConfirmTimeEstimation = (chain: string) => {
+  const TIME_ESTIMATION: Record<string, number> = {
+    "MAYA": 0.5*60,
+    "ETH": 3*60,
+    "THOR": 2*60,
+    "KUJI": 60*2.5,
+    "BTC": 30*60,
+    "DASH": 10*60,
+  }
+  return TIME_ESTIMATION[chain];
+}
+/**
+ * render remain time
+ * @param seconds 
+ * @returns 
+ */
+export const _renderEstimationTime = (seconds: number) => {
+  let result: number | string = 0;
+  if (seconds % 60 === 0 ) {
+    result = seconds / 60;
+  } else {
+    result = (seconds / 60).toFixed (1);
+  }
+  return result;
+}

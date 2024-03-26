@@ -53,8 +53,8 @@ const KeyStore = () => {
 
     const file: File | undefined = e.target.files?.[0];
 
-    if (file?.type !== "application/json") {
-      showNotification("Only json file is available for keyStore", "warning");
+    if (file?.type !== "application/json" && file?.type !== "text/plain") {
+      showNotification("Only .json or .txt file is available for keyStore", "warning");
       setKeyStoreFile (undefined);
       setKey(null);
       //@ts-ignore
@@ -129,7 +129,7 @@ const KeyStore = () => {
               id="keyStore"
               type="file"
               ref={keyFileRef}
-              accept="application/json"
+              accept="application/json, .txt"
               onChange={handleReadKeyFile}
             />
             <label

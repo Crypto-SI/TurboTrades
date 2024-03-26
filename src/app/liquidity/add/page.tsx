@@ -17,17 +17,20 @@ import { IPool } from '@/types/maya';
 import { IBalance } from '@/types/minis';
 //data
 import { TOKEN_DATA, NATIVE_TOKENS, SUB_LINKS } from '@/utils/data';
+import { STATUS, LIQUIDITY } from '@/utils/constants';
 //methods
 import { reduceAmount, _feeEstimation } from '@/utils/methods';
 //components
 import AddLiquidityConfirm from '@/components/liquidity/add/addLiquidityConfirm';
-import AddLiquidityResult from "@/components/liquidity/add/addLiquidityResult";
+import ProgressModal from '@/components/liquidity/add/progressModal';
 import { Tabs } from 'flowbite-react';
 //hooks
 import useNotification from "@/hooks/useNotification";
 import useXChain from "@/hooks/useXChain";
 import useXDefi from "@/hooks/useXDefiWallet";
 import useMetamask from "@/hooks/useMetamask";
+
+
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -43,24 +46,27 @@ const AddLiquidity = () => {
   const [wallet,] = useAtom(walletAtom);
   //state
   const [selectedPool, setSelectedPool] = React.useState<IPool | undefined>();
-  const [mode, setMode] = React.useState<string>("asym");
+  const [mode, setMode] = React.useState<string>(LIQUIDITY.ASYM);
   const [amount, setAmount] = React.useState<string>("");
   const [selectedTokenPrice, setSelectedTokenPrice] = React.useState<string>("0");
   const [showConfirmModal, setShowConfirmModal] = React.useState<boolean>(false);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [showResultModal, setShowResultModal] = React.useState<boolean>(false);
+  const [showProgressModal, setShowProgressModal] = React.useState<boolean>(false);
   const [tnxUrl, setTnxUrl] = React.useState<string>("https://vercel.app");
   const [txResult, setTxResult] = React.useState<{ hash?:string, url?:string, err?: string }[]>([]);
+  const [hashes, setHashes] = React.useState<Record<string, string>>({});
   //hooks
   const { showNotification } = useNotification ();
-  const { xChainAddLiquidity } = useXChain ();
-  const { xDefiAddLiquidity } = useXDefi ();
+  const { xChainAddLPAsset, xChainAddLPCACAO } = useXChain ();
+  const { xDefiAddLPAsset, xDefiAddLPCACAO } = useXDefi ();
+
   /**
    * when click switch button, sym -> asym, asym -> sym
    * @returns 
    */
   const handleSwitchMode = () => {
-    setMode(mode === "sym" ? "asym" : "sym");
+    setMode(mode === LIQUIDITY.SYM ? LIQUIDITY.ASYM : LIQUIDITY.SYM);
   }
   /**
    * when token amount to deposit is changed
@@ -142,6 +148,7 @@ const AddLiquidity = () => {
   const onAddLiquidity = async () => {
     setShowConfirmModal(false);
     setIsLoading(true);
+    setShowProgressModal (true);
     try {
       const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/inbound_addresses`);
 
@@ -156,44 +163,72 @@ const AddLiquidity = () => {
 
       // const nativeDecimal = Number(selectedPool?.nativeDecimal) === -1 ? 8 : Number(selectedPool?.nativeDecimal);
       const nativeDecimal = TOKEN_DATA[selectedPool?.asset as string].decimals;
+      const _asset = String(selectedPool?.asset);
       let response: { hash?:string, err?: string }[] = [];
       //add liquidity with several wallets...
       if (wallet?.name === "Keystore") {
-        response = await xChainAddLiquidity ({
-          asset: String(selectedPool?.asset),
+        await xChainAddLPAsset({
+          asset: _asset,
           decimals: nativeDecimal,
           amount: Number(amount),
           recipient: _inbountAddress.address,
-          address: address,
           mayaAddress: mayaAddress,
           mode: mode
+        }).then(hash => {
+          setHashes(prev => ({...prev, ['ASSET']: hash}));
+        }).catch(err => {
+          setHashes(prev => ({...prev, ['ASSET']: STATUS.FAILED}));
+          throw err;
         });
+        //-------------------------------- symmetric add ----------------------------------
+        if (mode === LIQUIDITY.SYM) {
+          await xChainAddLPCACAO({
+            asset: _asset,
+            amount: Number(amount),
+            address: address,
+            mayaAddress: mayaAddress
+          }).then(hash => {
+            setHashes(prev => ({...prev, ['CACAO']: hash}));
+          }).catch(err => {
+            setHashes(prev => ({...prev, ["CACAO"]: STATUS.FAILED}));
+            throw err;
+          });
+        }
       } else if (wallet?.name === "XDEFI") {
-        response = await xDefiAddLiquidity ({
-          asset: String(selectedPool?.asset),
+        await xDefiAddLPAsset({
+          asset: _asset,
           decimals: nativeDecimal,
           amount: Number(amount),
           recipient: _inbountAddress.address,
-          address: address,
           mayaAddress: mayaAddress,
           mode: mode
+        }).then(hash => {
+          setHashes(prev => ({...prev, ['ASSET']: hash}));
+        }).catch(err => {
+          setHashes(prev => ({...prev, ['ASSET']: STATUS.FAILED}));
+          throw err;
         });
+        //------------------------------- symmetric add ----------------------------------
+        if (mode === LIQUIDITY.SYM) {
+          xDefiAddLPCACAO({
+            asset: _asset,
+            amount: Number(amount),
+            address: address,
+            mayaAddress: mayaAddress
+          }).then(hash => {
+            setHashes(prev => ({...prev, ['CACAO']: hash}));
+          }).catch(err => {
+            setHashes(prev => ({...prev, ["CACAO"]: STATUS.FAILED}));
+            throw err;
+          });
+        }
       } else if (wallet?.name === "Metamask") {
         // await doMetamaskSwap (fromAmount);
       }
-      
-      console.log("@resonse with add liquidity -----------------", response);
-      const hash = response[0].hash;
-      const _target = mode === "sym" ?
-        `/progress/liquidity/add?hash=${hash}&from=${address}&in=${selectedPool?.asset}&out=MAYA.CACAO&ina=${amount}&outa=${Number(amount)*Number(selectedPool?.assetPrice)}&start=1709893536993` :
-        `/progress/liquidity/add?hash=${hash}&from=${address}&in=${selectedPool?.asset}&ina=${amount}&start=1709893536993`;
-      router.push(_target);
     } catch (err) {
       if (String(err).includes("insufficient funds for intrinsic transaction cost")) {
         showNotification("Insufficient funds for intrinsic transaction cost.", "warning");
-      } else {
-        showNotification(String(err), "warning");
-      }
+      } else { showNotification(String(err), "warning") }
     } finally {
       setIsLoading(false);
     }
@@ -221,10 +256,7 @@ const AddLiquidity = () => {
    * when click add liquidity button
    */
   const handleAddLiquidityClick = async () => {
-    // return setShowConfirmModal(true);
-
-    if (isLoading) return;
-    // setShowConfirmModal(true);
+    setHashes({});
     try {
       if (Number(amount) <= 0) throw "Please Input token amount to swap";
       if (!xBalances[selectedPool?.chain as string]) throw  `Please connect ${selectedPool?.chain} chain.`;
@@ -273,8 +305,6 @@ const AddLiquidity = () => {
     </button>
   )
   
-  
-
   return (
     <div className="flex grow flex-col mt-2">
       { showConfirmModal && 
@@ -287,13 +317,16 @@ const AddLiquidity = () => {
         /> 
       }
       {
-        showResultModal &&
-        <AddLiquidityResult
-          onOK={() => setShowResultModal(false)}
-          pool={selectedPool as IPool}
-          amount={amount}  
-          txResult={txResult}
+        showProgressModal && selectedPool &&
+        <ProgressModal
+          setVisible={setShowProgressModal}
+          pool={selectedPool}
+          amount={amount}
           mode={mode}
+          hashes={hashes}
+          setHashes={setHashes}
+          address={xBalances[String(selectedPool.chain)].address}
+          mayaAddress={xBalances['MAYA'].address}
         />
       }
       <div className='flex gap-1'>
@@ -398,7 +431,7 @@ const AddLiquidity = () => {
                   <div onClick={handleSetMax} className='w-full xs:w-auto dark:bg-[#0a0f14] bg-[#E2E6EB] border border-[#DCE4EF] dark:border-[#3341558e] cursor-pointer hover:opacity-50 rounded-lg p-2 text-[12px]'>MAX</div>
                 </div>
                 { 
-                  mode === "asym" && 
+                  LIQUIDITY.ASYM && 
                   <button onClick={handleAddLiquidityClick} className='text-white flex justify-center items-center rounded-xl bg-gradient-to-r from-[#FF6802] to-[#EE0E72] p-3 w-full xs:w-[100px] cursor-pointer hover:opacity-50'>
                     {
                       !isLoading ? "Add" :
@@ -409,7 +442,7 @@ const AddLiquidity = () => {
               </div>
               <div className='py-1 px-2 text-sm'>Balance: { reduceAmount(_balance()) } {selectedPool?.ticker}</div>
 
-              <button onClick={handleSwitchMode} className='flex text-sm items-center justify-center hover:opacity-50 cursor-pointer mt-10 bg-[#131822] text-[#B0B7C3] dark:text-[#B0B7C3] gap-2 p-3 rounded-xl w-full dark:bg-[#0F161F]'>
+              <button onClick={() => handleSwitchMode()} className='flex text-sm items-center justify-center hover:opacity-50 cursor-pointer mt-10 bg-[#131822] text-[#B0B7C3] dark:text-[#B0B7C3] gap-2 p-3 rounded-xl w-full dark:bg-[#0F161F]'>
                 Add two sided
                 <Icon icon="iconamoon:arrow-down-2-duotone" width={24} className='text-white font-bold'/>
               </button>
@@ -418,7 +451,7 @@ const AddLiquidity = () => {
         </div>
 
         {
-          mode === "sym" &&  
+          mode === LIQUIDITY.SYM &&  
           <>
             <div className="relative my-6 border-dashed border-b border-[#00000059] dark:border-[#ffffff4f] w-full lg:w-[600px]">
               <div className="absolute flex items-center justify-center w-12 h-12 border-8 border-[#F3F7FC] dark:border-[#030506] rounded-full left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#8f7676] dark:bg-[#131822]">

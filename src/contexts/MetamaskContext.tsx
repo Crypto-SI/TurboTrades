@@ -27,7 +27,7 @@ import { ERC20_DECIMALS } from "@/utils/data";
 interface IMetamaskContext {
   connectToMetamask: () => Promise<any>,
   getBalanceWithMetamask: () => Promise<void>
-  doMetamaskSwap: (amount: string | number) => Promise<void>
+  doMetamaskSwap: (amount: string | number) => Promise<string>
 }
 //data
 import { ERC_20_ADDRESSES } from "@/utils/data";
@@ -180,15 +180,18 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       if (fromToken?.ticker === "ETH") {
         const data = await _sendEther (amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse, signer);
         console.log("@ETH metamask transaction ----------------------------->", data);
-        _showTxModal (`https://etherscan.io/tx/${data.hash}`);
+        // _showTxModal (`https://etherscan.io/tx/${data.hash}`);
+        return Promise.resolve(data.hash);
       } else {
         const data = await _depositERC20Token (amount as number, xBalances["ETH"].address, quoteSwap.memo, quoteSwap.inbound_address, signer, String(fromToken?.ticker));
         console.log("@ETH metamask transaction ----------------------------->", data);
-        _showTxModal (`https://etherscan.io/tx/${data.hash}`);
+        // _showTxModal (`https://etherscan.io/tx/${data.hash}`);
+        return Promise.resolve(data.hash);
       }
     } catch (err) {
       console.log(err)
       showNotification(String(err), "warning");
+      return Promise.reject(String(err));
     }
   }
   /**

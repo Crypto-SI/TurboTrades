@@ -4,7 +4,8 @@ import { useAtom } from "jotai";
 
 //xchain utils
 import { baseToAsset } from "@xchainjs/xchain-util";
-import { Balance, Network, XChainClient } from "@xchainjs/xchain-client";
+import { Balance, FeeOption, Network, XChainClient } from "@xchainjs/xchain-client";
+import { LIQUIDITY } from '@/utils/constants';
 //This can be used for any xchain client
 import { Client as BTCClient, defaultBTCParams } from "@xchainjs/xchain-bitcoin";
 import { Client as ETHClient, defaultETHParams } from "@/xchains/ethereum";
@@ -17,6 +18,7 @@ import { MayaChain, MayachainQuery, QuoteSwap, QuoteSwapParams } from '@xchainjs
 import { CryptoAmount, assetAmount, assetFromString, assetToBase, assetToString, Address, Asset, Chain, assetFromStringEx } from '@xchainjs/xchain-util';
 import { Wallet } from '@xchainjs/xchain-wallet'
 import axios from "axios";
+import { sleep } from "@/utils/methods";
 // import { Client as BNBClient } from "@xchainjs/xchain-binance";
 // import { Client as CosmosClient } from "@xchainjs/xchain-cosmos";
 // import { Client as DogeClient, defaultDogeParams } from '@xchainjs/xchain-doge';
@@ -43,7 +45,7 @@ import {
 import useNotification from "@/hooks/useNotification";
 //types
 import { ChainType, XClients, XBalances, IBalance, IWallet } from "@/types/minis";
-import { IPool, IParamsAddLiquidity, IParamsWithdrawLiquidity } from "@/types/maya";
+import { IPool, IParamsAddLiquidity, IParamsWithdrawLiquidity, IParamsAddLPCACAO, IParamsAddLPAsset } from "@/types/maya";
 import { NATIVE_TOKENS, MINIMUM_AMOUNT, TOKEN_DATA } from "@/utils/data";
 
 interface IXChainContext {
@@ -66,18 +68,18 @@ interface IXChainContext {
    */
   doMayaSwap: (amount: string | number, affiliateBps: number) => Promise<any>,
   /**
-   * transfer token using xchainjs
-   * @param asset string "ETH.ETH"
-   * @param decimals number 18
-   * @param amount number 10000
-   * @param recipient string 0x01012050123123....
-   * @param address string current asset's address
-   * @param mayaAddress string maya12351231
-   * @param mode string "sym" | "asym"
-   * @returns { hash, url }[] | undefined
+   * tranfer asset for adding liquidty
+   * @param param0 IParamsAddLPAsset
+   * @returns tx hash
    */
-  xChainAddLiquidity: ({ asset, decimals, amount, recipient, address, mayaAddress, mode }: IParamsAddLiquidity) => Promise<any>
+  xChainAddLPAsset: ({ asset, decimals, amount, recipient, mayaAddress, mode }: IParamsAddLPAsset) => Promise<string>,
   /**
+   * tranfer asset for adding liquidty
+   * @param param0 IParamsAddLPCacao
+   * @returns tx hash
+   */
+  xChainAddLPCACAO: ({ amount, address }: IParamsAddLPCACAO) => Promise<string>,
+  /**transfer cacao for symmetric add liquidity
    * transfer token using xchainjs
    * @param asset string "ETH.ETH"
    * @param decimals number 18
@@ -85,7 +87,7 @@ interface IXChainContext {
    * @param recipient string 0x01012050123123....
    * @param address string current asset's address
    * @param mayaAddress string maya12351231
-   * @param mode string "sym" | "asym"
+   * @param mode string LIQUIDITY.SYM | LIQUIDITY.ASYM
    * @returns { hash, url }[] | undefined
    */
   xChainWithdrawLiquidity: ({ asset, decimals, bps, recipient, address, mayaAddress, mode }: IParamsWithdrawLiquidity) => Promise<any>
@@ -175,7 +177,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     // EVM Clients
     const ethClient = new ETHClient({ ...defaultETHParams, network: settings.network, phrase: settings.phrase }) // Ethereum
     //dash &
-    const dashClient = new DashClient({ ...defaultDashParams, network: settings.network, phrase: settings.phrase });
+    const dashClient = new DashClient({ ...defaultDashParams, network: settings.network, phrase: settings.phrase, feeBounds: {upper: 2000, lower: 1}});
+    // const dashClient = new DashClient({ ...defaultDashParams, network: settings.network, phrase: settings.phrase });
+    
     const kujiClient = new KujiraClient({ ...defaultKujiParams, network: settings.network, phrase: settings.phrase });
     const thorClient = new THORClient(settings);
     //clients
@@ -183,13 +187,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     const clients: XChainClient[] = [btcClient, mayaClient, ethClient, dashClient, kujiClient, thorClient];
     //wallet
     const _wallet: Wallet = new Wallet({
-      BTC: new BTCClient({ ...defaultBTCParams, network: settings.network, phrase: settings.phrase }),
-      ETH: new ETHClient({ ...defaultETHParams, network: settings.network, phrase: settings.phrase }), // Ethereum
-      DASH: new DashClient({ ...defaultDashParams, network: settings.network, phrase: settings.phrase }),
-      KUJI: new KujiraClient({ ...defaultKujiParams, network: settings.network, phrase: settings.phrase }),
+      BTC: btcClient,
+      ETH: ethClient, 
+      DASH: dashClient,
+      KUJI: kujiClient,
       //@ts-ignore
-      THOR: new THORClient(settings),
-      MAYA: new MayaClient(settings),
+      THOR: thorClient,
+      MAYA: mayaClient,
     });
 
     setWallet(_wallet);
@@ -397,57 +401,14 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     }
   });
   //do maya swap
-  const doSwap = async (mayachainAmm: MayachainAMM, quoteSwapParams: QuoteSwapParams) => {
-    try {
-      const valid = await mayachainAmm.validateSwap(quoteSwapParams);
-      console.log("validate------>", valid);
-      console.log('______________________    ESTIMATION   ____________________')
-      const quoteSwap = await mayachainAmm.estimateSwap(quoteSwapParams);
-      
-      printQuoteSwap(quoteSwap);
-      if (!quoteSwap.canSwap) throw { message:  quoteSwap.errors[0] }; //can't swap
-      console.log('______________________      RESULT     ____________________')
-      console.log(
-        `Executing swap from ${assetToString(quoteSwapParams.fromAsset)} to ${assetToString(
-          quoteSwapParams.destinationAsset,
-        )}`,
-      );
-
-      const { chain, symbol } = quoteSwapParams.fromAsset;
-      if (chain === "ETH" && symbol === "ETH") {
-        console.log("@dew1204/start with _own transfer ---------------------------------->");
-        const txId = await _transferEther (quoteSwapParams, quoteSwap.memo, quoteSwap.toAddress);
-        console.log("Transaction success..", txId);
-        console.log(txId)
-
-        showNotification ("Transaction sent successfully", "success");
-        setTrxUrl(txId as string);
-        setShowTrxModal(true);
-      } else {
-        const txSubmitted = await mayachainAmm.doSwap(quoteSwapParams);
-        console.log(`Tx hash: ${txSubmitted.hash},\n Tx url: ${txSubmitted.url}\n`);
-
-        showNotification ("Transaction sent successfully", "success");
-        setTrxUrl(txSubmitted.url);
-        setShowTrxModal(true);
-      }
-    } catch (error) {
-      console.log("@dew1204/swap error -------------------------------->", error);
-      //@ts-ignore
-      if (String(error).includes("insufficient funds for intrinsic transaction cost")) {
-        showNotification("Insufficient funds for intrinsic transaction cost.", "warning");
-      } else {
-        //@ts-ignore
-        showNotification(String(error.message), "warning");
-      }
-    }
-  }
   /**
    * 
    * @param amount amount to swap
    * @param affiliateBps default 0.75%
    */
   const doMayaSwap = async (amount: string | number, affiliateBps: number = 75) => {
+    // await sleep (5000);
+    // return Promise.resolve("941ADF0C7D272932B8E22DF175E3111CE7E0325BF802653818D8A9105EB819B1");
 
     let decimals = 8;
     if ( fromToken?.chain === "MAYA" )  decimals = 10;
@@ -460,7 +421,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       fromAsset: fromAsset as Asset,
       destinationAsset: toAsset as Asset,
       amount: new CryptoAmount(assetToBase(assetAmount(amount, decimals)), fromAsset as Asset),
-      affiliateAddress: "maya",
+      affiliateAddress: "tt",
       affiliateBps,
       destinationAddress: await wallet?.getAddress(toChain as string),
     }
@@ -498,10 +459,38 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         setTrxUrl(txId as string);
         setShowTrxModal(true);
       } else {
-        const txSubmitted = await mayachainAmm.doSwap(quoteSwapParams);
-        console.log(`Tx hash: ${txSubmitted.hash},\n Tx url: ${txSubmitted.url}\n`);
-
-        return Promise.resolve(txSubmitted.url);
+        console.log(quoteSwapParams)
+        
+        let hash:string = "";
+        switch (fromToken?.chain) {
+          case "DASH": 
+            // hash = await xClients["DASH"].transfer(
+            //   {
+            //     asset: quoteSwapParams.fromAsset,
+            //     amount: quoteSwapParams.amount.baseAmount,
+            //     recipient: quoteSwap.toAddress,
+            //     memo: quoteSwap.memo,
+            //     feeRate:
+            //   },
+            // ) as string;
+            hash = await xClients['DASH'].transfer({
+              asset: quoteSwapParams.fromAsset,
+              amount: quoteSwapParams.amount.baseAmount,
+              recipient: quoteSwap.toAddress,
+              memo: quoteSwap.memo,
+              feeRate: 100
+            });
+            break;
+          default: 
+            const txSubmitted = await mayachainAmm.doSwap(quoteSwapParams);
+            hash = txSubmitted.hash;  
+        }
+        return Promise.resolve(hash);
+        // const txSubmitted = await mayachainAmm.doSwap(quoteSwapParams);
+        // console.log(`Tx`, txSubmitted);
+        // return Promise.resolve(txSubmitted.hash);
+        // await sleep (5000);
+        // return Promise.resolve("01DBF70FF1E82C056382BB177E7709CE665BF33FFDDC138116AF17A6C214CB9A")
       }
     } catch (error) {
       console.log("@dew1204/swap error -------------------------------->", error);
@@ -512,31 +501,31 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         //@ts-ignore
         showNotification(String(error.message), "warning");
       }
-      return Promise.reject(error)
+      return Promise.reject("failed")
     }
   }
   /**
-   * transfer token using xchainjs
+   * transfer assset for add liquidity using xchainjs
    * @param asset "ETH.ETH"
    * @param decimals 18
    * @param amount 0.1
    * @param recipient 0x01012050123123....
-   * @param address current asset's address
    * @param mayaAddress maya12351231
-   * @param mode "sym" | "asym"
+   * @param mode LIQUIDITY.SYM | LIQUIDITY.ASYM
    * @returns { hash, url }[] | undefined
    */
-  const xChainAddLiquidity = async({ asset, decimals, amount, recipient, address, mayaAddress, mode }: IParamsAddLiquidity) => {
-    
-    let _data: { err?: string, hash?: string }[] = [];
-    let _memo = mode === "sym" ? `+:${asset}:${mayaAddress}` : `+:${asset}`;
+  const xChainAddLPAsset = async({ asset, decimals, amount, recipient, mayaAddress, mode }: IParamsAddLPAsset) => {
+    // await sleep(5000); //dash
+    // return Promise.resolve("f1b71caf3e7a46c171b7d8bd4c7f0380089874efd075dd8c1259d095a82dbaf0");
+
+    // let _memo = ( mode === LIQUIDITY.SYM ) ? `+:${asset}:${mayaAddress}::tt:75` : `+:${asset}::tt:75`;
+    let _memo = ( mode === LIQUIDITY.SYM ) ? `+:${asset}:${mayaAddress}::tt:75` : `+:${asset}`;
     let _asset = assetFromStringEx(asset);
     let _recipient = recipient;
     let _amount = assetAmount(amount, decimals);
-    // let _amount = assetAmount(amount);
     let _assetAmount = assetToBase(_amount);
 
-    console.log("@first add asset ----------------", {
+    console.log("@add LP asset ----------------", {
       asset: _asset,
       amount: _assetAmount.amount(),
       recipient: _recipient,
@@ -550,25 +539,31 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         recipient: _recipient,
         memo: _memo,
       });
-      // const hash = "98CA95A4EFAB04C68E5572C49D66C7668AE087A91C692A423EB7BF2DCE48745E";
-      // const hash = "98CA95A4EFAB04C68E5572C49D66C7668AE087A91C692A423EB7BF2DCE48745E&from=thor1gjs7stc57kvyqpj48vl2925huxvgmnhkhudlp";
-      // const url: string = await wallet?.getExplorerTxUrl(_asset.chain, String(hash)) as string;
-      _data = [..._data, { hash: String(hash) }];
       showNotification(`${_asset.chain} transaction sent successfully.`, "success"); //show first message
-      if (mode === "asym") {
-        return Promise.resolve(_data);
-      };
+      // return Promise.resolve(String(hash));
+      return Promise.resolve(String(hash));
     } catch (err) {
-      console.log("@while add token liquidity ---------------", err);
-      return Promise.reject(err);
+      console.log("@while adding asset liquidity ---------------", err);
+      return Promise.reject(String(err));
     }
-    //////////////////////////////////// add cacao if symmetric add ////////////////////////////////////
+  };
+  /**
+   * transfer assset for add liquidity using xchainjs
+   * @param amount 0.1
+   * @param address current asset's address
+   * @returns hash 
+   */
+  const xChainAddLPCACAO = async({ asset, amount, address, mayaAddress }: IParamsAddLPCACAO) => {
+    // await sleep(2000); //maya cacao
+    // return Promise.reject("19181BF0B03D522EDF13BE5E689D5DF2AF075F6D8A678F74744D3267267F9833");
+
     const { data }: { data: IPool } = await axios.get(`https://midgard.mayachain.info/v2/pool/${asset}`);
     const cacaoAmount = Number(data.assetPrice)*Number(amount);
-    _asset = assetFromStringEx("MAYA.CACAO");
-    _amount = assetAmount(cacaoAmount, 10);
-    _assetAmount = assetToBase(_amount);
-    _memo = `+:${asset}:${address}`;
+    const _asset = assetFromStringEx("MAYA.CACAO");
+    const _amount = assetAmount(cacaoAmount, 10);
+    const _assetAmount = assetToBase(_amount);
+    const _memo = `+:${asset}:${address}::tt:75`;
+    // const _memo = `+:${asset}:${address}`;
 
     console.log("@cacao add liquidity -------------", {
       asset: _asset,
@@ -578,21 +573,17 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     try {
-      const secondHash = await wallet?.deposit({
+      const hash = await wallet?.deposit({
         asset: _asset,
         amount: _assetAmount,
         memo: _memo,
         walletIndex: 0
       });
-      // const secondHash = "aaaaa";
-      // const secondURL = await wallet?.getExplorerTxUrl(_asset.chain, String(secondHash)) as string;
-      _data = [..._data, { hash: String(secondHash) }];
       showNotification(`${_asset.chain} transaction sent successfully.`, "success"); //show second message
-      return Promise.resolve(_data);
+      return Promise.resolve(String(hash));
     } catch (err) {
       console.log("@while cacao deposit ---------------", err);
-      showNotification(String(err), "error");
-      return Promise.resolve([..._data, { err: err }]);
+      return Promise.reject(String(err));
     }
   };
   /**
@@ -603,13 +594,19 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    * @param recipient 0x01012050123123....
    * @param address current asset's address
    * @param mayaAddress maya12351231
-   * @param mode "sym" | "asym"
+   * @param mode LIQUIDITY.SYM | LIQUIDITY.ASYM
    * @returns { hash, url }[] | undefined
    */
   const xChainWithdrawLiquidity = async({ asset, decimals, bps, recipient, address, mayaAddress, mode }: IParamsWithdrawLiquidity) => {
+    // const testHash = (mode === LIQUIDITY.SYM) ? "5DC3FFAEF8172C70A133A89C1C95892155F0AE7CD8F24C9A0368391174BA016B" : '9C50F501F1202ECB4879FBD937C240EF09E0C080E533EE1EBBC3793FAB4EA411'; //thor test
+    // const testHash = (mode === LIQUIDITY.SYM) ? "8403BE1E59E9405B16A7B516A1F8436C73327FC3EE33B53DFA03665629A3F87D" : '994D53C9B56DA388B70F3E30D51F2475D009AD8A2FF178B5E70178FB09A23B92'; //dash test
+    // await sleep(5000);
+    // return Promise.resolve(testHash);
 
-    const _memo = mode === "sym" ? `-:${asset}:${bps}` : `-:${asset}:${bps}:${asset}`;
-    if (mode === "sym") {
+
+    // const _memo = mode === LIQUIDITY.SYM ? `-:${asset}:${bps}::tt:75` : `-:${asset}:${bps}:${asset}::tt:75`;
+    const _memo = mode === LIQUIDITY.SYM ? `-:${asset}:${bps}` : `-:${asset}:${bps}:${asset}`;
+    if (mode === LIQUIDITY.SYM) {
       const cacaoAmount = MINIMUM_AMOUNT['MAYA'];
       const _asset = assetFromStringEx("MAYA.CACAO");
       const _amount = assetAmount(cacaoAmount, 10);
@@ -629,14 +626,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           walletIndex: 0
         });
         console.log("@asym withdraw tx ----------", hash);
-        showNotification(`${asset} sent successfully.`, "success"); //show second message
+        showNotification(`MAYA.CACAO sent successfully.`, "success"); //show second message
         return Promise.resolve(hash);
       } catch (err) {
         console.log("@while cacao deposit ---------------", err);
-        showNotification(String(err), "error");
-        return Promise.reject(err);
+        return Promise.reject(String(err));
       }
-    } else if (mode === "asym") {
+    } else if (mode === LIQUIDITY.ASYM) {
       const amount = MINIMUM_AMOUNT[TOKEN_DATA[asset].chain];
       let _asset = assetFromStringEx(asset);
       let _recipient = recipient;
@@ -662,14 +658,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         return Promise.resolve(hash);
       } catch (err) {
         console.log("@while token withdraw LP ---------------", err);
-        showNotification(String(err), "error");
-        return Promise.reject(err);
+        return Promise.reject(String(err));
       }
     }
   }
 
   return (
-    <XChainContext.Provider value={{ connectKeyStoreWallet, getBalances, doMayaSwap, xChainAddLiquidity, xChainWithdrawLiquidity }}>
+    <XChainContext.Provider value={{ connectKeyStoreWallet, getBalances, doMayaSwap, xChainWithdrawLiquidity, xChainAddLPAsset, xChainAddLPCACAO }}>
       {children}
     </XChainContext.Provider>
   )
