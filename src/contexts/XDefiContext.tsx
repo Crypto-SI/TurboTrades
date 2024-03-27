@@ -936,11 +936,11 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     let _asset = "MAYA.CACAO";
       
     //console.logg("@asym Withdraw LP -------------", {
-      asset: _asset,
-      amount: _amount,
-      memo: _memo,
-      walletIndex: 0
-    });
+    //   asset: _asset,
+    //   amount: _amount,
+    //   memo: _memo,
+    //   walletIndex: 0
+    // });
     // return Promise.resolve("699F52641E113B8204B1F55C18625854E3ECB48EF7B8B90D9E206DD11695A5DD");
     if (mode === LIQUIDITY.SYM) {
       try {

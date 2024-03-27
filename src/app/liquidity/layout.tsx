@@ -58,7 +58,9 @@ const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: Re
           const _timestamp = Math.floor(new Date().getTime() / 1000);
           const { data } = await axios.get(`https://midgard.mayachain.info/v2/history/depths/${asset}?interval=day&count=30&to=${_timestamp}`);
           _result["depthHistory"] = data.intervals;
-        } catch (err) { //console.logg("@err while fetching depth history -----------", err) }
+        } catch (err) { 
+          //console.logg("@err while fetching depth history -----------", err) 
+        }
 
         try {
           if (!_address) throw []; 

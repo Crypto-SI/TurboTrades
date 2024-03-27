@@ -6,9 +6,9 @@ const nextConfig = {
     config.resolve.fallback = { fs: false };
     return config;
   },
-  // images: {
-  //   unoptimized: true,
-  // },
+  images: {
+    unoptimized: true,
+  },
   trailingSlash: true,
   distDir: 'dist',
 };
