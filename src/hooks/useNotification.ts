@@ -1,7 +1,5 @@
 import { useContext } from "react";
-
 import { NotificationContext } from "@/contexts/NotificationContext";
-
 /**
  * 
  * @returns context { showNotification(text:string) }

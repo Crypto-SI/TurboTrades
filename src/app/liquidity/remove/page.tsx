@@ -117,12 +117,12 @@ const WithdrawLiquidity = () => {
    * fetch my asym&sym pools
    */
   const fetchMyPools = async(address: string) => {
-    console.log(address)
+    //console.logg(address)
     try {
       const { data } = await axios.get(`https://midgard.mayachain.info/v2/member/${address}`);
       const _symPool = data.pools.filter((_pool: IMemberPool) => _pool.pool === asset).find((_pool: IMemberPool) => Number(_pool.runeAdded) !== 0);
       const _asymPool = data.pools.filter((_pool: IMemberPool) => _pool.pool === asset).find((_pool: IMemberPool) => Number(_pool.runeAdded) === 0);
-      console.log ({_symPool, _asymPool});
+      //console.logg ({_symPool, _asymPool});
       setMyPool({ asym: _asymPool, sym: _symPool });
     } catch (err) {
 
@@ -143,7 +143,7 @@ const WithdrawLiquidity = () => {
     try {
       if (!asset) throw "no asset";
       const address = xBalances[TOKEN_DATA[asset].chain]?.address;
-      console.log(xBalances[TOKEN_DATA[asset].chain])
+      //console.logg(xBalances[TOKEN_DATA[asset].chain])
       if (!address) throw "no address";
       fetchMyPools (address);
     } catch (err) { }
@@ -251,18 +251,18 @@ const WithdrawLiquidity = () => {
 
     try {
       setHash ("");
-      console.log({amount: amount, availalbe: assetAvailable/10**8});
+      //console.logg({amount: amount, availalbe: assetAvailable/10**8});
       if (Number(amount) > assetAvailable) throw "Insufficient withdraw amount.";
       if (Number(amount) < LIMIT[String(selectedPool?.chain)]) throw `Too small transaction detected.(>${LIMIT[String(selectedPool?.chain)]})`;
       
-      // console.log({amount: Number(amount)*Number(selectedPool?.assetPrice), cacao: runeAvailable/10**10});
+      // //console.logg({amount: Number(amount)*Number(selectedPool?.assetPrice), cacao: runeAvailable/10**10});
       // if (mode === LIQUIDITY.SYM && Number(amount)*Number(selectedPool?.assetPrice) > runeAvailable/10**10) throw "Insufficient CACAO amount.";
       
-      // console.log({amount: runeAvailable/10**10 - Number(amount)*Number(selectedPool?.assetPrice), cacao: 0.5});
+      // //console.logg({amount: runeAvailable/10**10 - Number(amount)*Number(selectedPool?.assetPrice), cacao: 0.5});
       // if (mode === LIQUIDITY.SYM && runeAvailable/10**10 - Number(amount)*Number(selectedPool?.assetPrice) < 0.5 ) throw "Insufficient CACAO fee (0.5CACAO).";
 
       const bps = Math.floor( 10000 * Number(amount) / assetAvailable );
-      console.log(bps);
+      //console.logg(bps);
 
       onWithdraw (bps);
     } catch (err) {

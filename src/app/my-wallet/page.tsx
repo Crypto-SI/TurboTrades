@@ -62,7 +62,7 @@ const Home = () => {
         await getBalanceWithMetamask ();
       } 
     } catch (err) {
-      console.log(err)
+      //console.logg(err)
     } finally {
       setIsRefreshing(false);
     }

@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import Image from "next/image";
 import { IPool } from '@/types/maya';
 import { useAtom } from 'jotai';
-import { fromTokenAtom, tokenPricesAtom } from '@/store';
+import { tokenPricesAtom } from '@/store';
 import { reduceAmount } from '@/utils/methods';
 import { LIQUIDITY } from '@/utils/constants';
 

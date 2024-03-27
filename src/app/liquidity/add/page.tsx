@@ -243,11 +243,11 @@ const AddLiquidity = () => {
     const _fee: number = await _feeEstimation (_chain);
 
     if (NATIVE_TOKENS[_chain] === _asset) { // if current asset is native asset of chain.. ETH.ETH, DASH.DASH...
-      console.log("@fee estimation ----------", _asset, { balance: _remain, require: _fee, gap: _remain - _fee });
+      //console.logg("@fee estimation ----------", _asset, { balance: _remain, require: _fee, gap: _remain - _fee });
       // return _remain > FEE_ESTIMATIONS[_chain];
       return _remain > _fee;
     } else {
-      console.log("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: _fee, gap: xBalances[_chain].balance[0].amount as number - _fee })
+      //console.logg("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: _fee, gap: xBalances[_chain].balance[0].amount as number - _fee })
       return xBalances[_chain].balance[0].amount as number > _fee;
       // return xBalances[_chain].balance[0].amount as number > FEE_ESTIMATIONS[_chain];
     }
@@ -268,7 +268,7 @@ const AddLiquidity = () => {
       if (selectedPool?.asset === "DASH.DASH" || selectedPool?.asset === "BTC.BTC") {
         if (Number(amount) < 0.0001) throw "Amount to swap must be greater than the dust threshold value (0.0001). Don't set your transaction amount too low, as transactions that are too small may be refunded.";
       }
-      console.log("@balance estimation ------------->", { balance: _balance, amount: amount, gap: _balance - Number(amount) });
+      //console.logg("@balance estimation ------------->", { balance: _balance, amount: amount, gap: _balance - Number(amount) });
       if (_balance < Number(amount)) {
         throw "Insufficient Balance.";
       }
@@ -280,7 +280,7 @@ const AddLiquidity = () => {
         const _balanceTemp = xBalances["MAYA"].balance[0].amount;
         const _balance: number = _balanceTemp ? _balanceTemp as number: 0;
 
-        console.log("@cacao balance estimation ------------->", { balance: _balance, amount: _amount, gap: _balance - _amount });
+        //console.logg("@cacao balance estimation ------------->", { balance: _balance, amount: _amount, gap: _balance - _amount });
         if (_balance < _amount) {
           throw "Insufficient CACAO Balance.";
         }

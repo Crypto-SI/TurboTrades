@@ -72,7 +72,7 @@ const WalletConnect = () => {
     if (countSelectedChains === 0) {
       setWalletList(walletList.map((_wallet: WalletType) => ({ ..._wallet, focused: false, selected: false })));
     } else if (countFocusedChains === 0) {
-      console.log("@dew1204/focused wallet count----------->", countFocusedChains);
+      //console.logg("@dew1204/focused wallet count----------->", countFocusedChains);
       setWallet(null);
       setWalletList(walletList.map((_wallet: WalletType) => {
         let _selectedChains = chainList.filter(({ selected }: ChainType) => selected);

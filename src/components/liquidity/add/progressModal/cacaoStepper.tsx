@@ -38,7 +38,7 @@ const StepperItem = ({ token, hash, setInboundResults }: IParamsStepItem) => {
       const _txResult: TxResult = await CHAINS['MAYA'].getTransaction(_hash);
       setTxResult(_txResult);
     } catch (err){
-      console.log("@Ex get transaction from MAYA ---->", err);
+      //console.logg("@Ex get transaction from MAYA ---->", err);
     }
   }
   //when hash is changed, txHash: "" -> "0x0000..."

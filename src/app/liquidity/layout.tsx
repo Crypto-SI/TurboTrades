@@ -58,7 +58,7 @@ const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: Re
           const _timestamp = Math.floor(new Date().getTime() / 1000);
           const { data } = await axios.get(`https://midgard.mayachain.info/v2/history/depths/${asset}?interval=day&count=30&to=${_timestamp}`);
           _result["depthHistory"] = data.intervals;
-        } catch (err) { console.log("@err while fetching depth history -----------", err) }
+        } catch (err) { //console.logg("@err while fetching depth history -----------", err) }
 
         try {
           if (!_address) throw []; 
@@ -71,11 +71,11 @@ const Layout: React.FC<{children: React.ReactNode}> = ({children}: {children: Re
         }
         return _result;
       }));
-      console.log("@fetch lps from maya chain----------------", _pools);
+      //console.logg("@fetch lps from maya chain----------------", _pools);
       setMainPools (_pools);
       setTokenPrices(_prices);
     } catch (err) {
-      console.log("@error fetching pools ------------------------", err);
+      //console.logg("@error fetching pools ------------------------", err);
     } finally {
       setIsFetching (false);
     }

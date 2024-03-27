@@ -40,7 +40,7 @@ const StepperItem = ({ token, hash, setStepper, mode }: IParamsStepItem) => {
       const _txResult: TxResult = await CHAINS[mode === LIQUIDITY.ASYM ? token.chain : 'MAYA'].getTransaction(_hash)
       setTxResult(_txResult);
     } catch (err){
-      console.log("@Ex get transaction from MAYA ---->", err);
+      //console.logg("@Ex get transaction from MAYA ---->", err);
     }
   }
   //when hash is changed, txHash: "" -> "0x0000..."

@@ -120,7 +120,7 @@ const Swap = () => {
         _prices["MAYA.CACAO"] =  _cacao.data.cacaoPriceUSD; //cacao token price with USD
 
         const { data } = await axios.get("https://midgard.mayachain.info/v2/pools");
-        console.log("@fetched pools from maya ---------------------", data);
+        // //console.logg("@fetched pools from maya ---------------------", data);
         const _pools: IPool[] = data.map((item: any) => {
           const { asset } = item;
           _prices[asset] =  item.assetPriceUSD; //token price with USD
@@ -157,7 +157,7 @@ const Swap = () => {
           router.push('?from=BTC.BTC&to=MAYA.CACAO');
         }
       } catch (err) {
-        console.log("@error fetching pools ------------------------", err);
+        // //console.logg("@error fetching pools ------------------------", err);
       }
     }
     init ();
@@ -329,7 +329,7 @@ const Swap = () => {
     //   setShowConfirmModal(false);
     //   setShowProgressModal (true);
     //   setIsSwaping (true);
-    //   // console.log("@token pairs ------------------->", { fromToken, toToken });
+    //   // //console.logg("@token pairs ------------------->", { fromToken, toToken });
     //   // // do swap with several wallets
     //   // let hash: string = "";
     //   // if (wallet?.name === "Keystore") {
@@ -368,11 +368,11 @@ const Swap = () => {
     const _fee: number = await _feeEstimation (_chain);
 
     if (NATIVE_TOKENS[_chain] === _asset) { // if current asset is native asset of chain.. ETH.ETH, DASH.DASH...
-      console.log("@fee estimation ----------", _asset, { balance: _remain, require: _fee, gap: _remain - _fee });
+      // //console.logg("@fee estimation ----------", _asset, { balance: _remain, require: _fee, gap: _remain - _fee });
       // return _remain > FEE_ESTIMATIONS[_chain];
       return _remain > _fee;
     } else {
-      console.log("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: _fee, gap: xBalances[_chain].balance[0].amount as number - _fee })
+      //console.logg("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: _fee, gap: xBalances[_chain].balance[0].amount as number - _fee })
       return xBalances[_chain].balance[0].amount as number > _fee;
       // return xBalances[_chain].balance[0].amount as number > FEE_ESTIMATIONS[_chain];
     }
@@ -395,11 +395,11 @@ const Swap = () => {
       const _balanceTemp = xBalances[String(fromToken?.chain)].balance.find((item: IBalance) => item.asset === String(fromToken?.asset).split("-")[0]);
       const _balance: number = _balanceTemp ? _balanceTemp.amount as number: 0;
 
-      console.log(fromToken?.asset);
+      //console.logg(fromToken?.asset);
       if (fromToken?.asset === "DASH.DASH" || fromToken?.asset === "BTC.BTC") {
         if (Number(fromAmount) < 0.0001) throw "Amount to swap must be greater than the dust threshold value (0.0001). Don't set your transaction amount too low, as transactions that are too small may be refunded.";
       }
-      console.log("@balance estimation ------------->", { balance: _balance, amount: fromAmount, gap: _balance - Number(fromAmount) });
+      //console.logg("@balance estimation ------------->", { balance: _balance, amount: fromAmount, gap: _balance - Number(fromAmount) });
       if (_balance < Number(fromAmount)) {
         throw "Insufficient Balance.";
       }
@@ -423,7 +423,7 @@ const Swap = () => {
       setShowConfirmModal(false);
       setShowProgressModal (true);
       setIsSwaping (true);
-      console.log("@token pairs ------------------->", { fromToken, toToken });
+      //console.logg("@token pairs ------------------->", { fromToken, toToken });
       // do swap with several wallets
       let hash: string = "";
       if (wallet?.name === "Keystore") {

@@ -318,7 +318,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         setXBalances({ ..._xBalances, [chain]: _xBalances[chain] });
         return _xBalances[chain];
       }));
-      console.log("balances ------------------>", balances);
+      //console.logg("balances ------------------>", balances);
     } catch (err) {
 
     } finally {
@@ -330,7 +330,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    * @param quoteSwap 
    */
   const printQuoteSwap = (quoteSwap: QuoteSwap) => {
-    console.log({
+    //console.logg({
       toAddress: quoteSwap.toAddress,
       memo: quoteSwap.memo,
       expectedAmount: {
@@ -380,7 +380,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       const amount = assetToBase(assetAmount(quoteSwapParams.amount.assetAmount.amount().toString(), 18))
       const asset = quoteSwapParams.fromAsset;
 
-      console.log("@dew/ swap to eth ---------------------------->", {
+      //console.logg("@dew/ swap to eth ---------------------------->", {
         ethClient,
         amount,
         asset,
@@ -396,7 +396,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       });
       resolve(txid);
     } catch (error) {
-      console.log("error in transfer ETH using xchainjs")
+      //console.logg("error in transfer ETH using xchainjs")
       reject (error);
     }
   });
@@ -426,23 +426,23 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       destinationAddress: await wallet?.getAddress(toChain as string),
     }
 
-    console.log('@dew1204/______________________    SWAP TO DO   ____________________');
-    console.log({ ...quoteSwapParams, amount: quoteSwapParams.amount.assetAmount.amount().toString() });
+    //console.logg('@dew1204/______________________    SWAP TO DO   ____________________');
+    //console.logg({ ...quoteSwapParams, amount: quoteSwapParams.amount.assetAmount.amount().toString() });
 
     const mayachainAmm = new MayachainAMM(new MayachainQuery(), wallet);
-    console.log(mayachainAmm)
+    //console.logg(mayachainAmm)
     // await doSwap(mayachainAmm, quoteSwapParams);
 
     try {
       const valid = await mayachainAmm.validateSwap(quoteSwapParams);
-      console.log("validate------>", valid);
-      console.log('______________________    ESTIMATION   ____________________')
+      //console.logg("validate------>", valid);
+      //console.logg('______________________    ESTIMATION   ____________________')
       const quoteSwap = await mayachainAmm.estimateSwap(quoteSwapParams);
       
       printQuoteSwap(quoteSwap);
       if (!quoteSwap.canSwap) throw { message:  quoteSwap.errors[0] }; //can't swap
-      console.log('______________________      RESULT     ____________________')
-      console.log(
+      //console.logg('______________________      RESULT     ____________________')
+      //console.logg(
         `Executing swap from ${assetToString(quoteSwapParams.fromAsset)} to ${assetToString(
           quoteSwapParams.destinationAsset,
         )}`,
@@ -450,16 +450,16 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
       const { chain, symbol } = quoteSwapParams.fromAsset;
       if (chain === "ETH" && symbol === "ETH") {
-        console.log("@dew1204/start with _own transfer ---------------------------------->");
+        //console.logg("@dew1204/start with _own transfer ---------------------------------->");
         const txId = await _transferEther (quoteSwapParams, quoteSwap.memo, quoteSwap.toAddress);
-        console.log("Transaction success..", txId);
-        console.log(txId)
+        //console.logg("Transaction success..", txId);
+        //console.logg(txId)
 
         showNotification ("Transaction sent successfully", "success");
         setTrxUrl(txId as string);
         setShowTrxModal(true);
       } else {
-        console.log(quoteSwapParams)
+        //console.logg(quoteSwapParams)
         
         let hash:string = "";
         switch (fromToken?.chain) {
@@ -487,13 +487,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         }
         return Promise.resolve(hash);
         // const txSubmitted = await mayachainAmm.doSwap(quoteSwapParams);
-        // console.log(`Tx`, txSubmitted);
+        // //console.logg(`Tx`, txSubmitted);
         // return Promise.resolve(txSubmitted.hash);
         // await sleep (5000);
         // return Promise.resolve("01DBF70FF1E82C056382BB177E7709CE665BF33FFDDC138116AF17A6C214CB9A")
       }
     } catch (error) {
-      console.log("@dew1204/swap error -------------------------------->", error);
+      //console.logg("@dew1204/swap error -------------------------------->", error);
       //@ts-ignore
       if (String(error).includes("insufficient funds for intrinsic transaction cost")) {
         showNotification("Insufficient funds for intrinsic transaction cost.", "warning");
@@ -525,7 +525,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     let _amount = assetAmount(amount, decimals);
     let _assetAmount = assetToBase(_amount);
 
-    console.log("@add LP asset ----------------", {
+    //console.logg("@add LP asset ----------------", {
       asset: _asset,
       amount: _assetAmount.amount(),
       recipient: _recipient,
@@ -543,7 +543,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       // return Promise.resolve(String(hash));
       return Promise.resolve(String(hash));
     } catch (err) {
-      console.log("@while adding asset liquidity ---------------", err);
+      //console.logg("@while adding asset liquidity ---------------", err);
       return Promise.reject(String(err));
     }
   };
@@ -565,7 +565,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     const _memo = `+:${asset}:${address}::tt:75`;
     // const _memo = `+:${asset}:${address}`;
 
-    console.log("@cacao add liquidity -------------", {
+    //console.logg("@cacao add liquidity -------------", {
       asset: _asset,
       amount: _assetAmount.amount(),
       memo: _memo,
@@ -582,7 +582,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       showNotification(`${_asset.chain} transaction sent successfully.`, "success"); //show second message
       return Promise.resolve(String(hash));
     } catch (err) {
-      console.log("@while cacao deposit ---------------", err);
+      //console.logg("@while cacao deposit ---------------", err);
       return Promise.reject(String(err));
     }
   };
@@ -612,7 +612,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       const _amount = assetAmount(cacaoAmount, 10);
       const _assetAmount = assetToBase(_amount);
   
-      console.log("@asym Withdraw LP -------------", {
+      //console.logg("@asym Withdraw LP -------------", {
         asset: _asset,
         amount: _assetAmount.amount(),
         memo: _memo,
@@ -625,11 +625,11 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           memo: _memo,
           walletIndex: 0
         });
-        console.log("@asym withdraw tx ----------", hash);
+        //console.logg("@asym withdraw tx ----------", hash);
         showNotification(`MAYA.CACAO sent successfully.`, "success"); //show second message
         return Promise.resolve(hash);
       } catch (err) {
-        console.log("@while cacao deposit ---------------", err);
+        //console.logg("@while cacao deposit ---------------", err);
         return Promise.reject(String(err));
       }
     } else if (mode === LIQUIDITY.ASYM) {
@@ -639,7 +639,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       let _amount = assetAmount(amount, decimals);
       let _assetAmount = assetToBase(_amount);
 
-      console.log("@first add asset ----------------", {
+      //console.logg("@first add asset ----------------", {
         asset: _asset,
         amount: _assetAmount.amount(),
         recipient: _recipient,
@@ -653,11 +653,11 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           recipient: _recipient,
           memo: _memo,
         });
-        console.log("@asym withdraw tx ----------", hash);
+        //console.logg("@asym withdraw tx ----------", hash);
         showNotification(`${asset} sent successfully.`, "success"); //show second message
         return Promise.resolve(hash);
       } catch (err) {
-        console.log("@while token withdraw LP ---------------", err);
+        //console.logg("@while token withdraw LP ---------------", err);
         return Promise.reject(String(err));
       }
     }

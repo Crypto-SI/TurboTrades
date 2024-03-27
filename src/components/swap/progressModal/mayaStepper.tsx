@@ -48,7 +48,7 @@ const StepperItem = ({ toToken, fromToken, hash, stepper, setStepper }: IParamsS
       for (let i = 0; i < 10; i++) {
         try {
           const _txResult: TxResult = await CHAINS[toToken.chain].getTransaction(outboundHash);
-          console.log(_txResult)
+          //console.logg(_txResult)
           setTxResult(_txResult);
           break;
         } catch (err) { }
@@ -79,7 +79,7 @@ const StepperItem = ({ toToken, fromToken, hash, stepper, setStepper }: IParamsS
         setStatus(STATUS.FAILED);
         setStepper(STATUS.FAILED);
       } else if (_action.type === "swap" && internalStatus.current === STATUS.PENDING) { 
-        console.log(_action)
+        //console.logg(_action)
         const _timeEstimation = outboundConfirmTimeEstimation(toToken.chain);
         setBlockHeight(_action.height);
 
@@ -96,7 +96,7 @@ const StepperItem = ({ toToken, fromToken, hash, stepper, setStepper }: IParamsS
         setMayaResult(_action);
       }
     } catch (err) {
-      console.log("@Ex get transaction from MAYA ---->", err);
+      //console.logg("@Ex get transaction from MAYA ---->", err);
     }
   }
   //when estimation is under 0

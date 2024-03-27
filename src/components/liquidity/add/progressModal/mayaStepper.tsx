@@ -51,14 +51,14 @@ const StepperItem = ({ token, hash, mode, stepper, setStepper }: IParamsStepItem
         setStatus(STATUS.FAILED);
         setStepper(STATUS.FAILED);
       } else if (_action.type === "addLiquidity" && internalStatus.current === STATUS.PENDING) { 
-        console.log("maya action is pending...");
+        //console.logg("maya action is pending...");
         setBlockHeight(_action.height);
         internalStatus.current = STATUS.SUCCESS;
       } else if (_action.type === "addLiquidity" && _action.status === STATUS.SUCCESS) {
         setMayaResult(_action);
       }
     } catch (err) {
-      console.log("@Ex get transaction from MAYA ---->", err);
+      //console.logg("@Ex get transaction from MAYA ---->", err);
     }
   }
   //when estimation is under 0

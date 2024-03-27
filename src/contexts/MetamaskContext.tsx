@@ -74,7 +74,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const prices = await _getPrices();
-      console.log("@dew1204/fetching start chain balances----------------->");
+      //console.logg("@dew1204/fetching start chain balances----------------->");
       //@ts-ignore
       const balances: IBalance[] = await Promise.all(Object.keys(ERC_20_ADDRESSES).map(async(asset: string) => {
         try {
@@ -101,7 +101,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
             }
           }
         } catch (err) {
-          console.log(err)
+          //console.logg(err)
           return {
             account,
             asset: "ETH.ETH", 
@@ -117,9 +117,9 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         chain: "ETH",
       }
       setXBalances({"ETH": eth});
-      console.log("@dew1204/metamask balances -------------->", eth);
+      //console.logg("@dew1204/metamask balances -------------->", eth);
     } catch (err) {
-      console.log(err)
+      //console.logg(err)
     } finally {
       setIsConnecting(false);
     }
@@ -179,17 +179,17 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (fromToken?.ticker === "ETH") {
         const data = await _sendEther (amount as number, xBalances["ETH"].address, quoteSwap as IQuoteSwapResponse, signer);
-        console.log("@ETH metamask transaction ----------------------------->", data);
+        //console.logg("@ETH metamask transaction ----------------------------->", data);
         // _showTxModal (`https://etherscan.io/tx/${data.hash}`);
         return Promise.resolve(data.hash);
       } else {
         const data = await _depositERC20Token (amount as number, xBalances["ETH"].address, quoteSwap.memo, quoteSwap.inbound_address, signer, String(fromToken?.ticker));
-        console.log("@ETH metamask transaction ----------------------------->", data);
+        //console.logg("@ETH metamask transaction ----------------------------->", data);
         // _showTxModal (`https://etherscan.io/tx/${data.hash}`);
         return Promise.resolve(data.hash);
       }
     } catch (err) {
-      console.log(err)
+      //console.logg(err)
       showNotification(String(err), "warning");
       return Promise.reject(String(err));
     }
@@ -202,7 +202,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsWalletDetected (false);
       await activate(injected, async (error) => {
-        console.log(error.message);
+        //console.logg(error.message);
         reject ("Cancel the operation...");
       });
       window.localStorage.setItem("lastWallet", "Metamask");
