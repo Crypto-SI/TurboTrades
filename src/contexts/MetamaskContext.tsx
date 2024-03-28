@@ -74,7 +74,6 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const prices = await _getPrices();
-      //console.logg("@dew1204/fetching start chain balances----------------->");
       //@ts-ignore
       const balances: IBalance[] = await Promise.all(Object.keys(ERC_20_ADDRESSES).map(async(asset: string) => {
         try {

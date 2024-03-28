@@ -87,7 +87,6 @@ export const XDefiContext = React.createContext<IXDefiContext | undefined>(undef
 export const _sendEther: any = async (_amount: number, _from: string, _memo: string, _recipient: string, _signer: any) => {
   try {
     //console.logg("@swap ETH ------------------------", { memo: _memo, amount:_amount, recipient: _recipient, from: _from });
-    // const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
     const recipient = _recipient;
     const memo = _memo;
     const amount = ethers.utils.parseEther(String(_amount));
@@ -117,7 +116,6 @@ export const _sendEther: any = async (_amount: number, _from: string, _memo: str
  * @param _symbol token symbol ETH.USDC, ETH.USDT, ETH.WETH
  * @returns 
  */
-// export const _depositERC20Token = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any, _symbol: string) => {
 export const _depositERC20Token = async (_amount: number, _from: string, _memo: string, _recipient: string, _signer: any, _symbol: string) => {
   try {
     //console.logg("@ERC20 swap -----------------------", { symbol: _symbol, memo: _memo, _amount, recipient: _recipient, contract_address: ERC_20_ADDRESSES[_symbol] });
@@ -127,20 +125,17 @@ export const _depositERC20Token = async (_amount: number, _from: string, _memo: 
     const { gasLimit, timestamp } = await _signer.provider.getBlock('latest');
     const expiration = timestamp + 60*60;
     const gasPrice = await _signer.provider.getGasPrice();
-    // const amount = ethers.utils.parseUnits(String(_amount), ERC20_DECIMALS[_symbol]);
     const amount = Math.floor(_amount / 10 ** ERC20_DECIMALS[_symbol]);
     //console.logg(ERC_20_ADDRESSES[_symbol], _amount, memo, expiration);
     
     const Contract_ERC20 = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20_ABI, _signer);
     const tx = await Contract_ERC20.approve(EVM_ROUTER_ADDRESS, amount, { gasLimit: 80000 });
     await tx.wait();
-    //depositWithExpiry(address vault,address asset,uint256 amount,string memo,uint256 expiration)
     const Contract = new ethers.Contract(EVM_ROUTER_ADDRESS, EVM_ROUTER_ABI, _signer);
     const data = await Contract.depositWithExpiry(recipient, ERC_20_ADDRESSES[_symbol], amount, memo, expiration);
 
     return Promise.resolve(data);
   } catch (err) {
-    //console.logg(err)
     //@ts-ignore
     if (err.code && err.code === 4001) { //user rejected....
       return Promise.reject("Rejected the operation.");
@@ -161,21 +156,19 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   //atoms
   const [quoteSwap,] = useAtom(QuoteSwapResponseAtom);
-  const [toToken,] = useAtom(toTokenAtom);
   const [fromToken,] = useAtom(fromTokenAtom);
-  const [showTrxModal, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
-  const [trxUrl, setTrxUrl] = useAtom(trxUrlAtom);
+  const [, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
+  const [, setTrxUrl] = useAtom(trxUrlAtom);
   const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
-  const [isWalletDetected, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
-  const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
+  const [, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
+  const [, setIsConnecting] = useAtom(isConnectingAtom);
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
-  const [chainList, setChainList] = useAtom(chainListAtom);
+  const [chainList, ] = useAtom(chainListAtom);
   //hooks
   const { showNotification } = useNotification();
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   //MsgDeposit
-  const { MsgDeposit, MsgSend } = types;
 
   /**
    * get account using xfi wallet
