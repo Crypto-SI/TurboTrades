@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import ClipboardCopier from '@/components/share/copyToClipboard';
 import { _feeEstimation, _reduceHash, reduceAddress, sleep } from '@/utils/methods';
 import useNotification from '@/hooks/useNotification';
@@ -40,7 +40,7 @@ const StepperItem = ({ token, hash, setStepper, mode }: IParamsStepItem) => {
       const _txResult: TxResult = await CHAINS[mode === LIQUIDITY.ASYM ? token.chain : 'MAYA'].getTransaction(_hash)
       setTxResult(_txResult);
     } catch (err){
-      //console.logg("@Ex get transaction from MAYA ---->", err);
+      console.log("@Ex get transaction from MAYA ---->", err);
     }
   }
   //when hash is changed, txHash: "" -> "0x0000..."
@@ -59,7 +59,7 @@ const StepperItem = ({ token, hash, setStepper, mode }: IParamsStepItem) => {
   React.useEffect(() => {
     if (counter <= 0) {
       // setCounter (timeEstimation);
-      clearInterval(timerRef.current as NodeJS.Timeout);
+      // clearInterval(timerRef.current as NodeJS.Timeout);
     }
   }, [counter]);
   //when status is changed to PENDIND, and hash is available...
@@ -86,6 +86,11 @@ const StepperItem = ({ token, hash, setStepper, mode }: IParamsStepItem) => {
    * 00:10:23
    */
   const _renderCounter = React.useMemo(() => {
+
+    if (counter <= 0) {
+      return '00:00:00'
+    }
+
     let _hour : number | string = Math.floor(counter / 3600);
     let _minute : number | string = Math.floor((counter % 3600) / 60);
     let _second : number | string = (counter % 3600) % 60;

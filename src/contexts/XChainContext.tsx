@@ -19,7 +19,6 @@ import { CryptoAmount, assetAmount, assetFromString, assetToBase, assetToString,
 import { Wallet } from '@xchainjs/xchain-wallet'
 import axios from "axios";
 import { sleep } from "@/utils/methods";
-
 // import { Client as BNBClient } from "@xchainjs/xchain-binance";
 // import { Client as CosmosClient } from "@xchainjs/xchain-cosmos";
 // import { Client as DogeClient, defaultDogeParams } from '@xchainjs/xchain-doge';
@@ -319,7 +318,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         setXBalances({ ..._xBalances, [chain]: _xBalances[chain] });
         return _xBalances[chain];
       }));
-      //console.logg("balances ------------------>", balances);
+      console.log("balances ------------------>", balances);
     } catch (err) {
 
     } finally {
@@ -331,42 +330,42 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    * @param quoteSwap 
    */
   const printQuoteSwap = (quoteSwap: QuoteSwap) => {
-    //console.logg({
-    //   toAddress: quoteSwap.toAddress,
-    //   memo: quoteSwap.memo,
-    //   expectedAmount: {
-    //     asset: assetToString(quoteSwap.expectedAmount.asset),
-    //     amount: quoteSwap.expectedAmount.baseAmount.amount().toString(),
-    //     decimals: quoteSwap.expectedAmount.baseAmount.decimal,
-    //   },
-    //   dustThreshold: {
-    //     asset: assetToString(quoteSwap.dustThreshold.asset),
-    //     amount: quoteSwap.dustThreshold.baseAmount.amount().toString(),
-    //     decimals: quoteSwap.dustThreshold.baseAmount.decimal,
-    //   },
-    //   totalFees: {
-    //     asset: assetToString(quoteSwap.fees.asset),
-    //     affiliateFee: {
-    //       asset: assetToString(quoteSwap.fees.affiliateFee.asset),
-    //       amount: quoteSwap.fees.affiliateFee.baseAmount.amount().toString(),
-    //       decimals: quoteSwap.fees.affiliateFee.baseAmount.decimal,
-    //     },
-    //     outboundFee: {
-    //       asset: assetToString(quoteSwap.fees.outboundFee.asset),
-    //       amount: quoteSwap.fees.outboundFee.baseAmount.amount().toString(),
-    //       decimals: quoteSwap.fees.outboundFee.baseAmount.decimal,
-    //     },
-    //   },
-    //   inboundConfirmationSeconds: quoteSwap.inboundConfirmationSeconds,
-    //   inboundConfirmationBlocks: quoteSwap.inboundConfirmationBlocks,
-    //   outboundDelaySeconds: quoteSwap.outboundDelaySeconds,
-    //   outboundDelayBlocks: quoteSwap.outboundDelayBlocks,
-    //   totalSwapSeconds: quoteSwap.totalSwapSeconds,
-    //   slipBasisPoints: quoteSwap.slipBasisPoints,
-    //   canSwap: quoteSwap.canSwap,
-    //   errors: quoteSwap.errors,
-    //   warning: quoteSwap.warning,
-    // })
+    console.log({
+      toAddress: quoteSwap.toAddress,
+      memo: quoteSwap.memo,
+      expectedAmount: {
+        asset: assetToString(quoteSwap.expectedAmount.asset),
+        amount: quoteSwap.expectedAmount.baseAmount.amount().toString(),
+        decimals: quoteSwap.expectedAmount.baseAmount.decimal,
+      },
+      dustThreshold: {
+        asset: assetToString(quoteSwap.dustThreshold.asset),
+        amount: quoteSwap.dustThreshold.baseAmount.amount().toString(),
+        decimals: quoteSwap.dustThreshold.baseAmount.decimal,
+      },
+      totalFees: {
+        asset: assetToString(quoteSwap.fees.asset),
+        affiliateFee: {
+          asset: assetToString(quoteSwap.fees.affiliateFee.asset),
+          amount: quoteSwap.fees.affiliateFee.baseAmount.amount().toString(),
+          decimals: quoteSwap.fees.affiliateFee.baseAmount.decimal,
+        },
+        outboundFee: {
+          asset: assetToString(quoteSwap.fees.outboundFee.asset),
+          amount: quoteSwap.fees.outboundFee.baseAmount.amount().toString(),
+          decimals: quoteSwap.fees.outboundFee.baseAmount.decimal,
+        },
+      },
+      inboundConfirmationSeconds: quoteSwap.inboundConfirmationSeconds,
+      inboundConfirmationBlocks: quoteSwap.inboundConfirmationBlocks,
+      outboundDelaySeconds: quoteSwap.outboundDelaySeconds,
+      outboundDelayBlocks: quoteSwap.outboundDelayBlocks,
+      totalSwapSeconds: quoteSwap.totalSwapSeconds,
+      slipBasisPoints: quoteSwap.slipBasisPoints,
+      canSwap: quoteSwap.canSwap,
+      errors: quoteSwap.errors,
+      warning: quoteSwap.warning,
+    })
   }
   /**
    * send ETH to recipient
@@ -381,13 +380,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       const amount = assetToBase(assetAmount(quoteSwapParams.amount.assetAmount.amount().toString(), 18))
       const asset = quoteSwapParams.fromAsset;
 
-      //console.logg("@dew/ swap to eth ---------------------------->", {
-      //   ethClient,
-      //   amount,
-      //   asset,
-      //   recipient,
-      //   memo
-      // });
+      console.log("@dew/ swap to eth ---------------------------->", {
+        ethClient,
+        amount,
+        asset,
+        recipient,
+        memo
+      });
       const txid = await ethClient.transfer({
         "amount": amount,
         "recipient": recipient,
@@ -397,7 +396,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       });
       resolve(txid);
     } catch (error) {
-      //console.logg("error in transfer ETH using xchainjs")
+      console.log("error in transfer ETH using xchainjs")
       reject (error);
     }
   });
@@ -427,40 +426,40 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       destinationAddress: await wallet?.getAddress(toChain as string),
     }
 
-    //console.logg('@dew1204/______________________    SWAP TO DO   ____________________');
-    //console.logg({ ...quoteSwapParams, amount: quoteSwapParams.amount.assetAmount.amount().toString() });
+    console.log('@dew1204/______________________    SWAP TO DO   ____________________');
+    console.log({ ...quoteSwapParams, amount: quoteSwapParams.amount.assetAmount.amount().toString() });
 
     const mayachainAmm = new MayachainAMM(new MayachainQuery(), wallet);
-    //console.logg(mayachainAmm)
+    console.log(mayachainAmm)
     // await doSwap(mayachainAmm, quoteSwapParams);
 
     try {
       const valid = await mayachainAmm.validateSwap(quoteSwapParams);
-      //console.logg("validate------>", valid);
-      //console.logg('______________________    ESTIMATION   ____________________')
+      console.log("validate------>", valid);
+      console.log('______________________    ESTIMATION   ____________________')
       const quoteSwap = await mayachainAmm.estimateSwap(quoteSwapParams);
       
       printQuoteSwap(quoteSwap);
       if (!quoteSwap.canSwap) throw { message:  quoteSwap.errors[0] }; //can't swap
-      //console.logg('______________________      RESULT     ____________________')
-      //console.logg(
-      //   `Executing swap from ${assetToString(quoteSwapParams.fromAsset)} to ${assetToString(
-      //     quoteSwapParams.destinationAsset,
-      //   )}`,
-      // );
+      console.log('______________________      RESULT     ____________________')
+      console.log(
+        `Executing swap from ${assetToString(quoteSwapParams.fromAsset)} to ${assetToString(
+          quoteSwapParams.destinationAsset,
+        )}`,
+      );
 
       const { chain, symbol } = quoteSwapParams.fromAsset;
       if (chain === "ETH" && symbol === "ETH") {
-        //console.logg("@dew1204/start with _own transfer ---------------------------------->");
+        console.log("@dew1204/start with _own transfer ---------------------------------->");
         const txId = await _transferEther (quoteSwapParams, quoteSwap.memo, quoteSwap.toAddress);
-        //console.logg("Transaction success..", txId);
-        //console.logg(txId)
+        console.log("Transaction success..", txId);
+        console.log(txId)
 
         showNotification ("Transaction sent successfully", "success");
         setTrxUrl(txId as string);
         setShowTrxModal(true);
       } else {
-        //console.logg(quoteSwapParams)
+        console.log(quoteSwapParams)
         
         let hash:string = "";
         switch (fromToken?.chain) {
@@ -488,13 +487,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         }
         return Promise.resolve(hash);
         // const txSubmitted = await mayachainAmm.doSwap(quoteSwapParams);
-        // //console.logg(`Tx`, txSubmitted);
+        // console.log(`Tx`, txSubmitted);
         // return Promise.resolve(txSubmitted.hash);
         // await sleep (5000);
         // return Promise.resolve("01DBF70FF1E82C056382BB177E7709CE665BF33FFDDC138116AF17A6C214CB9A")
       }
     } catch (error) {
-      //console.logg("@dew1204/swap error -------------------------------->", error);
+      console.log("@dew1204/swap error -------------------------------->", error);
       //@ts-ignore
       if (String(error).includes("insufficient funds for intrinsic transaction cost")) {
         showNotification("Insufficient funds for intrinsic transaction cost.", "warning");
@@ -526,12 +525,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     let _amount = assetAmount(amount, decimals);
     let _assetAmount = assetToBase(_amount);
 
-    //console.logg("@add LP asset ----------------", {
-    //   asset: _asset,
-    //   amount: _assetAmount.amount(),
-    //   recipient: _recipient,
-    //   memo: _memo,
-    // });
+    console.log("@add LP asset ----------------", {
+      asset: _asset,
+      amount: _assetAmount.amount(),
+      recipient: _recipient,
+      memo: _memo,
+    });
 
     try {
       const hash = await wallet?.transfer({
@@ -544,7 +543,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       // return Promise.resolve(String(hash));
       return Promise.resolve(String(hash));
     } catch (err) {
-      //console.logg("@while adding asset liquidity ---------------", err);
+      console.log("@while adding asset liquidity ---------------", err);
       return Promise.reject(String(err));
     }
   };
@@ -566,12 +565,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     const _memo = `+:${asset}:${address}::tt:75`;
     // const _memo = `+:${asset}:${address}`;
 
-    //console.logg("@cacao add liquidity -------------", {
-    //   asset: _asset,
-    //   amount: _assetAmount.amount(),
-    //   memo: _memo,
-    //   walletIndex: 0
-    // });
+    console.log("@cacao add liquidity -------------", {
+      asset: _asset,
+      amount: _assetAmount.amount(),
+      memo: _memo,
+      walletIndex: 0
+    });
 
     try {
       const hash = await wallet?.deposit({
@@ -583,7 +582,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       showNotification(`${_asset.chain} transaction sent successfully.`, "success"); //show second message
       return Promise.resolve(String(hash));
     } catch (err) {
-      //console.logg("@while cacao deposit ---------------", err);
+      console.log("@while cacao deposit ---------------", err);
       return Promise.reject(String(err));
     }
   };
@@ -613,12 +612,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       const _amount = assetAmount(cacaoAmount, 10);
       const _assetAmount = assetToBase(_amount);
   
-      //console.logg("@asym Withdraw LP -------------", {
-      //   asset: _asset,
-      //   amount: _assetAmount.amount(),
-      //   memo: _memo,
-      //   walletIndex: 0
-      // });
+      console.log("@asym Withdraw LP -------------", {
+        asset: _asset,
+        amount: _assetAmount.amount(),
+        memo: _memo,
+        walletIndex: 0
+      });
       try {
         const hash = await wallet?.deposit({
           asset: _asset,
@@ -626,11 +625,11 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           memo: _memo,
           walletIndex: 0
         });
-        //console.logg("@asym withdraw tx ----------", hash);
+        console.log("@asym withdraw tx ----------", hash);
         showNotification(`MAYA.CACAO sent successfully.`, "success"); //show second message
         return Promise.resolve(hash);
       } catch (err) {
-        //console.logg("@while cacao deposit ---------------", err);
+        console.log("@while cacao deposit ---------------", err);
         return Promise.reject(String(err));
       }
     } else if (mode === LIQUIDITY.ASYM) {
@@ -640,12 +639,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       let _amount = assetAmount(amount, decimals);
       let _assetAmount = assetToBase(_amount);
 
-      //console.logg("@first add asset ----------------", {
-      //   asset: _asset,
-      //   amount: _assetAmount.amount(),
-      //   recipient: _recipient,
-      //   memo: _memo,
-      // });
+      console.log("@first add asset ----------------", {
+        asset: _asset,
+        amount: _assetAmount.amount(),
+        recipient: _recipient,
+        memo: _memo,
+      });
       
       try {
         const hash = await wallet?.transfer({
@@ -654,11 +653,11 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           recipient: _recipient,
           memo: _memo,
         });
-        //console.logg("@asym withdraw tx ----------", hash);
+        console.log("@asym withdraw tx ----------", hash);
         showNotification(`${asset} sent successfully.`, "success"); //show second message
         return Promise.resolve(hash);
       } catch (err) {
-        //console.logg("@while token withdraw LP ---------------", err);
+        console.log("@while token withdraw LP ---------------", err);
         return Promise.reject(String(err));
       }
     }

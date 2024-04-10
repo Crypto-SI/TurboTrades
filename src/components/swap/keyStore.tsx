@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { useAtom } from 'jotai';
 import useNotification from '@/hooks/useNotification';
 //methods
@@ -64,11 +64,11 @@ const KeyStore = () => {
 
     try {
       const _key = await readDataFromFile (file);
-      //console.logg("@dew1204/keystore file ---------->", _key);
+      console.log("@dew1204/keystore file ---------->", _key);
       setKey(_key);
       setKeyStoreFile(file);
     } catch (err) {
-      // //console.logg("@dew1204/err ---->", err);
+      // console.log("@dew1204/err ---->", err);
       setKeyStoreFile(undefined);
       setKey(null);
       showNotification(err, "warning");

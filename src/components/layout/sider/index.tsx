@@ -1,7 +1,7 @@
 "use client"
 import Image from "next/image";
 import React, { useMemo } from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { Dropdown } from 'flowbite-react';
 //hooks
 import { usePathname, useRouter } from 'next/navigation';
@@ -18,6 +18,7 @@ import { CHAIN_DATA } from '@/utils/data';
 //social links
 const _socialLinks: { img: string, url: string }[] = [
   { img: "/images/twitter.svg", url: "" },
+  // { img: "/images/facebook.svg", url: "" },
   { img: "/images/instagram.svg", url: "" }
 ] 
 import useAutoConnect from "@/hooks/useAutoConnect";

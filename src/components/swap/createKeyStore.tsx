@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { useAtom } from 'jotai';
 import useNotification from '@/hooks/useNotification';
 import downloadjs from 'downloadjs';
@@ -49,7 +49,7 @@ const CreateKeyStore = () => {
       if (!validatePhrase(phrase)) throw "Invalid phrase generated, Please retry.";
         
       const keystore = await encryptToKeyStore(phrase, password).catch((err: any) => {
-        //console.logg("@dew1204/err in creating keystore from phrase ---------------->", err);
+        console.log("@dew1204/err in creating keystore from phrase ---------------->", err);
         throw "Failed to create keystore from phrase, Please retry.";
       });
       setPhrase(phrase);
@@ -70,6 +70,7 @@ const CreateKeyStore = () => {
           <div className='text-left w-full'>
             <div className='px-2'>
               Input Password 
+              {/* <Tooltip placement="right" title="Password for recovery"><span className='cursor-pointer text-[8px] px-2'> ?</span></Tooltip> */}
             </div>
             <input
               className="border outline-none border-[#0000001e] dark:border-[#54575a] m-auto mt-1 text-gray-900 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-300 block w-full px-4 py-2 bg-transparent dark:placeholder-[#6A84A0] dark:text-white dark:focus:border-[#a8b3bb]" 

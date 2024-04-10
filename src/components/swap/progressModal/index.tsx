@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { Button, Timeline } from 'flowbite-react';
 import { useTheme } from "next-themes";
 import Image from "next/image";

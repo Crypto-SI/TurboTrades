@@ -1,9 +1,9 @@
 import React from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import Image from "next/image";
 import { IPool } from '@/types/maya';
 import { useAtom } from 'jotai';
-import { tokenPricesAtom } from '@/store';
+import { fromTokenAtom, tokenPricesAtom } from '@/store';
 import { reduceAmount } from '@/utils/methods';
 import { LIQUIDITY } from '@/utils/constants';
 

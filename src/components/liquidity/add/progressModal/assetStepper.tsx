@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import ClipboardCopier from '@/components/share/copyToClipboard';
 import { _feeEstimation, _reduceHash, reduceAddress } from '@/utils/methods';
 import axios from 'axios';
@@ -37,7 +37,7 @@ const StepperItem = ({ token, hash, setInboundResults }: IParamsStepItem) => {
       const _txResult: TxResult = await CHAINS[token.chain].getTransaction(_hash)
       setTxResult(_txResult);
     } catch (err){
-      //console.logg("@Ex get transaction from MAYA ---->", err);
+      console.log("@Ex get transaction from MAYA ---->", err);
     }
   }
   //when hash is changed, txHash: "" -> "0x0000..."
@@ -57,7 +57,7 @@ const StepperItem = ({ token, hash, setInboundResults }: IParamsStepItem) => {
   React.useEffect(() => {
     if (counter <= 0) {
       // setCounter (timeEstimation);
-      clearInterval(timerRef.current as NodeJS.Timeout);
+      // clearInterval(timerRef.current as NodeJS.Timeout);
     }
   }, [counter]);
   //when status is changed to PENDIND, and hash is available...

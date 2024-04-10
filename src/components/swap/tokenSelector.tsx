@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from "next/image";
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { useAtom } from 'jotai';
 //typs
 import { IPool } from '@/types/maya'; 
@@ -17,6 +18,7 @@ type PropsType = {
 }
 
 const TokenSelector = (props: PropsType) => {
+
   const [pools,] = useAtom(poolsAtom);
   /**
    * when token is selected

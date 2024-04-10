@@ -49,6 +49,17 @@ export const InitialwalletList: WalletType[] = [
   //   selected: false
   // },
 ]
+export const SUPPORTED_POOLS: string[] = [
+  "BTC.BTC",
+  "ETH.ETH",
+  "KUJI.KUJI",
+  "KUJI.USK",
+  "DASH.DASH",
+  "THOR.RUNE",
+  "ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7",
+  "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48",
+  "ETH.WSTETH-0X7F39C581F595B53C5CB19BD0B3F8DA6C935E2CA0"
+]
 /**
  * chain data
  */

@@ -1,8 +1,10 @@
 "use client"
 import React from 'react';
 import { Dropdown } from 'flowbite-react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
+import Image from "next/image";
 import { useAtom } from "jotai";
+import { Label, TextInput } from 'flowbite-react';
 //atoms
 import {
   mainPoolsAtom,
@@ -24,6 +26,12 @@ interface IProps{
 
 
 const Header = ({setKeyword, keyword, onlyMyPools, setOnlyMyPools, sort, setSort}: IProps) => {
+  //atoms
+  const [pools, ] = useAtom(mainPoolsAtom);
+  const [tokenPrices, ] = useAtom(tokenPricesAtom);
+  const [selectedPool, setSelectedPool] = React.useState<IPool | undefined>();
+  //state
+ 
   /**
    * render Sort condition dropdown
    * @returns ReactNode

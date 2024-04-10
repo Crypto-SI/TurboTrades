@@ -1,7 +1,8 @@
 import React from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import Image from "next/image";
 import { IPool } from '@/types/maya';
+import { fromTokenAtom } from '@/store';
 
 interface IProps {
   onOK: () => void,

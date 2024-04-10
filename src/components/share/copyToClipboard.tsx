@@ -1,6 +1,6 @@
 "use client"
 import React from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { copyToClipboard } from '@/utils/methods';
 import { setConfig } from 'next/config';
 import { Tooltip } from 'flowbite-react';

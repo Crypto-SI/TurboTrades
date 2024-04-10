@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import ClipboardCopier from '@/components/share/copyToClipboard';
 import { _feeEstimation, _reduceHash, reduceAddress, reduceAmount, sleep, CHAINS } from '@/utils/methods';
 import useNotification from '@/hooks/useNotification';
@@ -35,7 +35,7 @@ const StepperItem = ({ token, hash, stepper, setStepper }: IParamsStepItem) => {
     for (let i = 0; i < 10; i++) {
       try {
         const _txResult: TxResult = await CHAINS[token.chain].getTransaction(outboundHash);
-        //console.logg(_txResult)
+        console.log(_txResult)
         setTxResult(_txResult);
         break;
       } catch (err) { }
@@ -66,7 +66,7 @@ const StepperItem = ({ token, hash, stepper, setStepper }: IParamsStepItem) => {
         setStatus(STATUS.FAILED);
         setStepper(STATUS.FAILED);
       } else if (_action.type === "withdraw" && internalStatus.current === STATUS.PENDING) { 
-        //console.logg(_action)
+        console.log(_action)
         const _timeEstimation = outboundConfirmTimeEstimation(token.chain);
         setBlockHeight(_action.height);
 
@@ -79,20 +79,20 @@ const StepperItem = ({ token, hash, stepper, setStepper }: IParamsStepItem) => {
         internalStatus.current = STATUS.SUCCESS;
       } else if (_action.type === "withdraw" && _action.status === STATUS.SUCCESS) {
         if (_action.out.length !== 2) throw "not yet outbound transaction";
-        //console.logg("withdraw success");
+        console.log("withdraw success");
         setOutboundHash(_action.out[1].txID);
         setMayaMessage(`${token.ticker}/CACAO reached by maya block ${_action.height}`);
         // setMayaResult(_action);
       }
     } catch (err) {
-      //console.logg("@Ex get transaction from MAYA ---->", err);
+      console.log("@Ex get transaction from MAYA ---->", err);
     }
   }
   //when estimation is under 0
   React.useEffect(() => {
     if (counter <= 0) {
       // setCounter (timeEstimation);
-      clearInterval(timerRef.current as NodeJS.Timeout);
+      // clearInterval(timerRef.current as NodeJS.Timeout);
     }
   }, [counter]);
   //2. when status is changed to PENDIND, and hash is available...
@@ -123,6 +123,11 @@ const StepperItem = ({ token, hash, stepper, setStepper }: IParamsStepItem) => {
   }, [stepper]);
   //render counter
   const _renderCounter = React.useMemo(() => {
+
+    if (counter <= 0) {
+      return '00:00:00'
+    }
+
     let _hour : number | string = Math.floor(counter / 3600);
     let _minute : number | string = Math.floor((counter % 3600) / 60);
     let _second : number | string = (counter % 3600) % 60;

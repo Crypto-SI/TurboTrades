@@ -2,7 +2,7 @@
 import Image from "next/image";
 import React from 'react';
 import { useTheme } from "next-themes";
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { useAtom } from "jotai";
 import { Dropdown } from 'flowbite-react';
 //atom from store
@@ -20,6 +20,9 @@ import { IWallet } from '@/types/minis';
 import { CHAIN_DATA } from '@/utils/data';
 import { reduceAmount } from "@/utils/methods";
 //hooks
+// import useXChain from '@/hooks/useXChain';
+// import useXDefi from '@/hooks/useXDefiWallet';
+// import useMetamask from "@/hooks/useMetamask";
 import useAutoConnect from "@/hooks/useAutoConnect";
 
 const Header = () => {
@@ -32,6 +35,7 @@ const Header = () => {
   const [, setCurrentModalType] = useAtom(currentModalTypeAtom);
   const [isConnecting] = useAtom(isConnectingAtom);
   const [xBalances] = useAtom(xBalancesAtom);
+  const [wallet] = useAtom(walletAtom);//current wallet
   const [curBalance, setCurBalance] = useAtom(curBalanceAtom);
   //hooks
   const { theme } = useTheme();

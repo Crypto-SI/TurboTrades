@@ -2,8 +2,11 @@
 import React from 'react';
 import ApexCharts from 'react-apexcharts';
 import Image from 'next/image';
-import { Icon } from '@iconify/react';
-import { useRouter } from 'next/navigation';
+import { Icon } from '@iconify/react/dist/iconify.js';
+import { useRouter } from 'next/navigation'
+//flowbites
+import { Dropdown } from 'flowbite-react';
+import { Button } from 'flowbite-react';
 //types
 import { IPool, ILP, IDepthPriceHistory } from '@/types/maya';
 import { reduceAmount } from '@/utils/methods';

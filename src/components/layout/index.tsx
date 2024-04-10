@@ -4,10 +4,12 @@ import HeaderLoader from '@/components/layout/header/loader';
 import SiderLoader from '@/components/layout/sider/loader';
 
 const Sider = dynamic(() => import("@/components/layout/sider"), { 
+  ssr: false,
   loading: () => <SiderLoader/> 
 });
 
 const Header = dynamic(() => import("@/components/layout/header"), { 
+  ssr: false,
   loading: () => <HeaderLoader/>
 });
 

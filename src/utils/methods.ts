@@ -1,4 +1,6 @@
 "use client"
+//@ts-ignore
+// const rskUtils = require("@rsksmart/rsk-utils");
 import { ChainType, WalletType, TxResult, IChainData } from "@/types";
 import BigNumber from 'bignumber.js';
 import { FEE_ESTIMATIONS, FEE_URLS } from "./data";
@@ -124,7 +126,7 @@ export const readDataFromFile = (file: File) => new Promise((resolve, reject) =>
       const _json = JSON.parse(reader.result as string);
       resolve (_json);
     } catch (err) {
-      //console.logg("@dew1204/invalid keystore file ---------->");
+      console.log("@dew1204/invalid keystore file ---------->");
       reject ("Invalid keystore file, Please use another file");
     }
   }
@@ -315,7 +317,7 @@ export const CHAINS: Record<string, IChainData> = {
         }
         return Promise.resolve(txResult);
       } catch (err) {
-        //console.logg(err)
+        console.log(err)
         return Promise.reject(undefined);
       }
     }

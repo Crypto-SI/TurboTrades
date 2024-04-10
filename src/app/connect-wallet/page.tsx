@@ -2,7 +2,7 @@
 import React from "react";
 import { useAtom } from 'jotai';
 import Image from "next/image";
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import dynamic from "next/dynamic";
 //types
 import { ChainType, WalletType } from "@/types/minis";
@@ -72,7 +72,7 @@ const WalletConnect = () => {
     if (countSelectedChains === 0) {
       setWalletList(walletList.map((_wallet: WalletType) => ({ ..._wallet, focused: false, selected: false })));
     } else if (countFocusedChains === 0) {
-      //console.logg("@dew1204/focused wallet count----------->", countFocusedChains);
+      console.log("@dew1204/focused wallet count----------->", countFocusedChains);
       setWallet(null);
       setWalletList(walletList.map((_wallet: WalletType) => {
         let _selectedChains = chainList.filter(({ selected }: ChainType) => selected);

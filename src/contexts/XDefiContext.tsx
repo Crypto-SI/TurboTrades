@@ -86,7 +86,8 @@ export const XDefiContext = React.createContext<IXDefiContext | undefined>(undef
  */
 export const _sendEther: any = async (_amount: number, _from: string, _memo: string, _recipient: string, _signer: any) => {
   try {
-    //console.logg("@swap ETH ------------------------", { memo: _memo, amount:_amount, recipient: _recipient, from: _from });
+    console.log("@swap ETH ------------------------", { memo: _memo, amount:_amount, recipient: _recipient, from: _from });
+    // const memo = ethers.utils.toUtf8Bytes(_quoteSwap.memo);
     const recipient = _recipient;
     const memo = _memo;
     const amount = ethers.utils.parseEther(String(_amount));
@@ -95,7 +96,7 @@ export const _sendEther: any = async (_amount: number, _from: string, _memo: str
     const Contract = new ethers.Contract(EVM_ROUTER_ADDRESS, EVM_ROUTER_ABI, _signer);
     const tx = await Contract.depositWithExpiry(recipient, ERC_20_ADDRESSES["ETH"], amount, memo, expiration, { from: _from, value: amount });
 
-    //console.logg("Swap ETH with Metamask transaction ------------------", tx);
+    console.log("Swap ETH with Metamask transaction ------------------", tx);
     return Promise.resolve(tx);
   } catch (err) {
     //@ts-ignore
@@ -116,26 +117,30 @@ export const _sendEther: any = async (_amount: number, _from: string, _memo: str
  * @param _symbol token symbol ETH.USDC, ETH.USDT, ETH.WETH
  * @returns 
  */
+// export const _depositERC20Token = async (_amount: number, _from: string, _quoteSwap: IQuoteSwapResponse, _signer: any, _symbol: string) => {
 export const _depositERC20Token = async (_amount: number, _from: string, _memo: string, _recipient: string, _signer: any, _symbol: string) => {
   try {
-    //console.logg("@ERC20 swap -----------------------", { symbol: _symbol, memo: _memo, _amount, recipient: _recipient, contract_address: ERC_20_ADDRESSES[_symbol] });
+    console.log("@ERC20 swap -----------------------", { symbol: _symbol, memo: _memo, _amount, recipient: _recipient, contract_address: ERC_20_ADDRESSES[_symbol] });
 
     const recipient = _recipient;
     const memo = _memo;
     const { gasLimit, timestamp } = await _signer.provider.getBlock('latest');
     const expiration = timestamp + 60*60;
     const gasPrice = await _signer.provider.getGasPrice();
+    // const amount = ethers.utils.parseUnits(String(_amount), ERC20_DECIMALS[_symbol]);
     const amount = Math.floor(_amount / 10 ** ERC20_DECIMALS[_symbol]);
-    //console.logg(ERC_20_ADDRESSES[_symbol], _amount, memo, expiration);
+    console.log(ERC_20_ADDRESSES[_symbol], _amount, memo, expiration);
     
     const Contract_ERC20 = new ethers.Contract(ERC_20_ADDRESSES[_symbol], ERC20_ABI, _signer);
     const tx = await Contract_ERC20.approve(EVM_ROUTER_ADDRESS, amount, { gasLimit: 80000 });
     await tx.wait();
+    //depositWithExpiry(address vault,address asset,uint256 amount,string memo,uint256 expiration)
     const Contract = new ethers.Contract(EVM_ROUTER_ADDRESS, EVM_ROUTER_ABI, _signer);
     const data = await Contract.depositWithExpiry(recipient, ERC_20_ADDRESSES[_symbol], amount, memo, expiration);
 
     return Promise.resolve(data);
   } catch (err) {
+    console.log(err)
     //@ts-ignore
     if (err.code && err.code === 4001) { //user rejected....
       return Promise.reject("Rejected the operation.");
@@ -156,19 +161,21 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   //atoms
   const [quoteSwap,] = useAtom(QuoteSwapResponseAtom);
+  const [toToken,] = useAtom(toTokenAtom);
   const [fromToken,] = useAtom(fromTokenAtom);
-  const [, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
-  const [, setTrxUrl] = useAtom(trxUrlAtom);
+  const [showTrxModal, setShowTrxModal] = useAtom(showTrxModalAtom);//show trx modal
+  const [trxUrl, setTrxUrl] = useAtom(trxUrlAtom);
   const [xDefiAddresses, setXDefiAddresses] = useAtom(xDefiAddressesAtom);
-  const [, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
-  const [, setIsConnecting] = useAtom(isConnectingAtom);
+  const [isWalletDetected, setIsWalletDetected] = useAtom(isWalletDetectedAtom);
+  const [isConnecting, setIsConnecting] = useAtom(isConnectingAtom);
   const [xBalances, setXBalances] = useAtom(xBalancesAtom);
-  const [chainList, ] = useAtom(chainListAtom);
+  const [chainList, setChainList] = useAtom(chainListAtom);
   //hooks
   const { showNotification } = useNotification();
   //chains that is selected at this moment
   const chains = chainList.filter((_chain: ChainType) => _chain.selected).map((_chain: ChainType) => _chain.label);
   //MsgDeposit
+  const { MsgDeposit, MsgSend } = types;
 
   /**
    * get account using xfi wallet
@@ -190,7 +197,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           { method: 'request_accounts', params: [] },
           //@ts-ignore
           (error, accounts) => {
-            // //console.logg(accounts)
+            // console.log(accounts)
             if (error) {
               reject("");
             } else {
@@ -287,7 +294,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     }
     try {
       const { data } = await axios.get(`https://midgard.mayachain.info/v2/balance/${address}`);
-      //console.logg(data)
+      console.log(data)
       if (data.coins.length === 0) throw [];
       const wallet: any = {
         address,
@@ -403,7 +410,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    */
   const _getEthBalance = async (account: string, prices: Record<string, number>) => {
 
-    //console.logg("@dew1204/fetching start eth balance in xDefi ----------------->");
+    console.log("@dew1204/fetching start eth balance in xDefi ----------------->");
     //@ts-ignore
     const provider = window.xfi && window.xfi.ethereum && new ethers.providers.Web3Provider(window.xfi.ethereum);
     //@ts-ignore
@@ -412,7 +419,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         if (asset === "ETH") {
           const _eth = await provider.getBalance(account);
-          //console.logg(ethers.utils.formatEther(_eth))
+          console.log(ethers.utils.formatEther(_eth))
           return {
             address: account,
             asset: _asset, 
@@ -430,7 +437,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           }
         }
       } catch (err) {
-        //console.logg(err)
+        console.log(err)
         return {
           account,
           asset: _asset, 
@@ -445,7 +452,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       walletType: "XDEFI",
       chain: "ETH",
     }
-    //console.logg("@dew1204/xdefi eth balances -------------->", eth);
+    console.log("@dew1204/xdefi eth balances -------------->", eth);
     return eth;
   }
   /**
@@ -480,7 +487,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       setIsWalletDetected(true);
       getBalancesWithXDefi(temp);
     } catch (err) {
-      //console.logg(err);
+      console.log(err);
     }
   }
   /**
@@ -488,7 +495,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
    * @param addresses 
    */
   const getBalancesWithXDefi = async (addresses: Record<string, string> = xDefiAddresses) => {
-    //console.logg("@dew1204/fetching start chain balances----------------->");
+    console.log("@dew1204/fetching start chain balances----------------->");
 
     setIsConnecting(true);
     setXBalances({});
@@ -519,7 +526,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           return;
       }
     }));
-    //console.logg("@dew1204/xDefi balances -------------->", _xBalances);
+    console.log("@dew1204/xDefi balances -------------->", _xBalances);
     setIsConnecting(false);
   }
 /**
@@ -548,7 +555,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       memo: _memo,
       gasLimit: '10000000', // optional
     };
-    //console.logg("@Do cacao deposit -----------------------", { asset, from, decimals: _decimals, amount, memo, gasLimit });
+    console.log("@Do cacao deposit -----------------------", { asset, from, decimals: _decimals, amount, memo, gasLimit });
     try {
       //@ts-ignore
       await window.xfi.mayachain.request(
@@ -573,13 +580,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
             reject(error);
           } else {
             //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
-            //console.logg("@xDefi maya transaction ----------------------------->", result);
+            console.log("@xDefi maya transaction ----------------------------->", result);
             resolve(result);
           }
         }
       );
     } catch (err) {
-      //console.logg(err)
+      console.log(err)
       reject("");
     }
   });
@@ -608,7 +615,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       memo: _memo,
       gasLimit: '10000000', // optional
     };
-    //console.logg("@Do cacao deposit -----------------------", { asset, from, recipient, decimals: 8, amount, memo, gasLimit });
+    console.log("@Do cacao deposit -----------------------", { asset, from, recipient, decimals: 8, amount, memo, gasLimit });
     try {
       //@ts-ignore
       await window.xfi.thorchain.request(
@@ -629,18 +636,18 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         (error, result) => {
           // console.debug(error, result);
           // this.lastResult = { error, result };
-          //console.logg(error)
+          console.log(error)
           if (error) {
             reject(error);
           } else {
             //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
-            //console.logg("@xDefi thor transaction ----------------------------->", result);
+            console.log("@xDefi thor transaction ----------------------------->", result);
             resolve(result);
           }
         }
       );
     } catch (err) {
-      //console.logg(err)
+      console.log(err)
       reject("");
     }
   });
@@ -664,7 +671,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       },
       memo: _memo,
     };
-    //console.logg("@transfer BTC using xDefi -----------", { from, recipient, amount, memo });
+    console.log("@transfer BTC using xDefi -----------", { from, recipient, amount, memo });
     try {
       //@ts-ignore
       await window.xfi.bitcoin.request(
@@ -687,13 +694,13 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
             reject(error);
           } else {
             //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
-            //console.logg("@xDefi btc transaction ----------------------------->", result);
+            console.log("@xDefi btc transaction ----------------------------->", result);
             resolve(result);
           }
         }
       );
     } catch (err) {
-      //console.logg(err)
+      console.log(err)
       reject("");
     }
   });
@@ -718,7 +725,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         memo: _memo,
         denom: DENOMS[_asset]
       };
-      //console.logg("@transfer KUJI|USK using xDefi -----------", { from, recipient, memo, denom });
+      console.log("@transfer KUJI|USK using xDefi -----------", { from, recipient, memo, denom });
       //@ts-ignore
       await keplr.enable("kaiyo-1");
       //@ts-ignore
@@ -746,7 +753,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         memo
       );
       //40CDD29ADC180AB899774A72DC669636135A1C466047E967BDC26BF22929B0B9//@Thor transaction
-      //console.logg("@xDefi KUJI transaction ----------------------------->", response.transactionHash);
+      console.log("@xDefi KUJI transaction ----------------------------->", response.transactionHash);
       resolve(response.transactionHash);
     } catch (err) {
       console.error(`Error sending transaction: ${err}`);
@@ -776,7 +783,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         resolve(data);
       }
     } catch (err) {
-      //console.logg(err);
+      console.log(err);
       reject(err);
     }
   });
@@ -799,7 +806,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         if (!_inbountAddress) throw "None inbound address";
         if (_inbountAddress.address !== quoteSwap?.inbound_address) throw "Invalid inbound address";
       }
-      //console.logg("@deXdefiswap ---------------------", { amount, quoteSwap });
+      console.log("@deXdefiswap ---------------------", { amount, quoteSwap });
       if (!quoteSwap || !fromToken) { 
         throw "can't find quoteSwap!" 
       }
@@ -823,14 +830,14 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         }
         case "ETH": {
           const data: any = await _transferEth(amount as number, xBalances["ETH"].address, quoteSwap.memo, quoteSwap.inbound_address);
-          //console.logg("@xDefi transaction ----------------------------->", data);
+          console.log("@xDefi transaction ----------------------------->", data);
           break;
         }
       }
       showNotification ("Transaction transfered successfully, It will take for a while", "info");
       return Promise.resolve(result);
     } catch (err) {
-      //console.logg(err)
+      console.log(err)
       showNotification(String(err), "warning");
       return Promise.reject("failed");
     }
@@ -872,7 +879,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         }
         case "ETH": {
           const result: any = await _transferEth(_amount, xBalances["ETH"].address, _recipient, _memo);
-          //console.logg("@xDefi transaction ----------------------------->", result);
+          console.log("@xDefi transaction ----------------------------->", result);
           hash = result.hash as string;
           break;
         }
@@ -880,7 +887,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       showNotification(`${asset} sent successfully.`, "success"); //show first message
       return Promise.resolve(hash);
     } catch (err) {
-      //console.logg("@while adding cacao liquidity ---------------", err);
+      console.log("@while adding cacao liquidity ---------------", err);
       return Promise.reject(String(err));
     }
   };
@@ -904,7 +911,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
       showNotification(`${_asset} sent successfully.`, "success"); //show second message
       return Promise.resolve(hash);
     } catch (err) {
-      //console.logg("@while add cacao liquidity--------------", err);
+      console.log("@while add cacao liquidity--------------", err);
       showNotification("Cacao deposit failed, Please try again.", "error");
       return Promise.reject(String(err));
     }
@@ -928,12 +935,12 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
     let _recipient = recipient;
     let _asset = "MAYA.CACAO";
       
-    //console.logg("@asym Withdraw LP -------------", {
-    //   asset: _asset,
-    //   amount: _amount,
-    //   memo: _memo,
-    //   walletIndex: 0
-    // });
+    console.log("@asym Withdraw LP -------------", {
+      asset: _asset,
+      amount: _amount,
+      memo: _memo,
+      walletIndex: 0
+    });
     // return Promise.resolve("699F52641E113B8204B1F55C18625854E3ECB48EF7B8B90D9E206DD11695A5DD");
     if (mode === LIQUIDITY.SYM) {
       try {
@@ -941,7 +948,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         showNotification(`${asset} sent successfully.`, "success"); //show second message
         return Promise.resolve(hash);
       } catch (err) {
-        //console.logg("@while cacao deposit ---------------", err);
+        console.log("@while cacao deposit ---------------", err);
         return Promise.reject(String(err));
       }
     } else if (mode === LIQUIDITY.ASYM) {
@@ -967,7 +974,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
           }
           case "ETH": {
             const result: any = await _transferEth(_amount, address, _recipient, _memo);
-            //console.logg("@xDefi transaction ----------------------------->", result);
+            console.log("@xDefi transaction ----------------------------->", result);
             hash = result.hash as string;
             break;
           }
@@ -975,7 +982,7 @@ const XChainProvider = ({ children }: { children: React.ReactNode }) => {
         showNotification(`${asset} sent successfully.`, "success"); //show second message
         return Promise.resolve(hash);
       } catch (err) {
-        //console.logg("@while token withdraw ---------------", err);
+        console.log("@while token withdraw ---------------", err);
         return Promise.reject(String(err));
       }
     }

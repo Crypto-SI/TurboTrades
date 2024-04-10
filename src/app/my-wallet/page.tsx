@@ -1,7 +1,7 @@
 "use client"
 import React from 'react';
 import Image from "next/image";
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { Tooltip } from 'flowbite-react';
 import { useAtom } from 'jotai';
 import { IBalance } from '@/types/minis';
@@ -62,7 +62,7 @@ const Home = () => {
         await getBalanceWithMetamask ();
       } 
     } catch (err) {
-      //console.logg(err)
+      console.log(err)
     } finally {
       setIsRefreshing(false);
     }

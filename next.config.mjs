@@ -2,8 +2,10 @@
 const nextConfig = {
   "output": "export",
   reactStrictMode: false,
+  
   webpack: (config) => {
     config.resolve.fallback = { fs: false };
+    config.watchOptions = { poll: 1000, aggregateTimeout: 500 };
     return config;
   },
   images: {

@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import axios from 'axios';
 // import LiquidityChart from '@/components/liquidity/liquidityCard';
 const LiqudityChart  = dynamic(() => import("@/components/liquidity/liquidityCard"), { ssr: false });
-const Header = dynamic(() => import("@/components/liquidity/liquiditiesHeader"), {ssr:false});
+const Header = dynamic(() => import("@/components/liquidity/liquiditiesHeader"), { ssr:false });
 //atoms
 import { 
   mainPoolsAtom,

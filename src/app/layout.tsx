@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import React from 'react';
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Layout from "@/components/layout";
 import { Provider as JotaiProvider } from "jotai";
-import Providers from "@/utils/Providers";
+import Layout from "@/components/layout";
+// import Providers from "@/utils/Providers";
+import dynamic from "next/dynamic";
+const Providers = dynamic(() => import ("@/utils/Providers"), {ssr:false});
 
 const inter = Inter({ subsets: ["latin"] });
 

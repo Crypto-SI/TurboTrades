@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import ClipboardCopier from '@/components/share/copyToClipboard';
 import { _feeEstimation, _reduceHash, reduceAddress, reduceAmount, sleep, CHAINS } from '@/utils/methods';
 import useNotification from '@/hooks/useNotification';
@@ -51,21 +51,21 @@ const StepperItem = ({ token, hash, mode, stepper, setStepper }: IParamsStepItem
         setStatus(STATUS.FAILED);
         setStepper(STATUS.FAILED);
       } else if (_action.type === "addLiquidity" && internalStatus.current === STATUS.PENDING) { 
-        //console.logg("maya action is pending...");
+        console.log("maya action is pending...");
         setBlockHeight(_action.height);
         internalStatus.current = STATUS.SUCCESS;
       } else if (_action.type === "addLiquidity" && _action.status === STATUS.SUCCESS) {
         setMayaResult(_action);
       }
     } catch (err) {
-      //console.logg("@Ex get transaction from MAYA ---->", err);
+      console.log("@Ex get transaction from MAYA ---->", err);
     }
   }
   //when estimation is under 0
   React.useEffect(() => {
     if (counter <= 0) {
       // setCounter (timeEstimation);
-      clearInterval(timerRef.current as NodeJS.Timeout);
+      // clearInterval(timerRef.current as NodeJS.Timeout);
     }
   }, [counter]);
   //2. when status is changed to PENDIND, and hash is available...
@@ -98,6 +98,11 @@ const StepperItem = ({ token, hash, mode, stepper, setStepper }: IParamsStepItem
   }, [stepper]);
   //render counter
   const _renderCounter = React.useMemo(() => {
+
+    if (counter <= 0) {
+      return '00:00:00'
+    }
+
     let _hour : number | string = Math.floor(counter / 3600);
     let _minute : number | string = Math.floor((counter % 3600) / 60);
     let _second : number | string = (counter % 3600) % 60;

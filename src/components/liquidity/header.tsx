@@ -1,7 +1,7 @@
 "use client"
 import React from 'react';
 import { Dropdown } from 'flowbite-react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import Image from "next/image";
 import { useAtom } from "jotai";
 //atoms

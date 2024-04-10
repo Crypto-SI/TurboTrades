@@ -1,5 +1,5 @@
 import React, { InputHTMLAttributes } from 'react';
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { useAtom } from 'jotai';
 import useNotification from '@/hooks/useNotification';
 import downloadjs from 'downloadjs';
@@ -45,6 +45,7 @@ const ImportPhrase = () => {
       if (!validatePhrase(phrase)) throw "Invalid phrase, Please retry.";
 
       const keystore = await encryptToKeyStore(phrase, password).catch((err: any) => {
+        console.log("@dew1204/err in creating keystore from phrase ---------------->", err);
         throw "Failed to create keystore from phrase, Please retry.";
       });
       downloadjs(JSON.stringify(keystore, null, 4), "keystore-f7sx-turbo.json");

@@ -2,7 +2,7 @@
 import React from 'react';
 import axios from "axios";
 import Image from "next/image";
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { useTheme } from "next-themes";
 
 const Savers = () => {

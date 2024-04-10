@@ -4,11 +4,11 @@ import { useAtom } from 'jotai';
 import dynamic from 'next/dynamic';
 import axios from "axios";
 import Image from "next/image";
-import { Icon } from '@iconify/react';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import SwapConfirm from '@/components/swap/swapConfirm';
 //data
 import {
-  TOKEN_DATA, FEE_ESTIMATIONS, NATIVE_TOKENS
+  TOKEN_DATA, FEE_ESTIMATIONS, NATIVE_TOKENS, SUPPORTED_POOLS
 } from "@/utils/data";
 import { STATUS, LIQUIDITY } from '@/utils/constants';
 //atoms
@@ -33,9 +33,9 @@ import useXChain from "@/hooks/useXChain";
 import useXDefi from "@/hooks/useXDefiWallet";
 import useMetamask from "@/hooks/useMetamask";
 //trxModal
-import TransactionModal from "@/components/swap/transactionModal";
+const TransactionModal = dynamic(() => import("@/components/swap/transactionModal"));
 //components
-import ProgressModal from '@/components/swap/progressModal/index';
+const ProgressModal = dynamic(() => import('@/components/swap/progressModal/index'));
 const TokenSelector = dynamic(() => import("@/components/swap/tokenSelector"));
 //router
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -120,8 +120,8 @@ const Swap = () => {
         _prices["MAYA.CACAO"] =  _cacao.data.cacaoPriceUSD; //cacao token price with USD
 
         const { data } = await axios.get("https://midgard.mayachain.info/v2/pools");
-        // //console.logg("@fetched pools from maya ---------------------", data);
-        const _pools: IPool[] = data.map((item: any) => {
+        console.log("@fetched pools from maya ---------------------", data);
+        const _pools: IPool[] = data.filter((_pool: any) => SUPPORTED_POOLS.includes(_pool.asset)).map((item: any) => {
           const { asset } = item;
           _prices[asset] =  item.assetPriceUSD; //token price with USD
           return {
@@ -135,7 +135,7 @@ const Swap = () => {
             member: []
           }
         });
-        const _synPools: IPool[] = data.map((item: any) => {
+        const _synPools: IPool[] = data.filter((_pool: any) => SUPPORTED_POOLS.includes(_pool.asset)).map((item: any) => {
           const { asset } = item;
           _prices[asset.replace(".", "/")] =  item.assetPriceUSD; //token price with USD
           return {
@@ -157,7 +157,7 @@ const Swap = () => {
           router.push('?from=BTC.BTC&to=MAYA.CACAO');
         }
       } catch (err) {
-        // //console.logg("@error fetching pools ------------------------", err);
+        console.log("@error fetching pools ------------------------", err);
       }
     }
     init ();
@@ -274,7 +274,7 @@ const Swap = () => {
     const decimals = _decimals(fromToken as IPool);
     let amount: any = Math.floor(Number(fromAmount)*decimals);
     amount = amount.toLocaleString('fullwide', {useGrouping:false});
-    const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&affiliate_bps=75&affiliate=ttt&amount=${amount}${_des}`);
+    const { data } = await axios.get(`https://mayanode.mayachain.info/mayachain/quote/swap?from_asset=${fromToken?.asset}&to_asset=${toToken?.asset}&affiliate_bps=75&affiliate=tt&amount=${amount}${_des}`);
     if (data.error) {
       setError(data.error);
       setQuoteSwapResponse(undefined);
@@ -329,7 +329,7 @@ const Swap = () => {
     //   setShowConfirmModal(false);
     //   setShowProgressModal (true);
     //   setIsSwaping (true);
-    //   // //console.logg("@token pairs ------------------->", { fromToken, toToken });
+    //   // console.log("@token pairs ------------------->", { fromToken, toToken });
     //   // // do swap with several wallets
     //   // let hash: string = "";
     //   // if (wallet?.name === "Keystore") {
@@ -368,11 +368,11 @@ const Swap = () => {
     const _fee: number = await _feeEstimation (_chain);
 
     if (NATIVE_TOKENS[_chain] === _asset) { // if current asset is native asset of chain.. ETH.ETH, DASH.DASH...
-      // //console.logg("@fee estimation ----------", _asset, { balance: _remain, require: _fee, gap: _remain - _fee });
+      console.log("@fee estimation ----------", _asset, { balance: _remain, require: _fee, gap: _remain - _fee });
       // return _remain > FEE_ESTIMATIONS[_chain];
       return _remain > _fee;
     } else {
-      //console.logg("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: _fee, gap: xBalances[_chain].balance[0].amount as number - _fee })
+      console.log("@fee estimation ----------", NATIVE_TOKENS[_chain], { balance: xBalances[_chain].balance[0].amount, require: _fee, gap: xBalances[_chain].balance[0].amount as number - _fee })
       return xBalances[_chain].balance[0].amount as number > _fee;
       // return xBalances[_chain].balance[0].amount as number > FEE_ESTIMATIONS[_chain];
     }
@@ -395,11 +395,11 @@ const Swap = () => {
       const _balanceTemp = xBalances[String(fromToken?.chain)].balance.find((item: IBalance) => item.asset === String(fromToken?.asset).split("-")[0]);
       const _balance: number = _balanceTemp ? _balanceTemp.amount as number: 0;
 
-      //console.logg(fromToken?.asset);
+      console.log(fromToken?.asset);
       if (fromToken?.asset === "DASH.DASH" || fromToken?.asset === "BTC.BTC") {
         if (Number(fromAmount) < 0.0001) throw "Amount to swap must be greater than the dust threshold value (0.0001). Don't set your transaction amount too low, as transactions that are too small may be refunded.";
       }
-      //console.logg("@balance estimation ------------->", { balance: _balance, amount: fromAmount, gap: _balance - Number(fromAmount) });
+      console.log("@balance estimation ------------->", { balance: _balance, amount: fromAmount, gap: _balance - Number(fromAmount) });
       if (_balance < Number(fromAmount)) {
         throw "Insufficient Balance.";
       }
@@ -423,7 +423,7 @@ const Swap = () => {
       setShowConfirmModal(false);
       setShowProgressModal (true);
       setIsSwaping (true);
-      //console.logg("@token pairs ------------------->", { fromToken, toToken });
+      console.log("@token pairs ------------------->", { fromToken, toToken });
       // do swap with several wallets
       let hash: string = "";
       if (wallet?.name === "Keystore") {
